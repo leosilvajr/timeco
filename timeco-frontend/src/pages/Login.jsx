@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { User, Lock, Eye, EyeOff, Sparkles, LogIn } from 'lucide-react';
+import { Trophy, User, Lock, Eye, EyeOff, Sparkles, LogIn } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
@@ -35,7 +35,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-500 to-yellow-400 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center p-4 relative overflow-hidden">
       {/* Floating particles */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(20)].map((_, i) => (
@@ -73,23 +73,10 @@ const Login = () => {
               transition={{ type: "spring", duration: 0.5 }}
               className="relative inline-block mb-4"
             >
-              <svg className="w-16 h-16 mx-auto" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="32" cy="32" r="30" fill="url(#ballGradient)" stroke="#1a1a1a" strokeWidth="2"/>
-                <path d="M32 2C32 2 38 12 38 22C38 32 32 42 32 42C32 42 26 32 26 22C26 12 32 2 32 2Z" fill="white" fillOpacity="0.9"/>
-                <path d="M32 62C32 62 38 52 38 42C38 32 32 22 32 22C32 22 26 32 26 42C26 52 32 62 32 62Z" fill="white" fillOpacity="0.9"/>
-                <path d="M2 32C2 32 12 38 22 38C32 38 42 32 42 32C42 32 32 26 22 26C12 26 2 32 2 32Z" fill="white" fillOpacity="0.9"/>
-                <path d="M62 32C62 32 52 38 42 38C32 38 22 32 22 32C22 32 32 26 42 26C52 26 62 32 62 32Z" fill="white" fillOpacity="0.9"/>
-                <circle cx="32" cy="32" r="8" fill="white" fillOpacity="0.9"/>
-                <defs>
-                  <linearGradient id="ballGradient" x1="0" y1="0" x2="64" y2="64">
-                    <stop offset="0%" stopColor="#16a34a"/>
-                    <stop offset="100%" stopColor="#facc15"/>
-                  </linearGradient>
-                </defs>
-              </svg>
+              <Trophy className="w-16 h-16 text-blue-600 mx-auto" />
               <Sparkles className="w-6 h-6 text-yellow-400 absolute -top-1 -right-1 animate-pulse" />
             </motion.div>
-            <h1 className="text-4xl font-black bg-gradient-to-r from-green-600 via-green-500 to-yellow-500 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent mb-2">
               timeco
             </h1>
             <p className="text-gray-600 font-medium">Acesse sua conta</p>
@@ -106,7 +93,7 @@ const Login = () => {
                   type="text"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-none focus:border-green-500 focus:outline-none focus:ring-4 focus:ring-green-100 transition-all font-medium"
+                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all font-medium"
                   placeholder="Digite seu usuario"
                 />
               </div>
@@ -122,7 +109,7 @@ const Login = () => {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-none focus:border-green-500 focus:outline-none focus:ring-4 focus:ring-green-100 transition-all font-medium"
+                  className="w-full pl-12 pr-12 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none focus:ring-4 focus:ring-purple-100 transition-all font-medium"
                   placeholder="Digite sua senha"
                 />
                 <button
@@ -140,7 +127,7 @@ const Login = () => {
               whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-green-600 via-green-500 to-yellow-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              className="w-full bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70"
             >
               {loading ? (
                 <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-white"></div>
@@ -158,15 +145,15 @@ const Login = () => {
               Nao tem uma conta?{' '}
               <Link
                 to="/register"
-                className="text-green-600 hover:text-green-700 font-semibold transition-colors"
+                className="text-purple-600 hover:text-purple-700 font-semibold transition-colors"
               >
                 Cadastre-se
               </Link>
             </p>
           </div>
 
-          <div className="mt-6 p-4 bg-green-50 rounded-xl">
-            <p className="text-sm text-green-800 font-medium text-center">
+          <div className="mt-6 p-4 bg-blue-50 rounded-xl">
+            <p className="text-sm text-blue-800 font-medium text-center">
               Usuario padrao: <span className="font-bold">admin</span> / Senha: <span className="font-bold">123</span>
             </p>
           </div>
