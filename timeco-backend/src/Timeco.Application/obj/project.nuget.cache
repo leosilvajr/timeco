@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "flb3N9x4rno=",
+  "success": true,
+  "projectFilePath": "C:\\Git\\timeco\\timeco-backend\\src\\Timeco.Application\\Timeco.Application.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Leonardo\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
+    "C:\\Users\\Leonardo\\.nuget\\packages\\fluentvalidation\\11.10.0\\fluentvalidation.11.10.0.nupkg.sha512",
+    "C:\\Users\\Leonardo\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.10.0\\fluentvalidation.dependencyinjectionextensions.11.10.0.nupkg.sha512",
+    "C:\\Users\\Leonardo\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\2.1.0\\microsoft.extensions.dependencyinjection.abstractions.2.1.0.nupkg.sha512"
+  ],
+  "logs": []
+}

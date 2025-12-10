@@ -1,0 +1,16 @@
+C:\Git\timeco\timeco-backend\src\Timeco.Application\bin\Debug\net8.0\Timeco.Application.deps.json
+C:\Git\timeco\timeco-backend\src\Timeco.Application\bin\Debug\net8.0\Timeco.Application.dll
+C:\Git\timeco\timeco-backend\src\Timeco.Application\bin\Debug\net8.0\Timeco.Application.pdb
+C:\Git\timeco\timeco-backend\src\Timeco.Application\bin\Debug\net8.0\Timeco.Domain.dll
+C:\Git\timeco\timeco-backend\src\Timeco.Application\bin\Debug\net8.0\Timeco.Domain.pdb
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.csproj.AssemblyReference.cache
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.GeneratedMSBuildEditorConfig.editorconfig
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.AssemblyInfoInputs.cache
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.AssemblyInfo.cs
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.csproj.CoreCompileInputs.cache
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.sourcelink.json
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.A.10576AD7.Up2Date
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.dll
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\refint\Timeco.Application.dll
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\Timeco.Application.pdb
+C:\Git\timeco\timeco-backend\src\Timeco.Application\obj\Debug\net8.0\ref\Timeco.Application.dll
