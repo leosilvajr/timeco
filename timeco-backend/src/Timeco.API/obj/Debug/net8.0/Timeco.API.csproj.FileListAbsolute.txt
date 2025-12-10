@@ -155,3 +155,4 @@ C:\Git\timeco\timeco-backend\src\Timeco.API\obj\Debug\net8.0\refint\Timeco.API.d
 C:\Git\timeco\timeco-backend\src\Timeco.API\obj\Debug\net8.0\Timeco.API.pdb
 C:\Git\timeco\timeco-backend\src\Timeco.API\obj\Debug\net8.0\Timeco.API.genruntimeconfig.cache
 C:\Git\timeco\timeco-backend\src\Timeco.API\obj\Debug\net8.0\ref\Timeco.API.dll
+C:\Git\timeco\timeco-backend\src\Timeco.API\obj\Debug\net8.0\staticwebassets.upToDateCheck.txt

@@ -9,12 +9,12 @@ public class TimecoDbContext : DbContext
     {
     }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<Sport> Sports { get; set; }
-    public DbSet<Player> Players { get; set; }
-    public DbSet<Game> Games { get; set; }
-    public DbSet<Team> Teams { get; set; }
-    public DbSet<TeamPlayer> TeamPlayers { get; set; }
+    public DbSet<User> Users { get; set; } = null!;
+    public DbSet<Sport> Sports { get; set; } = null!;
+    public DbSet<Player> Players { get; set; } = null!;
+    public DbSet<Game> Games { get; set; } = null!;
+    public DbSet<Team> Teams { get; set; } = null!;
+    public DbSet<TeamPlayer> TeamPlayers { get; set; } = null!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
