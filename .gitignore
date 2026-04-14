@@ -72,6 +72,15 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.docker
+!.env.production
+
+# Expo
+.expo/
+expo-env.d.ts
+
+# Firebase emulator data
+/data/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache

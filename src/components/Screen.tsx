@@ -1,0 +1,67 @@
+import React from 'react';
+import { View, ScrollView, StyleSheet, ViewStyle, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { colors, spacing } from '../constants/theme';
+
+interface Props {
+  children: React.ReactNode;
+  scroll?: boolean;
+  padded?: boolean;
+  style?: ViewStyle;
+  contentStyle?: ViewStyle;
+  keyboardAvoiding?: boolean;
+}
+
+export const Screen: React.FC<Props> = ({
+  children,
+  scroll = true,
+  padded = true,
+  style,
+  contentStyle,
+  keyboardAvoiding = true,
+}) => {
+  const content = (
+    <View
+      style={[
+        { flex: 1 },
+        padded && styles.padded,
+        contentStyle,
+      ]}
+    >
+      {children}
+    </View>
+  );
+  const wrapped = scroll ? (
+    <ScrollView
+      style={{ flex: 1 }}
+      contentContainerStyle={padded ? styles.padded : undefined}
+      keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
+    >
+      {children}
+    </ScrollView>
+  ) : (
+    content
+  );
+  return (
+    <SafeAreaView style={[styles.safe, style]} edges={['top', 'left', 'right']}>
+      {keyboardAvoiding && Platform.OS !== 'web' ? (
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          {wrapped}
+        </KeyboardAvoidingView>
+      ) : (
+        wrapped
+      )}
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  safe: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  padded: {
+    padding: spacing.lg,
+  },
+});

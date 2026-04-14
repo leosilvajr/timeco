@@ -1,0 +1,25 @@
+services:
+  firebase:
+    image: timeco-firebase
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.emulators
+    container_name: timeco-firebase
+    ports:
+      - "4001:4001"   # Emulator UI
+      - "8081:8081"   # Firestore
+      - "9098:9098"   # Auth
+      - "9198:9198"   # Storage
+    volumes:
+      - firebase-data:/data
+      - ./firestore.rules:/app/firestore.rules
+      - ./firestore.indexes.json:/app/firestore.indexes.json
+      - ./storage.rules:/app/storage.rules
+      - ./firebase.json:/app/firebase.json
+    environment:
+      - FIREBASE_PROJECT=timeco-dev
+    restart: unless-stopped
+
+volumes:
+  firebase-data:
+    driver: local
