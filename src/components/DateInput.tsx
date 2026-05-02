@@ -28,8 +28,9 @@ const yearsAgo = (n: number): string => {
 
 /**
  * Input de data cross-platform.
- * - Web: usa <input type="date"> nativo (calendário do navegador).
- * - Native: TextInput com placeholder AAAA-MM-DD (fallback simples).
+ * - Web: renderiza <input type="date"> HTML direto pro calendário nativo
+ *   do navegador (RN Web não propaga `type=date` no TextInput).
+ * - Native: TextInput simples como fallback.
  */
 export const DateInput: React.FC<Props> = ({
   label,
@@ -77,39 +78,44 @@ export const DateInput: React.FC<Props> = ({
     },
   });
 
-  const inputStyle = [styles.input, !!error && styles.inputError];
-
-  // No web, usa input HTML nativo com type="date" (calendário do browser).
-  // O React Native Web aceita props extras via spread.
   const renderInput = () => {
     if (Platform.OS === 'web') {
       const min = mode === 'event' ? today() : yearsAgo(120);
       const max = mode === 'birthdate' ? today() : undefined;
-      // RN Web não tipa as props HTML, então usamos um cast pra passar type/min/max.
-      const webProps = {
+      // Usa <input> HTML direto. RN Web sobrescreve `type` no TextInput,
+      // então spread não funciona.
+      return React.createElement('input', {
         type: 'date',
+        value,
         min,
         max,
-      } as unknown as Record<string, unknown>;
-      return (
-        <TextInput
-          {...webProps}
-          value={value}
-          onChangeText={onChangeText}
-          style={inputStyle}
-          placeholderTextColor={colors.textMuted}
-          placeholder={placeholder}
-        />
-      );
+        onChange: (e: { target: { value: string } }) => onChangeText(e.target.value),
+        placeholder,
+        style: {
+          minHeight: 50,
+          backgroundColor: colors.surface,
+          borderRadius: radius.md,
+          paddingLeft: spacing.md,
+          paddingRight: spacing.md,
+          borderWidth: 1.5,
+          borderStyle: 'solid',
+          borderColor: error ? colors.danger : colors.border,
+          fontSize: 16,
+          color: colors.text,
+          fontFamily: 'inherit',
+          outline: 'none',
+          width: '100%',
+          boxSizing: 'border-box',
+        } as React.CSSProperties,
+      });
     }
-    // Native: textInput simples (futuramente integrar @react-native-community/datetimepicker)
     return (
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
-        style={inputStyle}
+        style={[styles.input, !!error && styles.inputError]}
         keyboardType="numbers-and-punctuation"
       />
     );

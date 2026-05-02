@@ -14,7 +14,7 @@ interface Props {
 }
 
 /**
- * Input de hora cross-platform (web usa <input type="time">).
+ * Input de hora cross-platform (web usa <input type="time"> HTML direto).
  */
 export const TimeInput: React.FC<Props> = ({
   label,
@@ -43,21 +43,30 @@ export const TimeInput: React.FC<Props> = ({
     hint: { marginTop: 4, fontSize: 12, color: colors.textMuted },
   });
 
-  const inputStyle = [styles.input, !!error && styles.inputError];
-
   const renderInput = () => {
     if (Platform.OS === 'web') {
-      const webProps = { type: 'time' } as unknown as Record<string, unknown>;
-      return (
-        <TextInput
-          {...webProps}
-          value={value}
-          onChangeText={onChangeText}
-          style={inputStyle}
-          placeholderTextColor={colors.textMuted}
-          placeholder={placeholder}
-        />
-      );
+      return React.createElement('input', {
+        type: 'time',
+        value,
+        onChange: (e: { target: { value: string } }) => onChangeText(e.target.value),
+        placeholder,
+        style: {
+          minHeight: 50,
+          backgroundColor: colors.surface,
+          borderRadius: radius.md,
+          paddingLeft: spacing.md,
+          paddingRight: spacing.md,
+          borderWidth: 1.5,
+          borderStyle: 'solid',
+          borderColor: error ? colors.danger : colors.border,
+          fontSize: 16,
+          color: colors.text,
+          fontFamily: 'inherit',
+          outline: 'none',
+          width: '100%',
+          boxSizing: 'border-box',
+        } as React.CSSProperties,
+      });
     }
     return (
       <TextInput
@@ -65,7 +74,7 @@ export const TimeInput: React.FC<Props> = ({
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
-        style={inputStyle}
+        style={[styles.input, !!error && styles.inputError]}
         keyboardType="numbers-and-punctuation"
       />
     );
