@@ -78,6 +78,7 @@ export const RatePlayersScreen: React.FC = () => {
         teamsCount: event.teamsCount,
         balanceByAge: event.balanceByAge,
         balanceByHeight: event.balanceByHeight,
+        balanceByWeight: event.balanceByWeight ?? false,
       });
       await saveDrawnTeams(event.id, teams);
       nav.replace('DrawResult', { eventId: event.id });

@@ -11,6 +11,7 @@ export interface DrawOptions {
   teamsCount: number;
   balanceByAge?: boolean;
   balanceByHeight?: boolean;
+  balanceByWeight?: boolean;
 }
 
 const calcAge = (birthDate?: string): number | null => {
@@ -22,8 +23,9 @@ const calcAge = (birthDate?: string): number | null => {
 };
 
 /**
- * Calcula o "peso" do jogador. Estrelas são sempre o fator dominante.
- * Altura e idade ajustam o peso com fatores suaves (~±0.5 estrela).
+ * Calcula o "peso de sorteio" do jogador (não confundir com peso corporal).
+ * Estrelas são sempre o fator dominante. Altura, idade e peso ajustam
+ * com fatores suaves (~±0.5 estrela cada).
  */
 const playerWeight = (p: PlayerWithRating, opts: DrawOptions): number => {
   let weight = p.stars;
@@ -38,6 +40,12 @@ const playerWeight = (p: PlayerWithRating, opts: DrawOptions): number => {
       const penalty = Math.min(0.5, Math.abs(age - 30) * 0.02);
       weight -= penalty;
     }
+  }
+  if (opts.balanceByWeight && p.user.weightKg) {
+    // 75kg = neutro; +/- 0.02 por kg (cada 25kg = 0.5 estrela), capado em ±0.5
+    const delta = (p.user.weightKg - 75) * 0.02;
+    const capped = Math.max(-0.5, Math.min(0.5, delta));
+    weight += capped;
   }
   return Number(weight.toFixed(3));
 };

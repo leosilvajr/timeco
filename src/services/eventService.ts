@@ -27,6 +27,7 @@ export interface CreateEventInput {
   teamsCount: number;
   balanceByAge: boolean;
   balanceByHeight: boolean;
+  balanceByWeight?: boolean;
   invitedUserIds: string[];
   notes?: string;
 }
@@ -46,6 +47,7 @@ export const createEvent = async (input: CreateEventInput): Promise<string> => {
     teamsCount: input.teamsCount,
     balanceByAge: input.balanceByAge,
     balanceByHeight: input.balanceByHeight,
+    balanceByWeight: input.balanceByWeight ?? false,
     invitedUserIds: input.invitedUserIds,
     confirmations,
     status: 'open',

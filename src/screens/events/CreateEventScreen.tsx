@@ -33,6 +33,7 @@ export const CreateEventScreen: React.FC = () => {
   const [teamsCount, setTeamsCount] = useState('2');
   const [balanceByAge, setBalanceByAge] = useState(false);
   const [balanceByHeight, setBalanceByHeight] = useState(false);
+  const [balanceByWeight, setBalanceByWeight] = useState(false);
   const [notes, setNotes] = useState('');
   const [friends, setFriends] = useState<User[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -45,6 +46,7 @@ export const CreateEventScreen: React.FC = () => {
     setTeamsCount(String(cfg.defaultTeamsCount));
     setBalanceByAge(cfg.usesAgeBalance);
     setBalanceByHeight(cfg.usesHeightBalance);
+    setBalanceByWeight(cfg.usesWeightBalance ?? false);
   }, [sport]);
 
   useEffect(() => {
@@ -83,6 +85,7 @@ export const CreateEventScreen: React.FC = () => {
         teamsCount: parseInt(teamsCount, 10) || 2,
         balanceByAge,
         balanceByHeight,
+        balanceByWeight,
         invitedUserIds: Array.from(selected),
         notes: notes.trim() || undefined,
       });
@@ -243,6 +246,12 @@ export const CreateEventScreen: React.FC = () => {
           <Text style={styles.toggleTxt}>📏  Altura</Text>
           <View style={[styles.toggle, balanceByHeight && styles.toggleOn]}>
             {balanceByHeight ? <Text style={styles.toggleCheck}>✓</Text> : null}
+          </View>
+        </Pressable>
+        <Pressable onPress={() => setBalanceByWeight((v) => !v)} style={styles.toggleRow}>
+          <Text style={styles.toggleTxt}>⚖️  Peso (privado)</Text>
+          <View style={[styles.toggle, balanceByWeight && styles.toggleOn]}>
+            {balanceByWeight ? <Text style={styles.toggleCheck}>✓</Text> : null}
           </View>
         </Pressable>
       </Card>

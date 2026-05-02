@@ -8,6 +8,11 @@ export interface SportConfig {
   defaultTeamsCount: number;
   usesHeightBalance: boolean;
   usesAgeBalance: boolean;
+  /**
+   * Se true, o sorteio considera o peso do jogador (quando informado)
+   * como critério adicional. Faz sentido em modalidades de contato.
+   */
+  usesWeightBalance?: boolean;
   /** true se a modalidade é tipicamente 1 contra 1 (2 pessoas no total). */
   isOneVsOne?: boolean;
 }
@@ -21,6 +26,7 @@ export const SPORTS: SportConfig[] = [
     defaultTeamsCount: 2,
     usesHeightBalance: false,
     usesAgeBalance: true,
+    usesWeightBalance: true,
   },
   {
     id: 'futsal',
@@ -30,6 +36,7 @@ export const SPORTS: SportConfig[] = [
     defaultTeamsCount: 2,
     usesHeightBalance: false,
     usesAgeBalance: true,
+    usesWeightBalance: true,
   },
   {
     id: 'volleyball',
@@ -57,6 +64,7 @@ export const SPORTS: SportConfig[] = [
     defaultTeamsCount: 2,
     usesHeightBalance: true,
     usesAgeBalance: true,
+    usesWeightBalance: true,
   },
   {
     id: 'handball',
@@ -66,6 +74,7 @@ export const SPORTS: SportConfig[] = [
     defaultTeamsCount: 2,
     usesHeightBalance: true,
     usesAgeBalance: true,
+    usesWeightBalance: true,
   },
   // ============ 1 contra 1 ============
   {

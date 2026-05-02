@@ -122,4 +122,76 @@ describe('drawTeams', () => {
       expect(team0HasHigh && team1HasHigh).toBe(true);
     });
   });
+
+  describe('balanceByWeight', () => {
+    it('separa jogadores pesados em times diferentes', () => {
+      const players: PlayerWithRating[] = [
+        { user: makeUser('forte1', { weightKg: 100 }), stars: 3 },
+        { user: makeUser('forte2', { weightKg: 100 }), stars: 3 },
+        { user: makeUser('leve1', { weightKg: 60 }), stars: 3 },
+        { user: makeUser('leve2', { weightKg: 60 }), stars: 3 },
+      ];
+      const teams = drawTeams({
+        players,
+        teamsCount: 2,
+        balanceByWeight: true,
+      });
+      const heavies = new Set(['forte1', 'forte2']);
+      const team0HasHeavy = teams[0].playerIds.some((id) => heavies.has(id));
+      const team1HasHeavy = teams[1].playerIds.some((id) => heavies.has(id));
+      expect(team0HasHeavy && team1HasHeavy).toBe(true);
+    });
+
+    it('ignora peso quando balanceByWeight está desligado', () => {
+      // Com balanceByWeight=false, pesos não influem (e jogadores sem peso são ignorados).
+      const players: PlayerWithRating[] = [
+        { user: makeUser('a', { weightKg: 100 }), stars: 3 },
+        { user: makeUser('b', { weightKg: 60 }), stars: 3 },
+      ];
+      // Não deve quebrar mesmo se balanceByWeight estiver false (default)
+      const teams = drawTeams({
+        players,
+        teamsCount: 2,
+      });
+      expect(teams).toHaveLength(2);
+      expect(teams[0].playerIds.length + teams[1].playerIds.length).toBe(2);
+    });
+
+    it('jogador sem peso informado não é penalizado', () => {
+      // Se um time tem só pessoas sem peso, sorteio funciona normal.
+      const players: PlayerWithRating[] = [
+        { user: makeUser('sem-peso-1'), stars: 3 },
+        { user: makeUser('sem-peso-2'), stars: 3 },
+        { user: makeUser('sem-peso-3'), stars: 4 },
+        { user: makeUser('sem-peso-4'), stars: 4 },
+      ];
+      const teams = drawTeams({
+        players,
+        teamsCount: 2,
+        balanceByWeight: true,
+      });
+      // Soma de estrelas balanceadas (snake draft pareia 4+3 em cada time).
+      expect(teams[0].totalStars).toBe(7);
+      expect(teams[1].totalStars).toBe(7);
+    });
+
+    it('peso é capado em ±0.5 estrela (extremos não distorcem demais)', () => {
+      // Pessoa com 200kg não deve dominar o sorteio com -X estrelas.
+      const players: PlayerWithRating[] = [
+        { user: makeUser('gigante', { weightKg: 200 }), stars: 5 },
+        { user: makeUser('normal', { weightKg: 75 }), stars: 5 },
+        { user: makeUser('leve', { weightKg: 50 }), stars: 1 },
+        { user: makeUser('normal2', { weightKg: 75 }), stars: 1 },
+      ];
+      const teams = drawTeams({
+        players,
+        teamsCount: 2,
+        balanceByWeight: true,
+      });
+      // Estrelas dominam: 5+1 em cada time (não pode acontecer 5+5 vs 1+1).
+      teams.forEach((t) => {
+        expect(t.totalStars).toBe(6);
+      });
+    });
+  });
 });

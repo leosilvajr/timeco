@@ -21,6 +21,7 @@ export const EditProfileScreen: React.FC = () => {
   const [name, setName] = useState(user?.name ?? '');
   const [birthDate, setBirthDate] = useState(user?.birthDate ?? '');
   const [heightCm, setHeightCm] = useState(user?.heightCm ? String(user.heightCm) : '');
+  const [weightKg, setWeightKg] = useState(user?.weightKg ? String(user.weightKg) : '');
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [bio, setBio] = useState(user?.bio ?? '');
   const [favoriteSports, setFavoriteSports] = useState<SportId[]>(user?.favoriteSports ?? []);
@@ -43,6 +44,7 @@ export const EditProfileScreen: React.FC = () => {
         name: name.trim(),
         birthDate: birthDate.trim() || undefined,
         heightCm: heightCm ? parseInt(heightCm, 10) : undefined,
+        weightKg: weightKg ? parseFloat(weightKg) : undefined,
         phone: phone.trim() || undefined,
         bio: bio.trim() || undefined,
         favoriteSports: favoriteSports.length ? favoriteSports : undefined,
@@ -107,6 +109,14 @@ export const EditProfileScreen: React.FC = () => {
       <Input label="Nome" value={name} onChangeText={setName} />
       <Input label="Data de nascimento" value={birthDate} onChangeText={setBirthDate} placeholder="AAAA-MM-DD" />
       <Input label="Altura (cm)" value={heightCm} onChangeText={setHeightCm} keyboardType="numeric" />
+      <Input
+        label="Peso (kg)"
+        value={weightKg}
+        onChangeText={setWeightKg}
+        keyboardType="numeric"
+        placeholder="Ex: 72"
+        hint="🔒 Privado — usado apenas no sorteio de times. Nunca aparece no seu perfil público."
+      />
       <Input label="Telefone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
       <Input
         label="Sobre você (bio)"

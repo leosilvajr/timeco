@@ -32,6 +32,12 @@ export interface User {
   role: UserRole;
   birthDate?: string;
   heightCm?: number;
+  /**
+   * Peso em kg. Opcional. **Dado privado**: usado apenas em cálculos
+   * internos de sorteio quando o esporte considera. NUNCA é exibido
+   * em perfis públicos ou na rede social.
+   */
+  weightKg?: number;
   gender?: Gender;
   phone?: string;
   /** Bio curta exibida no perfil público (opcional). */
@@ -89,6 +95,12 @@ export interface Event {
   teamsCount: number;
   balanceByAge: boolean;
   balanceByHeight: boolean;
+  /**
+   * Quando true, o sorteio considera o peso (dos jogadores que tiverem
+   * informado) como critério adicional de equilíbrio. Tipicamente true
+   * em esportes de contato físico (futebol, basquete, handebol).
+   */
+  balanceByWeight?: boolean;
   invitedUserIds: string[];
   confirmations: Record<string, ConfirmationStatus>;
   teams?: DrawnTeam[];
