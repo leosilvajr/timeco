@@ -50,6 +50,10 @@ export const HomeScreen: React.FC = () => {
     (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate('Volley', {
       screen: 'VolleyHome',
     });
+  const goScoreboard = () =>
+    (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate('Scoreboard', {
+      screen: 'ScoreboardSetup',
+    });
 
   const features: FeatureCard[] = [
     {
@@ -399,6 +403,20 @@ export const HomeScreen: React.FC = () => {
 
       <Text style={styles.sectionTitle}>Utilitários</Text>
       <View style={styles.utilList}>
+        <Card style={styles.utilCard} onPress={goScoreboard}>
+          <View style={styles.utilIconBox}>
+            <Text style={styles.utilEmoji}>🏆</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.utilTitle}>Placar eletrônico</Text>
+            <Text style={styles.utilSub}>
+              Marcador digital com números gigantes, sets, regra de vantagem 2 e undo. Deixe o
+              celular fixo durante o jogo.
+            </Text>
+          </View>
+          <Text style={styles.utilChev}>›</Text>
+        </Card>
+
         <Card style={styles.utilCard} onPress={goHistory}>
           <View style={styles.utilIconBox}>
             <Text style={styles.utilEmoji}>📜</Text>

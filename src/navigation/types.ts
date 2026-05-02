@@ -45,8 +45,14 @@ export type VolleyStackParamList = {
   VolleyReports: { matchId: string };
 };
 
+export type ScoreboardStackParamList = {
+  ScoreboardSetup: undefined;
+  ScoreboardLive: undefined;
+};
+
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
   Volley: NavigatorScreenParams<VolleyStackParamList>;
+  Scoreboard: NavigatorScreenParams<ScoreboardStackParamList>;
 };

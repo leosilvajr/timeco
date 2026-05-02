@@ -38,12 +38,16 @@ import { VolleyScoutScreen } from '../screens/volley/VolleyScoutScreen';
 import { VolleyRotationScreen } from '../screens/volley/VolleyRotationScreen';
 import { VolleyReportsScreen } from '../screens/volley/VolleyReportsScreen';
 
+import { ScoreboardSetupScreen } from '../screens/scoreboard/ScoreboardSetupScreen';
+import { ScoreboardLiveScreen } from '../screens/scoreboard/ScoreboardLiveScreen';
+
 import {
   AuthStackParamList,
   EventsStackParamList,
   MainTabParamList,
   ProfileStackParamList,
   RootStackParamList,
+  ScoreboardStackParamList,
   SocialStackParamList,
   VolleyStackParamList,
 } from './types';
@@ -55,6 +59,7 @@ const EventsStack = createNativeStackNavigator<EventsStackParamList>();
 const SocialStack = createNativeStackNavigator<SocialStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const VolleyStack = createNativeStackNavigator<VolleyStackParamList>();
+const ScoreboardStack = createNativeStackNavigator<ScoreboardStackParamList>();
 
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
@@ -102,6 +107,13 @@ const VolleyNavigator = () => (
     <VolleyStack.Screen name="VolleyRotation" component={VolleyRotationScreen} />
     <VolleyStack.Screen name="VolleyReports" component={VolleyReportsScreen} />
   </VolleyStack.Navigator>
+);
+
+const ScoreboardNavigator = () => (
+  <ScoreboardStack.Navigator screenOptions={{ headerShown: false }}>
+    <ScoreboardStack.Screen name="ScoreboardSetup" component={ScoreboardSetupScreen} />
+    <ScoreboardStack.Screen name="ScoreboardLive" component={ScoreboardLiveScreen} />
+  </ScoreboardStack.Navigator>
 );
 
 const tabIcon = (emoji: string) => ({ color, focused }: { color: string; focused: boolean; size: number }) => (
@@ -175,6 +187,7 @@ export const AppNavigator: React.FC = () => {
         <>
           <RootStack.Screen name="Main" component={MainNavigator} />
           <RootStack.Screen name="Volley" component={VolleyNavigator} />
+          <RootStack.Screen name="Scoreboard" component={ScoreboardNavigator} />
         </>
       ) : (
         <RootStack.Screen name="Auth" component={AuthNavigator} />
