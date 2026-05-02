@@ -275,9 +275,8 @@ export const HomeScreen: React.FC = () => {
       backgroundColor: '#25D366',
       marginTop: spacing.sm,
     },
-    whatsEmoji: { fontSize: 24 },
-    whatsTitle: { fontSize: 14, fontWeight: '800', color: colors.white },
-    whatsSub: { fontSize: 12, color: 'rgba(255,255,255,0.9)', marginTop: 2 },
+    whatsEmoji: { fontSize: 22 },
+    whatsTitle: { flex: 1, fontSize: 14, fontWeight: '800', color: colors.white },
     whatsChev: { fontSize: 22, color: colors.white },
   });
 
@@ -409,20 +408,11 @@ export const HomeScreen: React.FC = () => {
           }
         >
           <Text style={styles.whatsEmoji}>💬</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.whatsTitle}>Falar com a Incrivia no WhatsApp</Text>
-            <Text style={styles.whatsSub}>+55 17 99285-0093 · suporte, dúvidas e sugestões</Text>
-          </View>
+          <Text style={styles.whatsTitle}>Falar com o suporte Incrivia</Text>
           <Text style={styles.whatsChev}>›</Text>
         </Pressable>
 
         <View style={styles.helpLinks}>
-          <Pressable
-            style={styles.helpLink}
-            onPress={() => Linking.openURL('mailto:suporte@timeco.app?subject=Suporte%20Timeco')}
-          >
-            <Text style={styles.helpLinkTxt}>📧 E-mail de suporte</Text>
-          </Pressable>
           <Pressable style={styles.helpLink} onPress={goAddFriend}>
             <Text style={styles.helpLinkTxt}>👥 Convidar um amigo</Text>
           </Pressable>
