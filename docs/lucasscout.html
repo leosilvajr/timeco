@@ -1,0 +1,3586 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voleibol Scout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Configuração para PWA e Offline -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiVm9sZWlib2wgU2NvdXQiLCJzaG9ydF9uYW1lIjoiVlNjb3V0IiwiZGVzY3JpcHRpb24iOiJTaXN0ZW1hIGRlIGFuw6FsaXNlIGVzcG9ydGl2YSBkZSB2b2xlaWJvbCIsInN0YXJ0X3VybCI6Ii8iLCJkaXNwbGF5Ijoic3RhbmRhbG9uZSIsImJhY2tncm91bmRfY29sb3IiOiIjMWU0MGFmIiwidGhlbWVfY29sb3IiOiIjMWU0MGFmIiwiaWNvbnMiOlt7InNyYyI6ImRhdGE6aW1hZ2Uvc3ZnK3htbDtiYXNlNjQsUEhOMlp5QjNhV1IwYUQwaU1USTRJaUJvWldsbmFIUTlJakV5T0NJZ2RtbGxkMEp2ZUQwaU1DQXdJREV5T0NBeU9EZ2lJSGh0Ykc1elBTSm9kSFJ3T2k4dmQzZDNMbmN6TG05eVp5OHlNREF3TDNOMlp5SStQR05wY21Oc1pTQmplRDBpTmpRaUlHTjVQU0kyTkNJZ2NqMGlOVGdpSUdacGJHdzlJaU16WXpneVpqWWlMejQ4ZEdWNGRDQjRQU0kyTkNJZ2VUMGlOelFpSUdacGJHdzlJaU0zWm1abVptWWlJSFJsZUhRdFlXNWphRzl5UFNKdGFXUmtiR1VpSUdadmJuUXRjMmw2WlQwaU5EQWlQaUJXVDJ4bGFXSnZiRHd2ZEdWNGRENDhMM04yWno0PSIsInNpemVzIjoiMTI4eDEyOCIsInR5cGUiOiJpbWFnZS9zdmcreG1sIn1dfQ==">
+    <meta name="theme-color" content="#1e40af">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Voleibol Scout">
+    <style>
+        .volleyball-bg {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 50%, #60a5fa 100%);
+        }
+        .court-pattern {
+            background-image: 
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        .position-card {
+            transition: all 0.3s ease;
+        }
+        .position-card:hover {
+            transform: scale(1.05);
+        }
+        .scout-button {
+            transition: all 0.2s ease;
+        }
+        .scout-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="min-h-screen volleyball-bg court-pattern flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-4">
+                    <span class="text-white text-2xl">🏐</span>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800">Voleibol Scout</h1>
+                <p class="text-gray-600 mt-2">Sistema de análise esportiva</p>
+            </div>
+            
+            <form class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="seu@email.com">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Senha</label>
+                    <input type="password" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="••••••••">
+                </div>
+                
+                <button type="button" onclick="showTeamScreen()" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                    Entrar
+                </button>
+                
+                <button type="button" onclick="showTeamScreen()" class="w-full bg-gray-500 hover:bg-gray-600 text-white font-semibold py-3 px-4 rounded-lg transition duration-200">
+                    Entrar sem login
+                </button>
+            </form>
+            
+            <div class="mt-8 text-center text-sm text-gray-500">
+                © 2024 Voleibol Scout - Desenvolvido para análise esportiva
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Cadastro de Equipes -->
+    <div id="teamScreen" class="hidden min-h-screen bg-gray-50">
+        <nav class="bg-blue-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold flex items-center">
+                    <span class="mr-2">🏐</span> Voleibol Scout
+                    <span id="offlineIndicator" class="ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded hidden">OFFLINE</span>
+                </h1>
+                <button onclick="showLoginScreen()" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg">Sair</button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-6">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="mr-3">👥</span> Cadastro de Equipes
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nome da Equipe</label>
+                        <input type="text" id="teamName" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Digite o nome da equipe">
+                    </div>
+                    
+                    <div class="flex items-end">
+                        <button onclick="showGameScreen()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold transition duration-200">
+                            Próximo: Cadastrar Jogo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Jogadores Cadastrados</h3>
+                
+                <div class="mb-4 grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <input type="text" id="playerName" class="px-4 py-2 border border-gray-300 rounded-lg" placeholder="Nome do jogador">
+                    <input type="number" id="playerNumber" class="px-4 py-2 border border-gray-300 rounded-lg" placeholder="Número" min="1" max="99">
+                    <select id="playerPosition" class="px-4 py-2 border border-gray-300 rounded-lg">
+                        <option value="">Selecione a posição</option>
+                        <option value="Oposto">Oposto</option>
+                        <option value="Ponteiro">Ponteiro</option>
+                        <option value="Central">Central</option>
+                        <option value="Levantador">Levantador</option>
+                        <option value="Líbero">Líbero</option>
+                    </select>
+                    <button onclick="addPlayer()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold">
+                        Adicionar Jogador
+                    </button>
+                </div>
+
+                <div id="playersList" class="space-y-2">
+                    <!-- Jogadores serão adicionados aqui -->
+                </div>
+
+                <div class="mt-6 flex flex-wrap gap-4">
+                    <button onclick="saveTeam()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold">
+                        💾 Salvar Equipe
+                    </button>
+                    <button onclick="showSavedTeams()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold">
+                        📋 Equipes Salvas
+                    </button>
+                    <button onclick="clearAllData()" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold">
+                        🗑️ Limpar Todos os Dados
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de Equipes Salvas -->
+            <div id="savedTeamsSection" class="bg-white rounded-xl shadow-lg p-6 hidden">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">📋 Equipes Salvas</h3>
+                    <button onclick="hideSavedTeams()" class="text-gray-500 hover:text-gray-700">
+                        ✕ Fechar
+                    </button>
+                </div>
+                
+                <div id="savedTeamsList" class="space-y-3">
+                    <!-- Equipes salvas aparecerão aqui -->
+                </div>
+                
+                <div class="mt-4 text-center text-sm text-gray-500">
+                    <p>💡 Clique em uma equipe para carregá-la ou use os botões para gerenciar</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Cadastro de Jogos -->
+    <div id="gameScreen" class="hidden min-h-screen bg-gray-50">
+        <nav class="bg-blue-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold flex items-center">
+                    <span class="mr-2">🏐</span> Voleibol Scout
+                </h1>
+                <button onclick="showTeamScreen()" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg">Voltar</button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-6">
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="mr-3">🏆</span> Cadastro de Jogo
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4">Informações do Jogo</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Data do Jogo</label>
+                                <input type="date" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Local</label>
+                                <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Ginásio ou quadra">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-50 p-6 rounded-lg">
+                        <h3 class="text-lg font-semibold mb-4">Equipes</h3>
+                        
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Equipe A</label>
+                                <select class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Selecione a equipe</option>
+                                    <option value="team1">Minha Equipe</option>
+                                </select>
+                            </div>
+                            
+                            <div class="text-center text-2xl font-bold text-gray-600">VS</div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Equipe B</label>
+                                <input type="text" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="Nome da equipe adversária">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 bg-gray-50 p-6 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">Formato do Jogo</h3>
+                    <div class="flex space-x-4">
+                        <label class="flex items-center">
+                            <input type="radio" name="gameFormat" value="3" class="mr-2" checked>
+                            <span>Melhor de 3 sets</span>
+                        </label>
+                        <label class="flex items-center">
+                            <input type="radio" name="gameFormat" value="5" class="mr-2">
+                            <span>Melhor de 5 sets</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex space-x-4">
+                    <button onclick="showScoutScreen()" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-lg font-semibold text-lg">
+                        Iniciar Jogo
+                    </button>
+                    <button onclick="showRotationScreen()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold">
+                        Ver Rodízio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Scout em Tempo Real -->
+    <div id="scoutScreen" class="hidden min-h-screen bg-gray-50">
+        <nav class="bg-blue-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">Scout em Tempo Real</h1>
+                <div class="flex space-x-2">
+                    <button onclick="showRotationScreen()" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg">Rodízio</button>
+                    <button onclick="showReportsScreen()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg">Relatórios</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Placar e Controle de Sets -->
+        <div class="bg-white shadow-lg p-4">
+            <div class="flex items-center justify-center space-x-8 mb-4">
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold">Equipe A</h3>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeScore('teamA', -1)" class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full">-</button>
+                        <span id="scoreA" class="text-4xl font-bold text-blue-600">0</span>
+                        <button onclick="changeScore('teamA', 1)" class="bg-green-500 hover:bg-green-600 text-white w-8 h-8 rounded-full">+</button>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <div class="text-3xl font-bold text-gray-600">X</div>
+                    <div class="mt-2">
+                        <div class="text-sm text-gray-600 mb-1">Set Atual</div>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="changeSet(-1)" class="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 rounded-full text-sm">←</button>
+                            <span id="currentSet" class="text-xl font-bold bg-blue-100 px-3 py-1 rounded">1</span>
+                            <button onclick="changeSet(1)" class="bg-blue-500 hover:bg-blue-600 text-white w-8 h-8 rounded-full text-sm">→</button>
+                        </div>
+                        <button onclick="finishSet()" class="mt-2 bg-green-600 hover:bg-green-700 text-white px-4 py-1 rounded text-sm">Finalizar Set</button>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <h3 class="text-lg font-semibold">Equipe B</h3>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeScore('teamB', -1)" class="bg-red-500 hover:bg-red-600 text-white w-8 h-8 rounded-full">-</button>
+                        <span id="scoreB" class="text-4xl font-bold text-red-600">0</span>
+                        <button onclick="changeScore('teamB', 1)" class="bg-green-500 hover:bg-green-600 text-white w-8 h-8 rounded-full">+</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Histórico de Sets -->
+            <div class="border-t pt-3">
+                <div class="text-center">
+                    <div class="text-sm text-gray-600 mb-2">Histórico de Sets</div>
+                    <div id="setHistory" class="flex justify-center space-x-4 text-sm">
+                        <!-- Sets finalizados aparecerão aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="container mx-auto p-4">
+            <!-- Jogadores e Ações de Scout -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold mb-4">Ações de Scout</h3>
+                
+                <div id="playersScout" class="space-y-4">
+                    <!-- Jogadores serão carregados aqui -->
+                </div>
+            </div>
+        </div>
+
+        <div class="fixed bottom-0 left-0 right-0 bg-white border-t p-4">
+            <div class="flex justify-between items-center">
+                <button onclick="showGameScreen()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg flex items-center">
+                    ← Voltar
+                </button>
+                <div class="flex space-x-2">
+                    <button onclick="showRotationScreen()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg">Rodízio</button>
+                    <button onclick="showReportsScreen()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Relatórios</button>
+                </div>
+                <button onclick="showReportsScreen()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg flex items-center">
+                    Seguir →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Rodízio -->
+    <div id="rotationScreen" class="hidden min-h-screen bg-gray-50">
+        <nav class="bg-blue-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">Rodízio da Equipe</h1>
+                <div class="flex space-x-2">
+                    <button onclick="toggleAutoRotation()" id="autoRotationBtn" class="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg">
+                        Rodízio Manual
+                    </button>
+                    <button onclick="showScoutScreen()" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg">Voltar ao Scout</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-6">
+            <!-- Configuração Inicial de Posições -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">Configuração Inicial das Posições</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-4">
+                    <div class="text-center">
+                        <label class="block text-sm font-medium mb-2">Posição 1 (Saque)</label>
+                        <select id="initialPos1" onchange="updateInitialRotation()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Selecionar</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-sm font-medium mb-2">Posição 2</label>
+                        <select id="initialPos2" onchange="updateInitialRotation()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Selecionar</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-sm font-medium mb-2">Posição 3</label>
+                        <select id="initialPos3" onchange="updateInitialRotation()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Selecionar</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-sm font-medium mb-2">Posição 4</label>
+                        <select id="initialPos4" onchange="updateInitialRotation()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Selecionar</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-sm font-medium mb-2">Posição 5</label>
+                        <select id="initialPos5" onchange="updateInitialRotation()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Selecionar</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <label class="block text-sm font-medium mb-2">Posição 6</label>
+                        <select id="initialPos6" onchange="updateInitialRotation()" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm">
+                            <option value="">Selecionar</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="saveInitialRotation()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">
+                        Salvar Configuração
+                    </button>
+                    <button onclick="loadPresetRotation()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold">
+                        Carregar Padrão
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Sistema de Rodízio</h2>
+                    <div class="flex items-center space-x-4">
+                        <select id="rotationSystem" class="px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="5x1">Sistema 5x1</option>
+                            <option value="4x2">Sistema 4x2</option>
+                            <option value="6x0">Sistema 6x0</option>
+                        </select>
+                        <div class="text-sm">
+                            <div class="font-semibold">Rotações: <span id="rotationCount">0</span></div>
+                            <div class="text-gray-600">Pontos: <span id="pointsCount">0</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status do Rodízio Automático -->
+                <div class="mb-4 p-3 rounded-lg bg-gray-50 border border-gray-200" id="autoRotationStatus">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="w-3 h-3 rounded-full mr-2 bg-gray-500" id="autoRotationIndicator"></div>
+                            <span class="font-semibold" id="autoRotationText">Rodízio Manual Ativo</span>
+                        </div>
+                        <div class="text-sm text-gray-600">
+                            Próxima rotação: <span id="nextRotationInfo">Manual</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quadra de Vôlei -->
+                <div class="bg-green-100 border-4 border-green-600 rounded-lg p-8 mx-auto max-w-2xl">
+                    <div class="grid grid-cols-3 gap-4 h-96">
+                        <!-- Posições da quadra -->
+                        <div class="position-card bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-center border-2 border-gray-300" onclick="selectPosition(4)">
+                            <div class="text-2xl font-bold text-blue-600 mb-2">4</div>
+                            <div id="pos4" class="text-center">
+                                <div class="font-semibold">-</div>
+                                <div class="text-sm text-gray-600">Vazio</div>
+                            </div>
+                        </div>
+                        
+                        <div class="position-card bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-center border-2 border-gray-300" onclick="selectPosition(3)">
+                            <div class="text-2xl font-bold text-blue-600 mb-2">3</div>
+                            <div id="pos3" class="text-center">
+                                <div class="font-semibold">-</div>
+                                <div class="text-sm text-gray-600">Vazio</div>
+                            </div>
+                        </div>
+                        
+                        <div class="position-card bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-center border-2 border-yellow-400" onclick="selectPosition(2)">
+                            <div class="text-2xl font-bold text-blue-600 mb-2">2</div>
+                            <div id="pos2" class="text-center">
+                                <div class="font-semibold">-</div>
+                                <div class="text-sm text-gray-600">Vazio</div>
+                            </div>
+                        </div>
+                        
+                        <div class="position-card bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-center border-2 border-gray-300" onclick="selectPosition(5)">
+                            <div class="text-2xl font-bold text-blue-600 mb-2">5</div>
+                            <div id="pos5" class="text-center">
+                                <div class="font-semibold">-</div>
+                                <div class="text-sm text-gray-600">Vazio</div>
+                            </div>
+                        </div>
+                        
+                        <div class="position-card bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-center border-2 border-gray-300" onclick="selectPosition(6)">
+                            <div class="text-2xl font-bold text-blue-600 mb-2">6</div>
+                            <div id="pos6" class="text-center">
+                                <div class="font-semibold">-</div>
+                                <div class="text-sm text-gray-600">Vazio</div>
+                            </div>
+                        </div>
+                        
+                        <div class="position-card bg-white rounded-lg shadow-md p-4 flex flex-col items-center justify-center border-2 border-red-400" onclick="selectPosition(1)">
+                            <div class="text-2xl font-bold text-blue-600 mb-2">1</div>
+                            <div id="pos1" class="text-center">
+                                <div class="font-semibold">-</div>
+                                <div class="text-sm text-gray-600">Sacador</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Legenda -->
+                    <div class="mt-4 flex justify-center space-x-6 text-sm">
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 border-2 border-red-400 rounded mr-2"></div>
+                            <span>Sacador</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 border-2 border-yellow-400 rounded mr-2"></div>
+                            <span>Rede</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-4 h-4 border-2 border-gray-300 rounded mr-2"></div>
+                            <span>Fundo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 text-center space-y-4">
+                    <div class="flex justify-center space-x-4">
+                        <button onclick="rotateTeam()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-semibold">
+                            Rodar Equipe
+                        </button>
+                        <button onclick="rotateTeamBack()" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-semibold">
+                            Rodar Volta
+                        </button>
+                        <button onclick="resetRotation()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold">
+                            Resetar Posições
+                        </button>
+                    </div>
+                    
+                    <!-- Controles de Pontuação para Rodízio Automático -->
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h4 class="font-semibold mb-3">Controle de Pontos (Rodízio Automático)</h4>
+                        <div class="flex justify-center space-x-4">
+                            <button onclick="addPointTeamA()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg">
+                                Ponto Equipe A
+                            </button>
+                            <button onclick="addPointTeamB()" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg">
+                                Ponto Equipe B
+                            </button>
+                            <button onclick="undoLastPoint()" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg">
+                                Desfazer Último
+                            </button>
+                        </div>
+                        <div class="mt-3 text-sm text-gray-600 text-center">
+                            <div>Placar: Equipe A <span id="rotationScoreA" class="font-bold">0</span> x <span id="rotationScoreB" class="font-bold">0</span> Equipe B</div>
+                            <div class="mt-1">Posse de saque: <span id="serveTeam" class="font-bold">Equipe A</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela de Relatórios -->
+    <div id="reportsScreen" class="hidden min-h-screen bg-gray-50">
+        <nav class="bg-blue-600 text-white p-4">
+            <div class="flex items-center justify-between">
+                <h1 class="text-xl font-bold">Relatórios e Estatísticas</h1>
+                <button onclick="showScoutScreen()" class="bg-blue-700 hover:bg-blue-800 px-4 py-2 rounded-lg">Voltar ao Scout</button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-6">
+            <!-- Seletor de Set para Análise -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold">Análise por Set</h3>
+                    <div class="flex items-center space-x-4">
+                        <label class="text-sm font-medium">Visualizar:</label>
+                        <select id="reportSetSelector" onchange="updateReportsForSet()" class="px-4 py-2 border border-gray-300 rounded-lg">
+                            <option value="current">Set Atual</option>
+                            <option value="all">Todos os Sets (Acumulado)</option>
+                            <option value="comparison">Comparativo por Set</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Histórico de Sets -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-2" id="setHistoryCards">
+                    <!-- Cards dos sets aparecerão aqui -->
+                </div>
+            </div>
+
+            <!-- Resumo Geral -->
+            <div class="grid md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl p-6">
+                    <div class="text-2xl font-bold" id="totalPoints">0</div>
+                    <div class="text-sm opacity-90">Pontos Totais</div>
+                </div>
+                <div class="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6">
+                    <div class="text-2xl font-bold" id="totalAces">0</div>
+                    <div class="text-sm opacity-90">Aces</div>
+                </div>
+                <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl p-6">
+                    <div class="text-2xl font-bold" id="totalBlocks">0</div>
+                    <div class="text-sm opacity-90">Bloqueios</div>
+                </div>
+                <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl p-6">
+                    <div class="text-2xl font-bold" id="totalErrors">0</div>
+                    <div class="text-sm opacity-90">Erros Totais</div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <!-- Gráfico de Ataques -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Estatísticas de Ataque</h3>
+                    <canvas id="attackChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Gráfico de Saques -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Estatísticas de Saque</h3>
+                    <canvas id="serveChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Gráfico de Passes -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Qualidade dos Passes</h3>
+                    <canvas id="passChart" width="400" height="200"></canvas>
+                </div>
+
+                <!-- Gráfico de Levantamentos -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-semibold mb-4">Distribuição de Levantamentos</h3>
+                    <canvas id="setChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabela de Estatísticas Detalhadas -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold">Estatísticas Detalhadas por Jogador</h3>
+                    <div class="flex space-x-2">
+                        <button onclick="updateReportsTable()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-semibold">
+                            Atualizar Dados
+                        </button>
+                        <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-semibold">
+                            Exportar CSV/Excel
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-3 py-2 text-left">Jogador</th>
+                                <th class="px-3 py-2 text-center">Ataques</th>
+                                <th class="px-3 py-2 text-center">% Ataque</th>
+                                <th class="px-3 py-2 text-center">Saques</th>
+                                <th class="px-3 py-2 text-center">% Saque</th>
+                                <th class="px-3 py-2 text-center">Aces</th>
+                                <th class="px-3 py-2 text-center">Bloqueios</th>
+                                <th class="px-3 py-2 text-center">Passes A</th>
+                                <th class="px-3 py-2 text-center">Passes B</th>
+                                <th class="px-3 py-2 text-center">Passes C</th>
+                                <th class="px-3 py-2 text-center">% Passe</th>
+                                <th class="px-3 py-2 text-center">Levantamentos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailedStatsTable">
+                            <!-- Dados serão preenchidos dinamicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Análise Individual por Jogador -->
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <h3 class="text-xl font-semibold mb-4">Análise Individual</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4" id="individualAnalysis">
+                    <!-- Cards individuais serão gerados aqui -->
+                </div>
+            </div>
+
+            <!-- Relatório Completo por Jogador -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold mb-4">Relatório Completo por Jogador</h3>
+                <div class="space-y-6" id="completePlayerReports">
+                    <!-- Relatórios completos serão gerados aqui -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados globais
+        let players = [];
+        let gameStats = {
+            teamA: 0,
+            teamB: 0,
+            playerStats: {}
+        };
+        let currentRotation = [1, 2, 3, 4, 5, 6];
+        let initialRotation = [1, 2, 3, 4, 5, 6];
+        let currentSet = 1;
+        let setHistory = [];
+        let allSetsStats = {};
+        
+        // Variáveis do rodízio automático
+        let autoRotationEnabled = false;
+        let rotationCount = 0;
+        let pointsCount = 0;
+        let rotationScoreA = 0;
+        let rotationScoreB = 0;
+        let currentServeTeam = 'A';
+        let lastPointTeam = '';
+        let pointHistory = [];
+
+        // Navegação entre telas
+        function showLoginScreen() {
+            hideAllScreens();
+            document.getElementById('loginScreen').classList.remove('hidden');
+        }
+
+        function showTeamScreen() {
+            hideAllScreens();
+            document.getElementById('teamScreen').classList.remove('hidden');
+            loadPlayersScout();
+        }
+
+        function showGameScreen() {
+            hideAllScreens();
+            document.getElementById('gameScreen').classList.remove('hidden');
+        }
+
+        function showScoutScreen() {
+            hideAllScreens();
+            document.getElementById('scoutScreen').classList.remove('hidden');
+            loadPlayersScout();
+        }
+
+        function showRotationScreen() {
+            hideAllScreens();
+            document.getElementById('rotationScreen').classList.remove('hidden');
+            loadInitialPositionSelectors();
+            updateRotationDisplay();
+            updateRotationCounter();
+            updateRotationScore();
+        }
+
+        function showReportsScreen() {
+            hideAllScreens();
+            document.getElementById('reportsScreen').classList.remove('hidden');
+            loadCharts();
+        }
+
+        function hideAllScreens() {
+            const screens = ['loginScreen', 'teamScreen', 'gameScreen', 'scoutScreen', 'rotationScreen', 'reportsScreen'];
+            screens.forEach(screen => {
+                document.getElementById(screen).classList.add('hidden');
+            });
+        }
+
+        // Gerenciamento de jogadores
+        function addPlayer() {
+            const name = document.getElementById('playerName').value.trim();
+            const number = document.getElementById('playerNumber').value;
+            const position = document.getElementById('playerPosition').value;
+
+            // Validações
+            if (!name) {
+                alert('❌ Digite o nome do jogador!');
+                document.getElementById('playerName').focus();
+                return;
+            }
+
+            if (!number || number < 1 || number > 99) {
+                alert('❌ Digite um número válido (1-99)!');
+                document.getElementById('playerNumber').focus();
+                return;
+            }
+
+            if (!position) {
+                alert('❌ Selecione a posição do jogador!');
+                document.getElementById('playerPosition').focus();
+                return;
+            }
+
+            // Verificar se o número já existe
+            if (players.some(p => p.number === number)) {
+                alert(`❌ Já existe um jogador com o número ${number}!\nEscolha outro número.`);
+                document.getElementById('playerNumber').focus();
+                return;
+            }
+
+            // Verificar se o nome já existe
+            if (players.some(p => p.name.toLowerCase() === name.toLowerCase())) {
+                if (!confirm(`⚠️ Já existe um jogador com o nome "${name}".\n\nDeseja adicionar mesmo assim?`)) {
+                    return;
+                }
+            }
+
+            const player = { name, number: parseInt(number), position };
+            players.push(player);
+            
+            // Inicializar estatísticas do jogador
+            gameStats.playerStats[number] = {
+                attacks: { success: 0, error: 0, normal: 0 },
+                serves: { success: 0, error: 0, ace: 0 },
+                blocks: { success: 0, error: 0 },
+                passes: { a: 0, b: 0, c: 0 },
+                sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+            };
+
+            updatePlayersList();
+            clearPlayerForm();
+            
+            // Feedback visual
+            showAddPlayerFeedback(name, number, position);
+            
+            // Auto-save
+            saveDataToLocal();
+        }
+
+        function showAddPlayerFeedback(name, number, position) {
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed top-20 right-4 bg-green-600 text-white px-4 py-3 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            feedback.innerHTML = `
+                <div class="flex items-center">
+                    <div class="text-xl mr-2">✅</div>
+                    <div>
+                        <div class="font-bold">Jogador Adicionado!</div>
+                        <div class="text-sm opacity-90">#${number} ${name} - ${position}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => feedback.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                feedback.classList.add('translate-x-full');
+                setTimeout(() => feedback.remove(), 300);
+            }, 3000);
+        }
+
+        function updatePlayersList() {
+            const list = document.getElementById('playersList');
+            list.innerHTML = '';
+
+            players.forEach((player, index) => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'flex items-center justify-between bg-gray-50 p-3 rounded-lg';
+                playerDiv.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">
+                            ${player.number}
+                        </div>
+                        <div>
+                            <div class="font-semibold">${player.name}</div>
+                            <div class="text-sm text-gray-600">${player.position}</div>
+                        </div>
+                    </div>
+                    <button onclick="removePlayer(${index})" class="text-red-600 hover:text-red-800">
+                        ❌
+                    </button>
+                `;
+                list.appendChild(playerDiv);
+            });
+        }
+
+        function removePlayer(index) {
+            players.splice(index, 1);
+            updatePlayersList();
+        }
+
+        function clearPlayerForm() {
+            document.getElementById('playerName').value = '';
+            document.getElementById('playerNumber').value = '';
+            document.getElementById('playerPosition').value = '';
+        }
+
+        function saveTeam() {
+            if (players.length === 0) {
+                alert('❌ Adicione pelo menos um jogador à equipe antes de salvar.');
+                return;
+            }
+
+            const teamName = document.getElementById('teamName').value.trim();
+            if (!teamName) {
+                alert('❌ Digite o nome da equipe antes de salvar.');
+                document.getElementById('teamName').focus();
+                return;
+            }
+
+            // Validar números únicos
+            const numbers = players.map(p => p.number);
+            const uniqueNumbers = [...new Set(numbers)];
+            if (numbers.length !== uniqueNumbers.length) {
+                alert('❌ Cada jogador deve ter um número único!');
+                return;
+            }
+
+            // Salvar equipe no localStorage
+            const teamData = {
+                name: teamName,
+                players: players,
+                createdAt: new Date().toISOString(),
+                lastModified: new Date().toISOString()
+            };
+
+            // Obter equipes salvas
+            const savedTeams = JSON.parse(localStorage.getItem('volleyballTeams') || '[]');
+            
+            // Verificar se já existe uma equipe com este nome
+            const existingIndex = savedTeams.findIndex(team => team.name === teamName);
+            
+            if (existingIndex >= 0) {
+                if (confirm(`⚠️ Já existe uma equipe com o nome "${teamName}".\n\nDeseja substituir a equipe existente?`)) {
+                    savedTeams[existingIndex] = teamData;
+                } else {
+                    return;
+                }
+            } else {
+                savedTeams.push(teamData);
+            }
+
+            // Salvar no localStorage
+            localStorage.setItem('volleyballTeams', JSON.stringify(savedTeams));
+            
+            // Salvar dados do jogo atual
+            saveDataToLocal();
+            
+            // Feedback visual melhorado
+            showSaveTeamFeedback(teamName, players.length);
+            
+            // Atualizar lista de equipes salvas
+            updateSavedTeamsList();
+        }
+
+        function showSaveTeamFeedback(teamName, playerCount) {
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed top-20 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            feedback.innerHTML = `
+                <div class="flex items-center">
+                    <div class="text-2xl mr-3">✅</div>
+                    <div>
+                        <div class="font-bold">Equipe Salva!</div>
+                        <div class="text-sm opacity-90">${teamName} - ${playerCount} jogadores</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(feedback);
+            
+            // Animar entrada
+            setTimeout(() => {
+                feedback.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remover após 4 segundos
+            setTimeout(() => {
+                feedback.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (feedback.parentElement) {
+                        document.body.removeChild(feedback);
+                    }
+                }, 300);
+            }, 4000);
+        }
+
+        // Scout em tempo real
+        function loadPlayersScout() {
+            const container = document.getElementById('playersScout');
+            if (!container) return;
+            
+            container.innerHTML = '';
+
+            players.forEach(player => {
+                const playerDiv = document.createElement('div');
+                playerDiv.className = 'bg-gray-50 p-4 rounded-lg';
+                playerDiv.innerHTML = `
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-4">
+                            ${player.number}
+                        </div>
+                        <div>
+                            <div class="font-semibold text-lg">${player.name}</div>
+                            <div class="text-sm text-gray-600">${player.position}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- Ações de Saque -->
+                        <div class="bg-white p-3 rounded-lg border">
+                            <h5 class="font-semibold text-sm mb-2 text-gray-700 text-center">🏐 SAQUE</h5>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'serve_success')" class="scout-button bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Certo</button>
+                                    <span id="serve_success_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'serve_success', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'serve_success', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'serve_error')" class="scout-button bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Erro</button>
+                                    <span id="serve_error_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'serve_error', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'serve_error', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'ace')" class="scout-button bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Ace</button>
+                                    <span id="ace_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'ace', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'ace', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ações de Ataque -->
+                        <div class="bg-white p-3 rounded-lg border">
+                            <h5 class="font-semibold text-sm mb-2 text-gray-700 text-center">⚡ ATAQUE</h5>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'attack_point')" class="scout-button bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Ponto</button>
+                                    <span id="attack_point_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'attack_point', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'attack_point', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'attack')" class="scout-button bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Normal</button>
+                                    <span id="attack_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'attack', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'attack', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'attack_error')" class="scout-button bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Erro</button>
+                                    <span id="attack_error_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'attack_error', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'attack_error', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ações de Passe -->
+                        <div class="bg-white p-3 rounded-lg border">
+                            <h5 class="font-semibold text-sm mb-2 text-gray-700 text-center">📡 PASSE</h5>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'pass_a')" class="scout-button bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">A</button>
+                                    <span id="pass_a_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'pass_a', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'pass_a', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'pass_b')" class="scout-button bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">B</button>
+                                    <span id="pass_b_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'pass_b', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'pass_b', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'pass_c')" class="scout-button bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">C</button>
+                                    <span id="pass_c_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'pass_c', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'pass_c', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ações de Bloqueio -->
+                        <div class="bg-white p-3 rounded-lg border">
+                            <h5 class="font-semibold text-sm mb-2 text-gray-700 text-center">🛡️ BLOQUEIO</h5>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'block_success')" class="scout-button bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Sucesso</button>
+                                    <span id="block_success_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'block_success', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'block_success', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'block_error')" class="scout-button bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs flex-1 mr-1">Falha</button>
+                                    <span id="block_error_${player.number}" class="text-xs font-bold w-6 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'block_error', 1)" class="bg-green-600 hover:bg-green-700 text-white w-5 h-5 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'block_error', -1)" class="bg-red-600 hover:bg-red-700 text-white w-5 h-5 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ações de Levantamento -->
+                        <div class="bg-white p-3 rounded-lg border col-span-2 lg:col-span-1">
+                            <h5 class="font-semibold text-sm mb-2 text-gray-700 text-center">🎯 LEVANTAMENTO</h5>
+                            <div class="grid grid-cols-2 gap-1">
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'set_success')" class="scout-button bg-green-500 hover:bg-green-600 text-white px-1 py-1 rounded text-xs flex-1 mr-1">Certo</button>
+                                    <span id="set_success_${player.number}" class="text-xs font-bold w-5 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'set_success', 1)" class="bg-green-600 hover:bg-green-700 text-white w-4 h-4 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'set_success', -1)" class="bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'set_error')" class="scout-button bg-red-500 hover:bg-red-600 text-white px-1 py-1 rounded text-xs flex-1 mr-1">Erro</button>
+                                    <span id="set_error_${player.number}" class="text-xs font-bold w-5 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'set_error', 1)" class="bg-green-600 hover:bg-green-700 text-white w-4 h-4 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'set_error', -1)" class="bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'set_ponta')" class="scout-button bg-blue-400 hover:bg-blue-500 text-white px-1 py-1 rounded text-xs flex-1 mr-1">Ponta</button>
+                                    <span id="set_ponta_${player.number}" class="text-xs font-bold w-5 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'set_ponta', 1)" class="bg-green-600 hover:bg-green-700 text-white w-4 h-4 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'set_ponta', -1)" class="bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'set_saida')" class="scout-button bg-blue-400 hover:bg-blue-500 text-white px-1 py-1 rounded text-xs flex-1 mr-1">Saída</button>
+                                    <span id="set_saida_${player.number}" class="text-xs font-bold w-5 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'set_saida', 1)" class="bg-green-600 hover:bg-green-700 text-white w-4 h-4 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'set_saida', -1)" class="bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'set_meio')" class="scout-button bg-blue-400 hover:bg-blue-500 text-white px-1 py-1 rounded text-xs flex-1 mr-1">Meio</button>
+                                    <span id="set_meio_${player.number}" class="text-xs font-bold w-5 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'set_meio', 1)" class="bg-green-600 hover:bg-green-700 text-white w-4 h-4 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'set_meio', -1)" class="bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'set_fundo_meio')" class="scout-button bg-blue-400 hover:bg-blue-500 text-white px-1 py-1 rounded text-xs flex-1 mr-1">F.Meio</button>
+                                    <span id="set_fundo_meio_${player.number}" class="text-xs font-bold w-5 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'set_fundo_meio', 1)" class="bg-green-600 hover:bg-green-700 text-white w-4 h-4 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'set_fundo_meio', -1)" class="bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <button onclick="recordAction('${player.number}', 'set_fundo_saida')" class="scout-button bg-blue-400 hover:bg-blue-500 text-white px-1 py-1 rounded text-xs flex-1 mr-1">F.Saída</button>
+                                    <span id="set_fundo_saida_${player.number}" class="text-xs font-bold w-5 text-center">0</span>
+                                    <div class="flex ml-1">
+                                        <button onclick="adjustAction('${player.number}', 'set_fundo_saida', 1)" class="bg-green-600 hover:bg-green-700 text-white w-4 h-4 rounded-l text-xs">+</button>
+                                        <button onclick="adjustAction('${player.number}', 'set_fundo_saida', -1)" class="bg-red-600 hover:bg-red-700 text-white w-4 h-4 rounded-r text-xs">-</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(playerDiv);
+            });
+        }
+
+        function recordAction(playerNumber, action) {
+            if (!gameStats.playerStats[playerNumber]) {
+                gameStats.playerStats[playerNumber] = {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                };
+            }
+
+            const stats = gameStats.playerStats[playerNumber];
+
+            switch(action) {
+                case 'serve_success':
+                    stats.serves.success++;
+                    break;
+                case 'serve_error':
+                    stats.serves.error++;
+                    break;
+                case 'ace':
+                    stats.serves.ace++;
+                    break;
+                case 'attack_point':
+                    stats.attacks.success++;
+                    break;
+                case 'attack':
+                    stats.attacks.normal++;
+                    break;
+                case 'attack_error':
+                    stats.attacks.error++;
+                    break;
+                case 'block_success':
+                    stats.blocks.success++;
+                    break;
+                case 'block_error':
+                    stats.blocks.error++;
+                    break;
+                case 'pass_a':
+                    stats.passes.a++;
+                    break;
+                case 'pass_b':
+                    stats.passes.b++;
+                    break;
+                case 'pass_c':
+                    stats.passes.c++;
+                    break;
+                case 'set_success':
+                    stats.sets.success++;
+                    break;
+                case 'set_error':
+                    stats.sets.error++;
+                    break;
+                case 'set_ponta':
+                    stats.sets.ponta++;
+                    break;
+                case 'set_saida':
+                    stats.sets.saida++;
+                    break;
+                case 'set_meio':
+                    stats.sets.meio++;
+                    break;
+                case 'set_fundo_meio':
+                    stats.sets.fundo_meio++;
+                    break;
+                case 'set_fundo_saida':
+                    stats.sets.fundo_saida++;
+                    break;
+            }
+
+            updateStatDisplay(playerNumber, action);
+            
+            // Salvar automaticamente
+            saveDataToLocal();
+
+            // Feedback visual
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = '✓ Registrado';
+            button.classList.add('bg-gray-400');
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.classList.remove('bg-gray-400');
+            }, 1000);
+        }
+
+        function adjustAction(playerNumber, action, change) {
+            if (!gameStats.playerStats[playerNumber]) {
+                gameStats.playerStats[playerNumber] = {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                };
+            }
+
+            const stats = gameStats.playerStats[playerNumber];
+
+            switch(action) {
+                case 'serve_success':
+                    stats.serves.success = Math.max(0, stats.serves.success + change);
+                    break;
+                case 'serve_error':
+                    stats.serves.error = Math.max(0, stats.serves.error + change);
+                    break;
+                case 'ace':
+                    stats.serves.ace = Math.max(0, stats.serves.ace + change);
+                    break;
+                case 'attack_point':
+                    stats.attacks.success = Math.max(0, stats.attacks.success + change);
+                    break;
+                case 'attack':
+                    stats.attacks.normal = Math.max(0, stats.attacks.normal + change);
+                    break;
+                case 'attack_error':
+                    stats.attacks.error = Math.max(0, stats.attacks.error + change);
+                    break;
+                case 'block_success':
+                    stats.blocks.success = Math.max(0, stats.blocks.success + change);
+                    break;
+                case 'block_error':
+                    stats.blocks.error = Math.max(0, stats.blocks.error + change);
+                    break;
+                case 'pass_a':
+                    stats.passes.a = Math.max(0, stats.passes.a + change);
+                    break;
+                case 'pass_b':
+                    stats.passes.b = Math.max(0, stats.passes.b + change);
+                    break;
+                case 'pass_c':
+                    stats.passes.c = Math.max(0, stats.passes.c + change);
+                    break;
+                case 'set_success':
+                    stats.sets.success = Math.max(0, stats.sets.success + change);
+                    break;
+                case 'set_error':
+                    stats.sets.error = Math.max(0, stats.sets.error + change);
+                    break;
+                case 'set_ponta':
+                    stats.sets.ponta = Math.max(0, stats.sets.ponta + change);
+                    break;
+                case 'set_saida':
+                    stats.sets.saida = Math.max(0, stats.sets.saida + change);
+                    break;
+                case 'set_meio':
+                    stats.sets.meio = Math.max(0, stats.sets.meio + change);
+                    break;
+                case 'set_fundo_meio':
+                    stats.sets.fundo_meio = Math.max(0, stats.sets.fundo_meio + change);
+                    break;
+                case 'set_fundo_saida':
+                    stats.sets.fundo_saida = Math.max(0, stats.sets.fundo_saida + change);
+                    break;
+            }
+
+            updateStatDisplay(playerNumber, action);
+        }
+
+        function updateStatDisplay(playerNumber, action) {
+            const element = document.getElementById(`${action}_${playerNumber}`);
+            if (element && gameStats.playerStats[playerNumber]) {
+                const stats = gameStats.playerStats[playerNumber];
+                
+                switch(action) {
+                    case 'serve_success':
+                        element.textContent = stats.serves.success;
+                        break;
+                    case 'serve_error':
+                        element.textContent = stats.serves.error;
+                        break;
+                    case 'ace':
+                        element.textContent = stats.serves.ace;
+                        break;
+                    case 'attack_point':
+                        element.textContent = stats.attacks.success;
+                        break;
+                    case 'attack':
+                        element.textContent = stats.attacks.normal;
+                        break;
+                    case 'attack_error':
+                        element.textContent = stats.attacks.error;
+                        break;
+                    case 'block_success':
+                        element.textContent = stats.blocks.success;
+                        break;
+                    case 'block_error':
+                        element.textContent = stats.blocks.error;
+                        break;
+                    case 'pass_a':
+                        element.textContent = stats.passes.a;
+                        break;
+                    case 'pass_b':
+                        element.textContent = stats.passes.b;
+                        break;
+                    case 'pass_c':
+                        element.textContent = stats.passes.c;
+                        break;
+                    case 'set_success':
+                        element.textContent = stats.sets.success;
+                        break;
+                    case 'set_error':
+                        element.textContent = stats.sets.error;
+                        break;
+                    case 'set_ponta':
+                        element.textContent = stats.sets.ponta;
+                        break;
+                    case 'set_saida':
+                        element.textContent = stats.sets.saida;
+                        break;
+                    case 'set_meio':
+                        element.textContent = stats.sets.meio;
+                        break;
+                    case 'set_fundo_meio':
+                        element.textContent = stats.sets.fundo_meio;
+                        break;
+                    case 'set_fundo_saida':
+                        element.textContent = stats.sets.fundo_saida;
+                        break;
+                }
+            }
+        }
+
+        // Controle de placar
+        function changeScore(team, change) {
+            gameStats[team] += change;
+            if (gameStats[team] < 0) gameStats[team] = 0;
+            
+            document.getElementById(team === 'teamA' ? 'scoreA' : 'scoreB').textContent = gameStats[team];
+        }
+
+        // Controle de sets
+        function changeSet(direction) {
+            const newSet = currentSet + direction;
+            if (newSet >= 1 && newSet <= 5) {
+                // Salvar estatísticas do set atual antes de trocar
+                saveCurrentSetStats();
+                
+                currentSet = newSet;
+                document.getElementById('currentSet').textContent = currentSet;
+                
+                // Carregar estatísticas do novo set ou inicializar
+                loadSetStats(currentSet);
+                updateAllDisplays();
+            }
+        }
+
+        function finishSet() {
+            if (confirm(`Finalizar o Set ${currentSet}?\nPlacar: Equipe A ${gameStats.teamA} x ${gameStats.teamB} Equipe B`)) {
+                // Salvar resultado do set no histórico
+                setHistory.push({
+                    set: currentSet,
+                    scoreA: gameStats.teamA,
+                    scoreB: gameStats.teamB,
+                    stats: JSON.parse(JSON.stringify(gameStats.playerStats)),
+                    timestamp: new Date().toISOString()
+                });
+                
+                // Salvar no armazenamento de sets
+                allSetsStats[currentSet] = {
+                    scores: { teamA: gameStats.teamA, teamB: gameStats.teamB },
+                    playerStats: JSON.parse(JSON.stringify(gameStats.playerStats)),
+                    finished: true,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // Atualizar histórico visual
+                updateSetHistoryDisplay();
+                
+                // Ir para o próximo set
+                if (currentSet < 5) {
+                    const previousSet = currentSet;
+                    currentSet++;
+                    
+                    // Atualizar display do set atual
+                    const currentSetElement = document.getElementById('currentSet');
+                    if (currentSetElement) {
+                        currentSetElement.textContent = currentSet;
+                    }
+                    
+                    // Zerar placar e estatísticas para o novo set
+                    resetCurrentSetStats();
+                    updateAllDisplays();
+                    
+                    // Feedback visual melhorado
+                    showSetFinishedFeedback(previousSet, currentSet);
+                } else {
+                    alert('Jogo finalizado! Todos os 5 sets foram completados.');
+                    showGameFinishedSummary();
+                }
+            }
+        }
+
+        function showSetFinishedFeedback(finishedSet, newSet) {
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            feedback.innerHTML = `
+                <div class="bg-white rounded-xl p-8 max-w-md mx-4 text-center">
+                    <div class="text-6xl mb-4">🏐</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-2">Set ${finishedSet} Finalizado!</h3>
+                    <p class="text-gray-600 mb-4">Placar: ${gameStats.teamA} x ${gameStats.teamB}</p>
+                    <div class="bg-blue-50 rounded-lg p-4 mb-4">
+                        <p class="text-blue-800 font-semibold">Iniciando Set ${newSet}</p>
+                        <p class="text-blue-600 text-sm">Todas as estatísticas foram zeradas</p>
+                    </div>
+                    <button onclick="this.parentElement.parentElement.remove()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold">
+                        Continuar
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(feedback);
+            
+            // Remover automaticamente após 5 segundos
+            setTimeout(() => {
+                if (feedback.parentElement) {
+                    feedback.remove();
+                }
+            }, 5000);
+        }
+
+        function showGameFinishedSummary() {
+            const totalSetsA = setHistory.filter(set => set.scoreA > set.scoreB).length;
+            const totalSetsB = setHistory.filter(set => set.scoreB > set.scoreA).length;
+            
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            feedback.innerHTML = `
+                <div class="bg-white rounded-xl p-8 max-w-lg mx-4 text-center">
+                    <div class="text-6xl mb-4">🏆</div>
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Jogo Finalizado!</h3>
+                    <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                        <h4 class="font-bold text-lg mb-2">Resultado Final</h4>
+                        <p class="text-2xl font-bold ${totalSetsA > totalSetsB ? 'text-green-600' : 'text-red-600'}">
+                            Equipe A: ${totalSetsA} sets
+                        </p>
+                        <p class="text-2xl font-bold ${totalSetsB > totalSetsA ? 'text-green-600' : 'text-red-600'}">
+                            Equipe B: ${totalSetsB} sets
+                        </p>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="showReportsScreen(); this.parentElement.parentElement.parentElement.remove()" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold">
+                            Ver Relatórios Completos
+                        </button>
+                        <button onclick="this.parentElement.parentElement.remove()" class="w-full bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-semibold">
+                            Fechar
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(feedback);
+        }
+
+        function saveCurrentSetStats() {
+            allSetsStats[currentSet] = {
+                scores: { teamA: gameStats.teamA, teamB: gameStats.teamB },
+                playerStats: JSON.parse(JSON.stringify(gameStats.playerStats))
+            };
+        }
+
+        function loadSetStats(setNumber) {
+            if (allSetsStats[setNumber]) {
+                gameStats.teamA = allSetsStats[setNumber].scores.teamA;
+                gameStats.teamB = allSetsStats[setNumber].scores.teamB;
+                gameStats.playerStats = JSON.parse(JSON.stringify(allSetsStats[setNumber].playerStats));
+            } else {
+                // Inicializar novo set
+                resetCurrentSetStats();
+            }
+        }
+
+        function resetCurrentSetStats() {
+            gameStats.teamA = 0;
+            gameStats.teamB = 0;
+            
+            // Resetar estatísticas dos jogadores
+            players.forEach(player => {
+                gameStats.playerStats[player.number] = {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                };
+            });
+        }
+
+        function updateSetHistoryDisplay() {
+            const historyContainer = document.getElementById('setHistory');
+            historyContainer.innerHTML = '';
+            
+            setHistory.forEach(set => {
+                const setDiv = document.createElement('div');
+                setDiv.className = 'bg-gray-100 px-3 py-1 rounded';
+                setDiv.innerHTML = `Set ${set.set}: ${set.scoreA} x ${set.scoreB}`;
+                historyContainer.appendChild(setDiv);
+            });
+        }
+
+        function updateAllDisplays() {
+            // Atualizar placar
+            document.getElementById('scoreA').textContent = gameStats.teamA;
+            document.getElementById('scoreB').textContent = gameStats.teamB;
+            
+            // Atualizar contadores de ações
+            players.forEach(player => {
+                const actions = [
+                    'serve_success', 'serve_error', 'ace',
+                    'attack_point', 'attack', 'attack_error',
+                    'pass_a', 'pass_b', 'pass_c',
+                    'block_success', 'block_error',
+                    'set_success', 'set_error', 'set_ponta', 'set_saida', 'set_meio', 'set_fundo_meio'
+                ];
+                
+                actions.forEach(action => {
+                    updateStatDisplay(player.number, action);
+                });
+            });
+        }
+
+        // Rodízio
+        function rotateTeam() {
+            // Rotaciona as posições no sentido horário
+            const temp = currentRotation[0];
+            for (let i = 0; i < 5; i++) {
+                currentRotation[i] = currentRotation[i + 1];
+            }
+            currentRotation[5] = temp;
+            rotationCount++;
+            updateRotationDisplay();
+            updateRotationCounter();
+            
+            // Feedback visual
+            showRotationFeedback('Equipe rotacionada!');
+        }
+
+        function rotateTeamBack() {
+            // Rotaciona as posições no sentido anti-horário
+            const temp = currentRotation[5];
+            for (let i = 5; i > 0; i--) {
+                currentRotation[i] = currentRotation[i - 1];
+            }
+            currentRotation[0] = temp;
+            rotationCount = Math.max(0, rotationCount - 1);
+            updateRotationDisplay();
+            updateRotationCounter();
+            
+            // Feedback visual
+            showRotationFeedback('Rotação desfeita!');
+        }
+
+        function resetRotation() {
+            currentRotation = [...initialRotation];
+            rotationCount = 0;
+            pointsCount = 0;
+            rotationScoreA = 0;
+            rotationScoreB = 0;
+            currentServeTeam = 'A';
+            pointHistory = [];
+            updateRotationDisplay();
+            updateRotationCounter();
+            updateRotationScore();
+            
+            showRotationFeedback('Posições resetadas!');
+        }
+
+        function updateRotationDisplay() {
+            // Atualiza a exibição das posições na quadra
+            for (let i = 1; i <= 6; i++) {
+                const posElement = document.getElementById(`pos${i}`);
+                if (posElement) {
+                    if (currentRotation[i-1] && players[currentRotation[i-1] - 1]) {
+                        const player = players[currentRotation[i-1] - 1];
+                        posElement.innerHTML = `
+                            <div class="font-semibold">${player.name}</div>
+                            <div class="text-sm text-gray-600">#${player.number}</div>
+                        `;
+                    } else {
+                        posElement.innerHTML = `
+                            <div class="font-semibold">-</div>
+                            <div class="text-sm text-gray-600">${i === 1 ? 'Sacador' : 'Vazio'}</div>
+                        `;
+                    }
+                }
+            }
+        }
+
+        // Funções do rodízio automático
+        function toggleAutoRotation() {
+            autoRotationEnabled = !autoRotationEnabled;
+            const btn = document.getElementById('autoRotationBtn');
+            const status = document.getElementById('autoRotationStatus');
+            const indicator = document.getElementById('autoRotationIndicator');
+            const text = document.getElementById('autoRotationText');
+            const nextInfo = document.getElementById('nextRotationInfo');
+            
+            if (autoRotationEnabled) {
+                btn.textContent = 'Rodízio Automático';
+                btn.className = 'bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg';
+                status.className = 'mb-4 p-3 rounded-lg bg-green-50 border border-green-200';
+                indicator.className = 'w-3 h-3 rounded-full mr-2 bg-green-500';
+                text.textContent = 'Rodízio Automático Ativo';
+                nextInfo.textContent = 'A cada ponto da equipe adversária';
+            } else {
+                btn.textContent = 'Rodízio Manual';
+                btn.className = 'bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg';
+                status.className = 'mb-4 p-3 rounded-lg bg-gray-50 border border-gray-200';
+                indicator.className = 'w-3 h-3 rounded-full mr-2 bg-gray-500';
+                text.textContent = 'Rodízio Manual Ativo';
+                nextInfo.textContent = 'Manual';
+            }
+        }
+
+        function addPointTeamA() {
+            pointsCount++;
+            rotationScoreA++;
+            lastPointTeam = 'A';
+            pointHistory.push({ team: 'A', rotationBefore: [...currentRotation] });
+            
+            // Se a equipe A fez ponto e não estava sacando, ela ganha o saque
+            if (currentServeTeam !== 'A') {
+                currentServeTeam = 'A';
+                if (autoRotationEnabled) {
+                    rotateTeam();
+                }
+            }
+            
+            updateRotationScore();
+            updateRotationCounter();
+            showRotationFeedback('Ponto para Equipe A!');
+        }
+
+        function addPointTeamB() {
+            pointsCount++;
+            rotationScoreB++;
+            lastPointTeam = 'B';
+            pointHistory.push({ team: 'B', rotationBefore: [...currentRotation] });
+            
+            // Se a equipe B fez ponto e não estava sacando, ela ganha o saque
+            if (currentServeTeam !== 'B') {
+                currentServeTeam = 'B';
+                if (autoRotationEnabled) {
+                    rotateTeam();
+                }
+            }
+            
+            updateRotationScore();
+            updateRotationCounter();
+            showRotationFeedback('Ponto para Equipe B!');
+        }
+
+        function undoLastPoint() {
+            if (pointHistory.length === 0) {
+                alert('Nenhum ponto para desfazer!');
+                return;
+            }
+            
+            const lastPoint = pointHistory.pop();
+            pointsCount--;
+            
+            if (lastPoint.team === 'A') {
+                rotationScoreA--;
+            } else {
+                rotationScoreB--;
+            }
+            
+            // Restaurar rotação anterior
+            currentRotation = [...lastPoint.rotationBefore];
+            
+            // Determinar quem estava sacando antes
+            if (pointHistory.length > 0) {
+                const previousPoint = pointHistory[pointHistory.length - 1];
+                currentServeTeam = previousPoint.team;
+            } else {
+                currentServeTeam = 'A'; // Padrão inicial
+            }
+            
+            updateRotationDisplay();
+            updateRotationScore();
+            updateRotationCounter();
+            showRotationFeedback('Último ponto desfeito!');
+        }
+
+        function updateRotationScore() {
+            const scoreAElement = document.getElementById('rotationScoreA');
+            const scoreBElement = document.getElementById('rotationScoreB');
+            const serveTeamElement = document.getElementById('serveTeam');
+            
+            if (scoreAElement) scoreAElement.textContent = rotationScoreA;
+            if (scoreBElement) scoreBElement.textContent = rotationScoreB;
+            if (serveTeamElement) {
+                serveTeamElement.textContent = currentServeTeam === 'A' ? 'Equipe A' : 'Equipe B';
+            }
+        }
+
+        function updateRotationCounter() {
+            const rotationCountElement = document.getElementById('rotationCount');
+            const pointsCountElement = document.getElementById('pointsCount');
+            
+            if (rotationCountElement) rotationCountElement.textContent = rotationCount;
+            if (pointsCountElement) pointsCountElement.textContent = pointsCount;
+        }
+
+        function showRotationFeedback(message) {
+            // Criar elemento de feedback
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed top-20 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            feedback.textContent = message;
+            document.body.appendChild(feedback);
+            
+            // Animar entrada
+            setTimeout(() => {
+                feedback.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remover após 3 segundos
+            setTimeout(() => {
+                feedback.classList.add('translate-x-full');
+                setTimeout(() => {
+                    document.body.removeChild(feedback);
+                }, 300);
+            }, 3000);
+        }
+
+        // Configuração inicial das posições
+        function loadInitialPositionSelectors() {
+            const positions = ['initialPos1', 'initialPos2', 'initialPos3', 'initialPos4', 'initialPos5', 'initialPos6'];
+            
+            positions.forEach(posId => {
+                const select = document.getElementById(posId);
+                if (select) {
+                    select.innerHTML = '<option value="">Selecionar</option>';
+                    players.forEach(player => {
+                        const option = document.createElement('option');
+                        option.value = player.number;
+                        option.textContent = `${player.name} (#${player.number})`;
+                        select.appendChild(option);
+                    });
+                }
+            });
+        }
+
+        function updateInitialRotation() {
+            const newRotation = [];
+            for (let i = 1; i <= 6; i++) {
+                const select = document.getElementById(`initialPos${i}`);
+                if (select && select.value) {
+                    newRotation[i-1] = parseInt(select.value);
+                } else {
+                    newRotation[i-1] = i; // Valor padrão
+                }
+            }
+            
+            // Verificar se não há jogadores duplicados
+            const uniqueValues = [...new Set(newRotation.filter(val => val))];
+            if (uniqueValues.length !== newRotation.filter(val => val).length) {
+                alert('Cada jogador pode estar em apenas uma posição!');
+                return;
+            }
+            
+            currentRotation = [...newRotation];
+            updateRotationDisplay();
+        }
+
+        function saveInitialRotation() {
+            initialRotation = [...currentRotation];
+            alert('Configuração inicial salva! Esta será a formação padrão para reset.');
+        }
+
+        function loadPresetRotation() {
+            if (players.length >= 6) {
+                for (let i = 1; i <= 6; i++) {
+                    const select = document.getElementById(`initialPos${i}`);
+                    if (select && players[i-1]) {
+                        select.value = players[i-1].number;
+                    }
+                }
+                updateInitialRotation();
+            } else {
+                alert('É necessário ter pelo menos 6 jogadores cadastrados!');
+            }
+        }
+
+        function selectPosition(position) {
+            // Função para seleção manual de posições (futuro desenvolvimento)
+            console.log(`Posição ${position} selecionada`);
+        }
+
+        // Relatórios e gráficos
+        function loadCharts() {
+            updateSetHistoryCards();
+            updateSummaryCards();
+            
+            // Limpar gráficos existentes
+            Chart.getChart('attackChart')?.destroy();
+            Chart.getChart('serveChart')?.destroy();
+            Chart.getChart('passChart')?.destroy();
+            Chart.getChart('setChart')?.destroy();
+            
+            // Gráfico de ataques
+            const attackCtx = document.getElementById('attackChart');
+            if (attackCtx) {
+                const attackData = calculateAttackStats();
+                new Chart(attackCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pontos', 'Ataques Normais', 'Erros'],
+                        datasets: [{
+                            data: [attackData.points, attackData.normal, attackData.errors],
+                            backgroundColor: ['#10b981', '#3b82f6', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: 'Estatísticas de Ataque (Set Atual)' },
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de saques
+            const serveCtx = document.getElementById('serveChart');
+            if (serveCtx) {
+                const serveData = calculateServeStats();
+                new Chart(serveCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Saques Certos', 'Saques Errados', 'Aces'],
+                        datasets: [{
+                            label: 'Saques',
+                            data: [serveData.success, serveData.errors, serveData.aces],
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de passes
+            const passCtx = document.getElementById('passChart');
+            if (passCtx) {
+                const passData = calculatePassStats();
+                new Chart(passCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Passe A', 'Passe B', 'Passe C'],
+                        datasets: [{
+                            data: [passData.a, passData.b, passData.c],
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de levantamentos
+            const setCtx = document.getElementById('setChart');
+            if (setCtx) {
+                const setData = calculateSetStats();
+                new Chart(setCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ponta', 'Saída', 'Meio', 'Fundo Meio', 'Fundo Saída'],
+                        datasets: [{
+                            label: 'Levantamentos',
+                            data: [setData.ponta, setData.saida, setData.meio, setData.fundo_meio, setData.fundo_saida],
+                            backgroundColor: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateReportsTable();
+            generateIndividualAnalysis();
+            generateCompletePlayerReports();
+        }
+
+        function calculateAttackStats() {
+            let points = 0, normal = 0, errors = 0;
+            Object.values(gameStats.playerStats).forEach(stats => {
+                points += stats.attacks.success || 0;
+                normal += stats.attacks.normal || 0;
+                errors += stats.attacks.error || 0;
+            });
+            return { points, normal, errors };
+        }
+
+        function calculateServeStats() {
+            let success = 0, errors = 0, aces = 0;
+            Object.values(gameStats.playerStats).forEach(stats => {
+                success += stats.serves.success || 0;
+                errors += stats.serves.error || 0;
+                aces += stats.serves.ace || 0;
+            });
+            return { success, errors, aces };
+        }
+
+        function calculatePassStats() {
+            let a = 0, b = 0, c = 0;
+            Object.values(gameStats.playerStats).forEach(stats => {
+                a += stats.passes.a || 0;
+                b += stats.passes.b || 0;
+                c += stats.passes.c || 0;
+            });
+            return { a, b, c };
+        }
+
+        function calculateSetStats() {
+            let ponta = 0, saida = 0, meio = 0, fundo_meio = 0, fundo_saida = 0;
+            Object.values(gameStats.playerStats).forEach(stats => {
+                if (stats.sets) {
+                    ponta += stats.sets.ponta || 0;
+                    saida += stats.sets.saida || 0;
+                    meio += stats.sets.meio || 0;
+                    fundo_meio += stats.sets.fundo_meio || 0;
+                    fundo_saida += stats.sets.fundo_saida || 0;
+                }
+            });
+            return { ponta, saida, meio, fundo_meio, fundo_saida };
+        }
+
+        function updateSummaryCards() {
+            const attackStats = calculateAttackStats();
+            const serveStats = calculateServeStats();
+            
+            document.getElementById('totalPoints').textContent = attackStats.points + serveStats.aces;
+            document.getElementById('totalAces').textContent = serveStats.aces;
+            
+            let totalBlocks = 0;
+            let totalErrors = 0;
+            Object.values(gameStats.playerStats).forEach(stats => {
+                totalBlocks += stats.blocks.success || 0;
+                totalErrors += (stats.attacks.error || 0) + (stats.serves.error || 0) + (stats.blocks.error || 0);
+            });
+            
+            document.getElementById('totalBlocks').textContent = totalBlocks;
+            document.getElementById('totalErrors').textContent = totalErrors;
+        }
+
+        function updateSummaryCardsAccumulated(accumulatedStats) {
+            let totalPoints = 0, totalAces = 0, totalBlocks = 0, totalErrors = 0;
+            
+            Object.values(accumulatedStats).forEach(stats => {
+                totalPoints += stats.attacks.success || 0;
+                totalAces += stats.serves.ace || 0;
+                totalBlocks += stats.blocks.success || 0;
+                totalErrors += (stats.attacks.error || 0) + (stats.serves.error || 0) + (stats.blocks.error || 0);
+            });
+            
+            document.getElementById('totalPoints').textContent = totalPoints + totalAces;
+            document.getElementById('totalAces').textContent = totalAces;
+            document.getElementById('totalBlocks').textContent = totalBlocks;
+            document.getElementById('totalErrors').textContent = totalErrors;
+        }
+
+        function recreateChartsWithAccumulatedData(accumulatedStats) {
+            // Limpar gráficos existentes
+            Chart.getChart('attackChart')?.destroy();
+            Chart.getChart('serveChart')?.destroy();
+            Chart.getChart('passChart')?.destroy();
+            Chart.getChart('setChart')?.destroy();
+
+            // Calcular dados acumulados
+            const attackData = { points: 0, normal: 0, errors: 0 };
+            const serveData = { success: 0, errors: 0, aces: 0 };
+            const passData = { a: 0, b: 0, c: 0 };
+            const setData = { ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 };
+
+            Object.values(accumulatedStats).forEach(stats => {
+                attackData.points += stats.attacks.success || 0;
+                attackData.normal += stats.attacks.normal || 0;
+                attackData.errors += stats.attacks.error || 0;
+                
+                serveData.success += stats.serves.success || 0;
+                serveData.errors += stats.serves.error || 0;
+                serveData.aces += stats.serves.ace || 0;
+                
+                passData.a += stats.passes.a || 0;
+                passData.b += stats.passes.b || 0;
+                passData.c += stats.passes.c || 0;
+                
+                setData.ponta += stats.sets.ponta || 0;
+                setData.saida += stats.sets.saida || 0;
+                setData.meio += stats.sets.meio || 0;
+                setData.fundo_meio += stats.sets.fundo_meio || 0;
+                setData.fundo_saida += stats.sets.fundo_saida || 0;
+            });
+
+            // Recriar gráficos
+            const attackCtx = document.getElementById('attackChart');
+            if (attackCtx) {
+                new Chart(attackCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Pontos', 'Ataques Normais', 'Erros'],
+                        datasets: [{
+                            data: [attackData.points, attackData.normal, attackData.errors],
+                            backgroundColor: ['#10b981', '#3b82f6', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: 'Estatísticas de Ataque (Acumulado)' },
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            const serveCtx = document.getElementById('serveChart');
+            if (serveCtx) {
+                new Chart(serveCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Saques Certos', 'Saques Errados', 'Aces'],
+                        datasets: [{
+                            label: 'Saques (Acumulado)',
+                            data: [serveData.success, serveData.errors, serveData.aces],
+                            backgroundColor: ['#10b981', '#ef4444', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { title: { display: true, text: 'Estatísticas de Saque (Acumulado)' } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+
+            const passCtx = document.getElementById('passChart');
+            if (passCtx) {
+                new Chart(passCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Passe A', 'Passe B', 'Passe C'],
+                        datasets: [{
+                            data: [passData.a, passData.b, passData.c],
+                            backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: 'Qualidade dos Passes (Acumulado)' },
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            }
+
+            const setCtx = document.getElementById('setChart');
+            if (setCtx) {
+                new Chart(setCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Ponta', 'Saída', 'Meio', 'Fundo Meio', 'Fundo Saída'],
+                        datasets: [{
+                            label: 'Levantamentos (Acumulado)',
+                            data: [setData.ponta, setData.saida, setData.meio, setData.fundo_meio, setData.fundo_saida],
+                            backgroundColor: ['#3b82f6', '#8b5cf6', '#06b6d4', '#10b981', '#f59e0b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { title: { display: true, text: 'Distribuição de Levantamentos (Acumulado)' } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+            }
+        }
+
+        function updateReportsTableWithData(accumulatedStats) {
+            const tableBody = document.getElementById('detailedStatsTable');
+            tableBody.innerHTML = '';
+
+            players.forEach(player => {
+                const stats = accumulatedStats[player.number] || {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0 }
+                };
+
+                const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                const attackPercentage = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                
+                const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                const servePercentage = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                
+                const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                const passPercentage = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                
+                const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+
+                const row = document.createElement('tr');
+                row.className = 'border-t hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-3 py-2 font-semibold">${player.name} (#${player.number}) <span class="text-xs text-blue-600">[ACUMULADO]</span></td>
+                    <td class="px-3 py-2 text-center">${stats.attacks.success}/${totalAttacks}</td>
+                    <td class="px-3 py-2 text-center ${attackPercentage >= 50 ? 'text-green-600' : 'text-red-600'} font-semibold">${attackPercentage}%</td>
+                    <td class="px-3 py-2 text-center">${stats.serves.success + stats.serves.ace}/${totalServes}</td>
+                    <td class="px-3 py-2 text-center ${servePercentage >= 70 ? 'text-green-600' : 'text-red-600'} font-semibold">${servePercentage}%</td>
+                    <td class="px-3 py-2 text-center text-yellow-600 font-semibold">${stats.serves.ace}</td>
+                    <td class="px-3 py-2 text-center">${stats.blocks.success}/${stats.blocks.success + stats.blocks.error}</td>
+                    <td class="px-3 py-2 text-center text-green-600">${stats.passes.a}</td>
+                    <td class="px-3 py-2 text-center text-yellow-600">${stats.passes.b}</td>
+                    <td class="px-3 py-2 text-center text-red-600">${stats.passes.c}</td>
+                    <td class="px-3 py-2 text-center ${passPercentage >= 70 ? 'text-green-600' : 'text-red-600'} font-semibold">${passPercentage}%</td>
+                    <td class="px-3 py-2 text-center">${totalSets}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function updateReportsTable() {
+            const tableBody = document.getElementById('detailedStatsTable');
+            tableBody.innerHTML = '';
+
+            players.forEach(player => {
+                const stats = gameStats.playerStats[player.number] || {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                };
+
+                const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                const attackPercentage = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                
+                const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                const servePercentage = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                
+                const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                const passPercentage = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                
+                const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+
+                const row = document.createElement('tr');
+                row.className = 'border-t hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-3 py-2 font-semibold">${player.name} (#${player.number})</td>
+                    <td class="px-3 py-2 text-center">${stats.attacks.success}/${totalAttacks}</td>
+                    <td class="px-3 py-2 text-center ${attackPercentage >= 50 ? 'text-green-600' : 'text-red-600'} font-semibold">${attackPercentage}%</td>
+                    <td class="px-3 py-2 text-center">${stats.serves.success + stats.serves.ace}/${totalServes}</td>
+                    <td class="px-3 py-2 text-center ${servePercentage >= 70 ? 'text-green-600' : 'text-red-600'} font-semibold">${servePercentage}%</td>
+                    <td class="px-3 py-2 text-center text-yellow-600 font-semibold">${stats.serves.ace}</td>
+                    <td class="px-3 py-2 text-center">${stats.blocks.success}/${stats.blocks.success + stats.blocks.error}</td>
+                    <td class="px-3 py-2 text-center text-green-600">${stats.passes.a}</td>
+                    <td class="px-3 py-2 text-center text-yellow-600">${stats.passes.b}</td>
+                    <td class="px-3 py-2 text-center text-red-600">${stats.passes.c}</td>
+                    <td class="px-3 py-2 text-center ${passPercentage >= 70 ? 'text-green-600' : 'text-red-600'} font-semibold">${passPercentage}%</td>
+                    <td class="px-3 py-2 text-center">${totalSets}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function generateIndividualAnalysis() {
+            const container = document.getElementById('individualAnalysis');
+            container.innerHTML = '';
+
+            players.forEach(player => {
+                const stats = gameStats.playerStats[player.number] || {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0 }
+                };
+
+                const totalActions = Object.values(stats).reduce((total, category) => {
+                    return total + Object.values(category).reduce((sum, val) => sum + val, 0);
+                }, 0);
+
+                const card = document.createElement('div');
+                card.className = 'bg-gray-50 rounded-lg p-4 border';
+                card.innerHTML = `
+                    <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">
+                            ${player.number}
+                        </div>
+                        <div>
+                            <div class="font-semibold">${player.name}</div>
+                            <div class="text-sm text-gray-600">${player.position}</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span>Ações Totais:</span>
+                            <span class="font-semibold">${totalActions}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Pontos Diretos:</span>
+                            <span class="font-semibold text-green-600">${stats.attacks.success + stats.serves.ace}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Eficiência Geral:</span>
+                            <span class="font-semibold ${totalActions > 0 && ((stats.attacks.success + stats.serves.ace) / totalActions) > 0.3 ? 'text-green-600' : 'text-red-600'}">
+                                ${totalActions > 0 ? (((stats.attacks.success + stats.serves.ace) / totalActions) * 100).toFixed(1) : '0.0'}%
+                            </span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function generateCompletePlayerReports() {
+            const container = document.getElementById('completePlayerReports');
+            if (!container) return;
+            
+            container.innerHTML = '';
+
+            players.forEach(player => {
+                const stats = gameStats.playerStats[player.number] || {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                };
+
+                // Cálculos de estatísticas
+                const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                const attackEfficiency = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                
+                const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                const serveEfficiency = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                
+                const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                const passEfficiency = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                
+                const totalBlocks = stats.blocks.success + stats.blocks.error;
+                const blockEfficiency = totalBlocks > 0 ? ((stats.blocks.success / totalBlocks) * 100).toFixed(1) : '0.0';
+                
+                const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+                const setEfficiency = totalSets > 0 ? (((stats.sets.success || 0) / totalSets) * 100).toFixed(1) : '0.0';
+                
+                const totalSetDistribution = (stats.sets.ponta || 0) + (stats.sets.saida || 0) + (stats.sets.meio || 0) + (stats.sets.fundo_meio || 0) + (stats.sets.fundo_saida || 0);
+
+                const reportCard = document.createElement('div');
+                reportCard.className = 'border rounded-lg p-6 bg-gray-50';
+                reportCard.innerHTML = `
+                    <div class="flex items-center mb-6">
+                        <div class="w-16 h-16 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xl mr-4">
+                            ${player.number}
+                        </div>
+                        <div>
+                            <h4 class="text-2xl font-bold text-gray-800">${player.name}</h4>
+                            <p class="text-lg text-gray-600">${player.position}</p>
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Estatísticas de Ataque -->
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-red-500">
+                            <h5 class="font-bold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-2">⚡</span> ATAQUE
+                            </h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Pontos:</span>
+                                    <span class="font-bold text-green-600">${stats.attacks.success}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Normais:</span>
+                                    <span class="font-bold text-blue-600">${stats.attacks.normal}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Erros:</span>
+                                    <span class="font-bold text-red-600">${stats.attacks.error}</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span>Total:</span>
+                                    <span class="font-bold">${totalAttacks}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Eficiência:</span>
+                                    <span class="font-bold ${parseFloat(attackEfficiency) >= 50 ? 'text-green-600' : 'text-red-600'}">${attackEfficiency}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estatísticas de Saque -->
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-blue-500">
+                            <h5 class="font-bold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-2">🏐</span> SAQUE
+                            </h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Certos:</span>
+                                    <span class="font-bold text-green-600">${stats.serves.success}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Aces:</span>
+                                    <span class="font-bold text-yellow-600">${stats.serves.ace}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Erros:</span>
+                                    <span class="font-bold text-red-600">${stats.serves.error}</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span>Total:</span>
+                                    <span class="font-bold">${totalServes}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Eficiência:</span>
+                                    <span class="font-bold ${parseFloat(serveEfficiency) >= 70 ? 'text-green-600' : 'text-red-600'}">${serveEfficiency}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estatísticas de Passe -->
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-green-500">
+                            <h5 class="font-bold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-2">📡</span> PASSE
+                            </h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Passe A:</span>
+                                    <span class="font-bold text-green-600">${stats.passes.a}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Passe B:</span>
+                                    <span class="font-bold text-yellow-600">${stats.passes.b}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Passe C:</span>
+                                    <span class="font-bold text-red-600">${stats.passes.c}</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span>Total:</span>
+                                    <span class="font-bold">${totalPasses}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Eficiência:</span>
+                                    <span class="font-bold ${parseFloat(passEfficiency) >= 70 ? 'text-green-600' : 'text-red-600'}">${passEfficiency}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estatísticas de Bloqueio -->
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-purple-500">
+                            <h5 class="font-bold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-2">🛡️</span> BLOQUEIO
+                            </h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Sucessos:</span>
+                                    <span class="font-bold text-green-600">${stats.blocks.success}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Falhas:</span>
+                                    <span class="font-bold text-red-600">${stats.blocks.error}</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span>Total:</span>
+                                    <span class="font-bold">${totalBlocks}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Eficiência:</span>
+                                    <span class="font-bold ${parseFloat(blockEfficiency) >= 60 ? 'text-green-600' : 'text-red-600'}">${blockEfficiency}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estatísticas de Levantamento -->
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-orange-500">
+                            <h5 class="font-bold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-2">🎯</span> LEVANTAMENTO
+                            </h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Sucessos:</span>
+                                    <span class="font-bold text-green-600">${stats.sets.success || 0}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Erros:</span>
+                                    <span class="font-bold text-red-600">${stats.sets.error || 0}</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span>Total:</span>
+                                    <span class="font-bold">${totalSets}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Eficiência:</span>
+                                    <span class="font-bold ${parseFloat(setEfficiency) >= 80 ? 'text-green-600' : 'text-red-600'}">${setEfficiency}%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Distribuição de Levantamentos -->
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-indigo-500">
+                            <h5 class="font-bold text-gray-700 mb-3 flex items-center">
+                                <span class="mr-2">📊</span> DISTRIBUIÇÃO
+                            </h5>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span>Ponta:</span>
+                                    <span class="font-bold">${stats.sets.ponta || 0}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Saída:</span>
+                                    <span class="font-bold">${stats.sets.saida || 0}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Meio:</span>
+                                    <span class="font-bold">${stats.sets.meio || 0}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>F. Meio:</span>
+                                    <span class="font-bold">${stats.sets.fundo_meio || 0}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>F. Saída:</span>
+                                    <span class="font-bold">${stats.sets.fundo_saida || 0}</span>
+                                </div>
+                                <div class="flex justify-between border-t pt-2">
+                                    <span>Total Dist.:</span>
+                                    <span class="font-bold">${totalSetDistribution}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumo de Performance -->
+                    <div class="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4">
+                        <h5 class="font-bold text-gray-700 mb-3">📈 RESUMO DE PERFORMANCE</h5>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                            <div>
+                                <div class="text-2xl font-bold text-green-600">${stats.attacks.success + stats.serves.ace}</div>
+                                <div class="text-xs text-gray-600">Pontos Diretos</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-blue-600">${totalAttacks + totalServes + totalPasses + totalBlocks + totalSets}</div>
+                                <div class="text-xs text-gray-600">Ações Totais</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-red-600">${stats.attacks.error + stats.serves.error + stats.blocks.error + (stats.sets.error || 0)}</div>
+                                <div class="text-xs text-gray-600">Erros Totais</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold ${((stats.attacks.success + stats.serves.ace) / Math.max(1, totalAttacks + totalServes + totalPasses + totalBlocks + totalSets)) > 0.2 ? 'text-green-600' : 'text-red-600'}">
+                                    ${(((stats.attacks.success + stats.serves.ace) / Math.max(1, totalAttacks + totalServes + totalPasses + totalBlocks + totalSets)) * 100).toFixed(1)}%
+                                </div>
+                                <div class="text-xs text-gray-600">Eficiência Geral</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(reportCard);
+            });
+        }
+
+        function updateSetHistoryCards() {
+            const container = document.getElementById('setHistoryCards');
+            container.innerHTML = '';
+            
+            // Card do set atual
+            const currentCard = document.createElement('div');
+            currentCard.className = 'bg-blue-100 border-2 border-blue-500 rounded-lg p-3 text-center';
+            currentCard.innerHTML = `
+                <div class="font-bold text-blue-700">Set ${currentSet}</div>
+                <div class="text-sm text-blue-600">Atual</div>
+                <div class="text-lg font-bold">${gameStats.teamA} x ${gameStats.teamB}</div>
+            `;
+            container.appendChild(currentCard);
+            
+            // Cards dos sets finalizados
+            setHistory.forEach(set => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-100 border rounded-lg p-3 text-center cursor-pointer hover:bg-gray-200';
+                card.onclick = () => viewSetDetails(set.set);
+                card.innerHTML = `
+                    <div class="font-bold">Set ${set.set}</div>
+                    <div class="text-sm text-gray-600">Finalizado</div>
+                    <div class="text-lg font-bold">${set.scoreA} x ${set.scoreB}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateReportsForSet() {
+            const selector = document.getElementById('reportSetSelector');
+            const selectedValue = selector.value;
+            
+            if (selectedValue === 'current') {
+                // Mostrar dados do set atual
+                loadCharts();
+            } else if (selectedValue === 'all') {
+                // Mostrar dados acumulados de todos os sets
+                loadAccumulatedCharts();
+            } else if (selectedValue === 'comparison') {
+                // Mostrar comparativo por set
+                loadComparisonCharts();
+            }
+        }
+
+        function loadAccumulatedCharts() {
+            // Calcular estatísticas acumuladas de todos os sets
+            const accumulatedStats = calculateAccumulatedStats();
+            
+            // Atualizar cards de resumo com dados acumulados
+            updateSummaryCardsAccumulated(accumulatedStats);
+            
+            // Recriar gráficos com dados acumulados
+            recreateChartsWithAccumulatedData(accumulatedStats);
+            
+            // Atualizar tabela com dados acumulados
+            updateReportsTableWithData(accumulatedStats);
+        }
+
+        function loadComparisonCharts() {
+            // Mostrar comparativo entre sets
+            showSetComparison();
+            
+            // Criar gráficos comparativos
+            createComparisonCharts();
+            
+            // Mostrar tabela comparativa
+            createComparisonTable();
+        }
+
+        function showSetComparison() {
+            const container = document.getElementById('setHistoryCards');
+            container.innerHTML = '<div class="col-span-full"><h4 class="text-lg font-bold text-center text-blue-600 mb-4">📊 Comparativo Detalhado por Set</h4></div>';
+            
+            // Adicionar cards comparativos para cada set
+            for (let i = 1; i <= Math.max(currentSet, setHistory.length); i++) {
+                const setData = allSetsStats[i] || (i === currentSet ? {
+                    scores: { teamA: gameStats.teamA, teamB: gameStats.teamB },
+                    playerStats: gameStats.playerStats,
+                    finished: false
+                } : null);
+                
+                if (setData) {
+                    const card = document.createElement('div');
+                    card.className = `${setData.finished ? 'bg-green-50 border-green-200' : 'bg-blue-50 border-blue-200'} border-2 rounded-lg p-4`;
+                    
+                    // Calcular estatísticas do set
+                    const setStats = calculateSetStatistics(setData.playerStats);
+                    
+                    card.innerHTML = `
+                        <div class="text-center mb-3">
+                            <div class="font-bold text-lg ${setData.finished ? 'text-green-700' : 'text-blue-700'}">Set ${i}</div>
+                            <div class="text-sm ${setData.finished ? 'text-green-600' : 'text-blue-600'}">${setData.finished ? 'Finalizado' : 'Em Andamento'}</div>
+                            <div class="text-xl font-bold mt-1">${setData.scores.teamA} x ${setData.scores.teamB}</div>
+                        </div>
+                        <div class="space-y-1 text-xs">
+                            <div class="flex justify-between">
+                                <span>Pontos Diretos:</span>
+                                <span class="font-bold text-green-600">${setStats.totalPoints}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Aces:</span>
+                                <span class="font-bold text-yellow-600">${setStats.totalAces}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Bloqueios:</span>
+                                <span class="font-bold text-purple-600">${setStats.totalBlocks}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Erros:</span>
+                                <span class="font-bold text-red-600">${setStats.totalErrors}</span>
+                            </div>
+                            <div class="flex justify-between border-t pt-1">
+                                <span>Eficiência:</span>
+                                <span class="font-bold ${setStats.efficiency > 60 ? 'text-green-600' : 'text-red-600'}">${setStats.efficiency}%</span>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                }
+            }
+        }
+
+        function calculateSetStatistics(playerStats) {
+            let totalPoints = 0, totalAces = 0, totalBlocks = 0, totalErrors = 0, totalActions = 0;
+            
+            Object.values(playerStats).forEach(stats => {
+                totalPoints += (stats.attacks?.success || 0);
+                totalAces += (stats.serves?.ace || 0);
+                totalBlocks += (stats.blocks?.success || 0);
+                totalErrors += (stats.attacks?.error || 0) + (stats.serves?.error || 0) + (stats.blocks?.error || 0);
+                
+                // Contar total de ações
+                totalActions += Object.values(stats).reduce((sum, category) => {
+                    return sum + Object.values(category).reduce((catSum, val) => catSum + (val || 0), 0);
+                }, 0);
+            });
+            
+            const efficiency = totalActions > 0 ? ((totalPoints + totalAces) / totalActions * 100).toFixed(1) : 0;
+            
+            return { totalPoints, totalAces, totalBlocks, totalErrors, efficiency };
+        }
+
+        function createComparisonCharts() {
+            // Gráfico comparativo de pontos por set
+            const attackCtx = document.getElementById('attackChart');
+            if (attackCtx) {
+                const comparisonData = prepareComparisonData();
+                new Chart(attackCtx, {
+                    type: 'line',
+                    data: {
+                        labels: comparisonData.labels,
+                        datasets: [{
+                            label: 'Pontos de Ataque',
+                            data: comparisonData.attackPoints,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Aces',
+                            data: comparisonData.aces,
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Evolução de Pontos por Set'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de eficiência por set
+            const serveCtx = document.getElementById('serveChart');
+            if (serveCtx) {
+                const comparisonData = prepareComparisonData();
+                new Chart(serveCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: comparisonData.labels,
+                        datasets: [{
+                            label: 'Eficiência de Ataque (%)',
+                            data: comparisonData.attackEfficiency,
+                            backgroundColor: '#3b82f6'
+                        }, {
+                            label: 'Eficiência de Saque (%)',
+                            data: comparisonData.serveEfficiency,
+                            backgroundColor: '#10b981'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Eficiência por Set'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de erros por set
+            const passCtx = document.getElementById('passChart');
+            if (passCtx) {
+                const comparisonData = prepareComparisonData();
+                new Chart(passCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: comparisonData.labels,
+                        datasets: [{
+                            label: 'Erros de Ataque',
+                            data: comparisonData.attackErrors,
+                            backgroundColor: '#ef4444'
+                        }, {
+                            label: 'Erros de Saque',
+                            data: comparisonData.serveErrors,
+                            backgroundColor: '#f97316'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Erros por Set'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Gráfico de placar por set
+            const setCtx = document.getElementById('setChart');
+            if (setCtx) {
+                const comparisonData = prepareComparisonData();
+                new Chart(setCtx, {
+                    type: 'line',
+                    data: {
+                        labels: comparisonData.labels,
+                        datasets: [{
+                            label: 'Equipe A',
+                            data: comparisonData.scoresA,
+                            borderColor: '#3b82f6',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Equipe B',
+                            data: comparisonData.scoresB,
+                            borderColor: '#ef4444',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Evolução do Placar por Set'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function prepareComparisonData() {
+            const labels = [];
+            const attackPoints = [];
+            const aces = [];
+            const attackEfficiency = [];
+            const serveEfficiency = [];
+            const attackErrors = [];
+            const serveErrors = [];
+            const scoresA = [];
+            const scoresB = [];
+
+            // Incluir sets finalizados
+            setHistory.forEach(set => {
+                labels.push(`Set ${set.set}`);
+                scoresA.push(set.scoreA);
+                scoresB.push(set.scoreB);
+                
+                const setStats = calculateDetailedSetStats(set.stats);
+                attackPoints.push(setStats.attackPoints);
+                aces.push(setStats.aces);
+                attackEfficiency.push(setStats.attackEfficiency);
+                serveEfficiency.push(setStats.serveEfficiency);
+                attackErrors.push(setStats.attackErrors);
+                serveErrors.push(setStats.serveErrors);
+            });
+
+            // Incluir set atual se houver dados
+            if (currentSet && (gameStats.teamA > 0 || gameStats.teamB > 0 || Object.keys(gameStats.playerStats).some(p => Object.values(gameStats.playerStats[p]).some(cat => Object.values(cat).some(val => val > 0))))) {
+                labels.push(`Set ${currentSet} (Atual)`);
+                scoresA.push(gameStats.teamA);
+                scoresB.push(gameStats.teamB);
+                
+                const currentStats = calculateDetailedSetStats(gameStats.playerStats);
+                attackPoints.push(currentStats.attackPoints);
+                aces.push(currentStats.aces);
+                attackEfficiency.push(currentStats.attackEfficiency);
+                serveEfficiency.push(currentStats.serveEfficiency);
+                attackErrors.push(currentStats.attackErrors);
+                serveErrors.push(currentStats.serveErrors);
+            }
+
+            return { labels, attackPoints, aces, attackEfficiency, serveEfficiency, attackErrors, serveErrors, scoresA, scoresB };
+        }
+
+        function calculateDetailedSetStats(playerStats) {
+            let attackPoints = 0, aces = 0, attackErrors = 0, serveErrors = 0;
+            let totalAttacks = 0, totalServes = 0;
+
+            Object.values(playerStats).forEach(stats => {
+                attackPoints += stats.attacks?.success || 0;
+                aces += stats.serves?.ace || 0;
+                attackErrors += stats.attacks?.error || 0;
+                serveErrors += stats.serves?.error || 0;
+                
+                totalAttacks += (stats.attacks?.success || 0) + (stats.attacks?.error || 0) + (stats.attacks?.normal || 0);
+                totalServes += (stats.serves?.success || 0) + (stats.serves?.error || 0) + (stats.serves?.ace || 0);
+            });
+
+            const attackEfficiency = totalAttacks > 0 ? ((attackPoints / totalAttacks) * 100).toFixed(1) : 0;
+            const serveEfficiency = totalServes > 0 ? (((totalServes - serveErrors) / totalServes) * 100).toFixed(1) : 0;
+
+            return { attackPoints, aces, attackEfficiency: parseFloat(attackEfficiency), serveEfficiency: parseFloat(serveEfficiency), attackErrors, serveErrors };
+        }
+
+        function createComparisonTable() {
+            const tableBody = document.getElementById('detailedStatsTable');
+            tableBody.innerHTML = '';
+
+            // Cabeçalho especial para comparativo
+            const headerRow = document.createElement('tr');
+            headerRow.className = 'bg-blue-100';
+            headerRow.innerHTML = `
+                <th colspan="12" class="px-3 py-3 text-center text-lg font-bold text-blue-800">
+                    📊 Comparativo Detalhado por Set
+                </th>
+            `;
+            tableBody.appendChild(headerRow);
+
+            // Dados por set
+            const allSets = [...setHistory];
+            if (currentSet && (gameStats.teamA > 0 || gameStats.teamB > 0)) {
+                allSets.push({
+                    set: currentSet,
+                    scoreA: gameStats.teamA,
+                    scoreB: gameStats.teamB,
+                    stats: gameStats.playerStats,
+                    current: true
+                });
+            }
+
+            allSets.forEach(setData => {
+                const setHeaderRow = document.createElement('tr');
+                setHeaderRow.className = `${setData.current ? 'bg-blue-50' : 'bg-gray-50'} border-t-2`;
+                setHeaderRow.innerHTML = `
+                    <td colspan="12" class="px-3 py-2 font-bold text-center ${setData.current ? 'text-blue-700' : 'text-gray-700'}">
+                        Set ${setData.set} ${setData.current ? '(Em Andamento)' : '(Finalizado)'} - Placar: ${setData.scoreA} x ${setData.scoreB}
+                    </td>
+                `;
+                tableBody.appendChild(setHeaderRow);
+
+                // Dados dos jogadores para este set
+                players.forEach(player => {
+                    const stats = setData.stats[player.number] || {
+                        attacks: { success: 0, error: 0, normal: 0 },
+                        serves: { success: 0, error: 0, ace: 0 },
+                        blocks: { success: 0, error: 0 },
+                        passes: { a: 0, b: 0, c: 0 },
+                        sets: { success: 0, error: 0 }
+                    };
+
+                    const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                    const attackPercentage = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                    
+                    const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                    const servePercentage = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                    
+                    const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                    const passPercentage = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                    
+                    const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+
+                    const row = document.createElement('tr');
+                    row.className = `border-t hover:bg-gray-50 ${setData.current ? 'bg-blue-25' : ''}`;
+                    row.innerHTML = `
+                        <td class="px-3 py-2 font-semibold">${player.name} (#${player.number})</td>
+                        <td class="px-3 py-2 text-center">${stats.attacks.success}/${totalAttacks}</td>
+                        <td class="px-3 py-2 text-center ${attackPercentage >= 50 ? 'text-green-600' : 'text-red-600'} font-semibold">${attackPercentage}%</td>
+                        <td class="px-3 py-2 text-center">${stats.serves.success + stats.serves.ace}/${totalServes}</td>
+                        <td class="px-3 py-2 text-center ${servePercentage >= 70 ? 'text-green-600' : 'text-red-600'} font-semibold">${servePercentage}%</td>
+                        <td class="px-3 py-2 text-center text-yellow-600 font-semibold">${stats.serves.ace}</td>
+                        <td class="px-3 py-2 text-center">${stats.blocks.success}/${stats.blocks.success + stats.blocks.error}</td>
+                        <td class="px-3 py-2 text-center text-green-600">${stats.passes.a}</td>
+                        <td class="px-3 py-2 text-center text-yellow-600">${stats.passes.b}</td>
+                        <td class="px-3 py-2 text-center text-red-600">${stats.passes.c}</td>
+                        <td class="px-3 py-2 text-center ${passPercentage >= 70 ? 'text-green-600' : 'text-red-600'} font-semibold">${passPercentage}%</td>
+                        <td class="px-3 py-2 text-center">${totalSets}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            });
+        }
+
+        function calculateAccumulatedStats() {
+            const accumulated = {};
+            
+            // Inicializar estrutura
+            players.forEach(player => {
+                accumulated[player.number] = {
+                    attacks: { success: 0, error: 0, normal: 0 },
+                    serves: { success: 0, error: 0, ace: 0 },
+                    blocks: { success: 0, error: 0 },
+                    passes: { a: 0, b: 0, c: 0 },
+                    sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                };
+            });
+            
+            // Somar estatísticas do set atual
+            Object.keys(gameStats.playerStats).forEach(playerNumber => {
+                const currentStats = gameStats.playerStats[playerNumber];
+                if (accumulated[playerNumber]) {
+                    Object.keys(currentStats).forEach(category => {
+                        Object.keys(currentStats[category]).forEach(action => {
+                            accumulated[playerNumber][category][action] += currentStats[category][action] || 0;
+                        });
+                    });
+                }
+            });
+            
+            // Somar estatísticas dos sets finalizados
+            setHistory.forEach(set => {
+                Object.keys(set.stats).forEach(playerNumber => {
+                    const setStats = set.stats[playerNumber];
+                    if (accumulated[playerNumber]) {
+                        Object.keys(setStats).forEach(category => {
+                            Object.keys(setStats[category]).forEach(action => {
+                                accumulated[playerNumber][category][action] += setStats[category][action] || 0;
+                            });
+                        });
+                    }
+                });
+            });
+            
+            return accumulated;
+        }
+
+        function viewSetDetails(setNumber) {
+            const setData = setHistory.find(s => s.set === setNumber);
+            if (setData) {
+                alert(`Detalhes do Set ${setNumber}:\nPlacar: ${setData.scoreA} x ${setData.scoreB}\n\nClique em "Todos os Sets" no seletor para ver estatísticas completas.`);
+            }
+        }
+
+        function exportData() {
+            const selector = document.getElementById('reportSetSelector');
+            const selectedValue = selector ? selector.value : 'current';
+            
+            if (selectedValue === 'comparison') {
+                exportComparisonData();
+                return;
+            }
+            
+            const isAccumulated = selectedValue === 'all';
+            const timestamp = new Date().toISOString().split('T')[0];
+            const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            // Cabeçalho com informações do jogo
+            let csvContent = `RELATÓRIO DE VOLEIBOL SCOUT\n`;
+            csvContent += `Data: ${new Date().toLocaleDateString('pt-BR')}\n`;
+            csvContent += `Hora: ${time}\n`;
+            csvContent += `Tipo de Relatório: ${isAccumulated ? 'DADOS ACUMULADOS (TODOS OS SETS)' : `SET ${currentSet} ATUAL`}\n`;
+            csvContent += `Total de Sets Jogados: ${setHistory.length + (currentSet > setHistory.length ? 1 : 0)}\n\n`;
+            
+            // Placar geral
+            if (setHistory.length > 0) {
+                csvContent += `HISTÓRICO DE SETS:\n`;
+                setHistory.forEach(set => {
+                    csvContent += `Set ${set.set}: ${set.scoreA} x ${set.scoreB}\n`;
+                });
+                if (currentSet > setHistory.length) {
+                    csvContent += `Set ${currentSet} (Em andamento): ${gameStats.teamA} x ${gameStats.teamB}\n`;
+                }
+                csvContent += `\n`;
+            }
+            
+            // Cabeçalho da tabela principal
+            csvContent += `ESTATÍSTICAS DETALHADAS POR JOGADOR:\n`;
+            csvContent += `Set,Jogador,Número,Posição,Ataques Ponto,Ataques Normal,Ataques Erro,Total Ataques,% Ataque,Saques Certo,Saques Erro,Aces,Total Saques,% Saque,Bloqueios Sucesso,Bloqueios Erro,Total Bloqueios,% Bloqueio,Passe A,Passe B,Passe C,Total Passes,% Passe,Levant Sucesso,Levant Erro,Levant Ponta,Levant Saída,Levant Meio,Levant Fundo Meio,Levant Fundo Saída,Total Levant\n`;
+            
+            if (isAccumulated) {
+                // Exportar dados acumulados
+                const accumulatedStats = calculateAccumulatedStats();
+                players.forEach(player => {
+                    const stats = accumulatedStats[player.number] || {
+                        attacks: { success: 0, error: 0, normal: 0 },
+                        serves: { success: 0, error: 0, ace: 0 },
+                        blocks: { success: 0, error: 0 },
+                        passes: { a: 0, b: 0, c: 0 },
+                        sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                    };
+                    
+                    const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                    const attackPercentage = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                    
+                    const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                    const servePercentage = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                    
+                    const totalBlocks = stats.blocks.success + stats.blocks.error;
+                    const blockPercentage = totalBlocks > 0 ? ((stats.blocks.success / totalBlocks) * 100).toFixed(1) : '0.0';
+                    
+                    const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                    const passPercentage = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                    
+                    const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+                    const totalSetDistribution = (stats.sets.ponta || 0) + (stats.sets.saida || 0) + (stats.sets.meio || 0) + (stats.sets.fundo_meio || 0) + (stats.sets.fundo_saida || 0);
+                    
+                    csvContent += `ACUMULADO,"${player.name}",${player.number},"${player.position}",${stats.attacks.success},${stats.attacks.normal},${stats.attacks.error},${totalAttacks},${attackPercentage}%,${stats.serves.success},${stats.serves.error},${stats.serves.ace},${totalServes},${servePercentage}%,${stats.blocks.success},${stats.blocks.error},${totalBlocks},${blockPercentage}%,${stats.passes.a},${stats.passes.b},${stats.passes.c},${totalPasses},${passPercentage}%,${stats.sets.success || 0},${stats.sets.error || 0},${stats.sets.ponta || 0},${stats.sets.saida || 0},${stats.sets.meio || 0},${stats.sets.fundo_meio || 0},${stats.sets.fundo_saida || 0},${totalSetDistribution}\n`;
+                });
+            } else {
+                // Exportar dados do set atual
+                players.forEach(player => {
+                    const stats = gameStats.playerStats[player.number] || {
+                        attacks: { success: 0, error: 0, normal: 0 },
+                        serves: { success: 0, error: 0, ace: 0 },
+                        blocks: { success: 0, error: 0 },
+                        passes: { a: 0, b: 0, c: 0 },
+                        sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                    };
+                    
+                    const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                    const attackPercentage = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                    
+                    const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                    const servePercentage = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                    
+                    const totalBlocks = stats.blocks.success + stats.blocks.error;
+                    const blockPercentage = totalBlocks > 0 ? ((stats.blocks.success / totalBlocks) * 100).toFixed(1) : '0.0';
+                    
+                    const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                    const passPercentage = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                    
+                    const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+                    const totalSetDistribution = (stats.sets.ponta || 0) + (stats.sets.saida || 0) + (stats.sets.meio || 0) + (stats.sets.fundo_meio || 0) + (stats.sets.fundo_saida || 0);
+                    
+                    csvContent += `${currentSet},"${player.name}",${player.number},"${player.position}",${stats.attacks.success},${stats.attacks.normal},${stats.attacks.error},${totalAttacks},${attackPercentage}%,${stats.serves.success},${stats.serves.error},${stats.serves.ace},${totalServes},${servePercentage}%,${stats.blocks.success},${stats.blocks.error},${totalBlocks},${blockPercentage}%,${stats.passes.a},${stats.passes.b},${stats.passes.c},${totalPasses},${passPercentage}%,${stats.sets.success || 0},${stats.sets.error || 0},${stats.sets.ponta || 0},${stats.sets.saida || 0},${stats.sets.meio || 0},${stats.sets.fundo_meio || 0},${stats.sets.fundo_saida || 0},${totalSetDistribution}\n`;
+                });
+            }
+            
+            // Adicionar resumo estatístico
+            csvContent += `\n\nRESUMO ESTATÍSTICO:\n`;
+            if (isAccumulated) {
+                const accumulatedStats = calculateAccumulatedStats();
+                let totalPoints = 0, totalAces = 0, totalBlocks = 0, totalErrors = 0, totalActions = 0;
+                
+                Object.values(accumulatedStats).forEach(stats => {
+                    totalPoints += stats.attacks.success || 0;
+                    totalAces += stats.serves.ace || 0;
+                    totalBlocks += stats.blocks.success || 0;
+                    totalErrors += (stats.attacks.error || 0) + (stats.serves.error || 0) + (stats.blocks.error || 0);
+                    totalActions += Object.values(stats).reduce((sum, category) => {
+                        return sum + Object.values(category).reduce((catSum, val) => catSum + (val || 0), 0);
+                    }, 0);
+                });
+                
+                csvContent += `Total de Pontos Diretos:,${totalPoints + totalAces}\n`;
+                csvContent += `Total de Aces:,${totalAces}\n`;
+                csvContent += `Total de Bloqueios:,${totalBlocks}\n`;
+                csvContent += `Total de Erros:,${totalErrors}\n`;
+                csvContent += `Total de Ações:,${totalActions}\n`;
+                csvContent += `Eficiência Geral:,${totalActions > 0 ? (((totalPoints + totalAces) / totalActions) * 100).toFixed(1) : 0}%\n`;
+            } else {
+                const attackStats = calculateAttackStats();
+                const serveStats = calculateServeStats();
+                let totalBlocks = 0, totalErrors = 0;
+                
+                Object.values(gameStats.playerStats).forEach(stats => {
+                    totalBlocks += stats.blocks.success || 0;
+                    totalErrors += (stats.attacks.error || 0) + (stats.serves.error || 0) + (stats.blocks.error || 0);
+                });
+                
+                csvContent += `Pontos de Ataque:,${attackStats.points}\n`;
+                csvContent += `Ataques Normais:,${attackStats.normal}\n`;
+                csvContent += `Erros de Ataque:,${attackStats.errors}\n`;
+                csvContent += `Saques Certos:,${serveStats.success}\n`;
+                csvContent += `Aces:,${serveStats.aces}\n`;
+                csvContent += `Erros de Saque:,${serveStats.errors}\n`;
+                csvContent += `Bloqueios:,${totalBlocks}\n`;
+                csvContent += `Total de Erros:,${totalErrors}\n`;
+            }
+            
+            // Criar e baixar arquivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Voleibol_Scout_${isAccumulated ? 'Completo' : `Set${currentSet}`}_${timestamp}_${time.replace(':', '')}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            alert('📊 Relatório Excel exportado com sucesso!\n\n✅ Arquivo CSV completo baixado\n📈 Inclui todas as estatísticas e percentuais\n📋 Compatível com Excel e Google Sheets');
+        }
+
+        function exportComparisonData() {
+            const timestamp = new Date().toISOString().split('T')[0];
+            const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            let csvContent = `RELATÓRIO COMPARATIVO POR SET - VOLEIBOL SCOUT\n`;
+            csvContent += `Data: ${new Date().toLocaleDateString('pt-BR')}\n`;
+            csvContent += `Hora: ${time}\n`;
+            csvContent += `Total de Sets: ${Math.max(currentSet, setHistory.length)}\n\n`;
+            
+            // Resumo de placares
+            csvContent += `RESUMO DE PLACARES POR SET:\n`;
+            csvContent += `Set,Equipe A,Equipe B,Status\n`;
+            
+            setHistory.forEach(set => {
+                csvContent += `${set.set},${set.scoreA},${set.scoreB},Finalizado\n`;
+            });
+            
+            if (currentSet > setHistory.length) {
+                csvContent += `${currentSet},${gameStats.teamA},${gameStats.teamB},Em Andamento\n`;
+            }
+            
+            csvContent += `\n\nESTATÍSTICAS DETALHADAS POR SET E JOGADOR:\n`;
+            csvContent += `Set,Status,Jogador,Número,Posição,Ataques Ponto,Ataques Normal,Ataques Erro,% Ataque,Saques Certo,Saques Erro,Aces,% Saque,Bloqueios,Passe A,Passe B,Passe C,% Passe,Levantamentos\n`;
+            
+            // Dados dos sets finalizados
+            setHistory.forEach(set => {
+                players.forEach(player => {
+                    const stats = set.stats[player.number] || {
+                        attacks: { success: 0, error: 0, normal: 0 },
+                        serves: { success: 0, error: 0, ace: 0 },
+                        blocks: { success: 0, error: 0 },
+                        passes: { a: 0, b: 0, c: 0 },
+                        sets: { success: 0, error: 0 }
+                    };
+                    
+                    const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                    const attackPercentage = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                    
+                    const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                    const servePercentage = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                    
+                    const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                    const passPercentage = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                    
+                    const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+                    
+                    csvContent += `${set.set},Finalizado,"${player.name}",${player.number},"${player.position}",${stats.attacks.success},${stats.attacks.normal},${stats.attacks.error},${attackPercentage}%,${stats.serves.success},${stats.serves.error},${stats.serves.ace},${servePercentage}%,${stats.blocks.success},${stats.passes.a},${stats.passes.b},${stats.passes.c},${passPercentage}%,${totalSets}\n`;
+                });
+            });
+            
+            // Dados do set atual (se houver)
+            if (currentSet > setHistory.length) {
+                players.forEach(player => {
+                    const stats = gameStats.playerStats[player.number] || {
+                        attacks: { success: 0, error: 0, normal: 0 },
+                        serves: { success: 0, error: 0, ace: 0 },
+                        blocks: { success: 0, error: 0 },
+                        passes: { a: 0, b: 0, c: 0 },
+                        sets: { success: 0, error: 0 }
+                    };
+                    
+                    const totalAttacks = stats.attacks.success + stats.attacks.error + stats.attacks.normal;
+                    const attackPercentage = totalAttacks > 0 ? ((stats.attacks.success / totalAttacks) * 100).toFixed(1) : '0.0';
+                    
+                    const totalServes = stats.serves.success + stats.serves.error + stats.serves.ace;
+                    const servePercentage = totalServes > 0 ? (((stats.serves.success + stats.serves.ace) / totalServes) * 100).toFixed(1) : '0.0';
+                    
+                    const totalPasses = stats.passes.a + stats.passes.b + stats.passes.c;
+                    const passPercentage = totalPasses > 0 ? (((stats.passes.a + stats.passes.b) / totalPasses) * 100).toFixed(1) : '0.0';
+                    
+                    const totalSets = (stats.sets.success || 0) + (stats.sets.error || 0);
+                    
+                    csvContent += `${currentSet},"Em Andamento","${player.name}",${player.number},"${player.position}",${stats.attacks.success},${stats.attacks.normal},${stats.attacks.error},${attackPercentage}%,${stats.serves.success},${stats.serves.error},${stats.serves.ace},${servePercentage}%,${stats.blocks.success},${stats.passes.a},${stats.passes.b},${stats.passes.c},${passPercentage}%,${totalSets}\n`;
+                });
+            }
+            
+            // Criar e baixar arquivo
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Voleibol_Scout_Comparativo_${timestamp}_${time.replace(':', '')}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            
+            alert('📊 Relatório Comparativo exportado com sucesso!\n\n✅ Dados de todos os sets incluídos\n📈 Comparação detalhada por set\n📋 Pronto para análise no Excel');
+        }
+
+        // Funções de gerenciamento de equipes salvas
+        function showSavedTeams() {
+            const section = document.getElementById('savedTeamsSection');
+            section.classList.remove('hidden');
+            updateSavedTeamsList();
+        }
+
+        function hideSavedTeams() {
+            const section = document.getElementById('savedTeamsSection');
+            section.classList.add('hidden');
+        }
+
+        function updateSavedTeamsList() {
+            const container = document.getElementById('savedTeamsList');
+            const savedTeams = JSON.parse(localStorage.getItem('volleyballTeams') || '[]');
+            
+            container.innerHTML = '';
+            
+            if (savedTeams.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-2">📂</div>
+                        <p>Nenhuma equipe salva ainda</p>
+                        <p class="text-sm">Cadastre jogadores e clique em "Salvar Equipe"</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            savedTeams.forEach((team, index) => {
+                const teamDiv = document.createElement('div');
+                teamDiv.className = 'bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors';
+                
+                const createdDate = new Date(team.createdAt).toLocaleDateString('pt-BR');
+                const createdTime = new Date(team.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                
+                teamDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1 cursor-pointer" onclick="loadSavedTeam(${index})">
+                            <div class="flex items-center mb-2">
+                                <div class="w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold mr-3">
+                                    ${team.players.length}
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-lg text-gray-800">${team.name}</h4>
+                                    <p class="text-sm text-gray-600">${team.players.length} jogadores</p>
+                                </div>
+                            </div>
+                            <div class="text-xs text-gray-500">
+                                Criada em: ${createdDate} às ${createdTime}
+                            </div>
+                            <div class="mt-2 flex flex-wrap gap-1">
+                                ${team.players.slice(0, 6).map(player => 
+                                    `<span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">#${player.number} ${player.name}</span>`
+                                ).join('')}
+                                ${team.players.length > 6 ? `<span class="text-xs text-gray-500">+${team.players.length - 6} mais...</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex flex-col space-y-2 ml-4">
+                            <button onclick="loadSavedTeam(${index})" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm font-semibold">
+                                📥 Carregar
+                            </button>
+                            <button onclick="duplicateTeam(${index})" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-semibold">
+                                📋 Duplicar
+                            </button>
+                            <button onclick="deleteTeam(${index})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm font-semibold">
+                                🗑️ Excluir
+                            </button>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(teamDiv);
+            });
+        }
+
+        function loadSavedTeam(index) {
+            const savedTeams = JSON.parse(localStorage.getItem('volleyballTeams') || '[]');
+            const team = savedTeams[index];
+            
+            if (!team) {
+                alert('❌ Equipe não encontrada!');
+                return;
+            }
+            
+            if (confirm(`🔄 Carregar a equipe "${team.name}"?\n\nIsso substituirá os jogadores atuais.`)) {
+                // Carregar dados da equipe
+                players = [...team.players];
+                document.getElementById('teamName').value = team.name;
+                
+                // Inicializar estatísticas para os novos jogadores
+                gameStats.playerStats = {};
+                players.forEach(player => {
+                    gameStats.playerStats[player.number] = {
+                        attacks: { success: 0, error: 0, normal: 0 },
+                        serves: { success: 0, error: 0, ace: 0 },
+                        blocks: { success: 0, error: 0 },
+                        passes: { a: 0, b: 0, c: 0 },
+                        sets: { success: 0, error: 0, ponta: 0, saida: 0, meio: 0, fundo_meio: 0, fundo_saida: 0 }
+                    };
+                });
+                
+                // Atualizar displays
+                updatePlayersList();
+                hideSavedTeams();
+                
+                // Feedback visual
+                showLoadTeamFeedback(team.name, team.players.length);
+                
+                // Salvar estado atual
+                saveDataToLocal();
+            }
+        }
+
+        function duplicateTeam(index) {
+            const savedTeams = JSON.parse(localStorage.getItem('volleyballTeams') || '[]');
+            const team = savedTeams[index];
+            
+            if (!team) {
+                alert('❌ Equipe não encontrada!');
+                return;
+            }
+            
+            const newName = prompt(`📋 Digite o nome para a cópia da equipe:`, `${team.name} - Cópia`);
+            
+            if (newName && newName.trim()) {
+                const duplicatedTeam = {
+                    name: newName.trim(),
+                    players: [...team.players],
+                    createdAt: new Date().toISOString(),
+                    lastModified: new Date().toISOString()
+                };
+                
+                savedTeams.push(duplicatedTeam);
+                localStorage.setItem('volleyballTeams', JSON.stringify(savedTeams));
+                
+                updateSavedTeamsList();
+                
+                showDuplicateTeamFeedback(newName.trim());
+            }
+        }
+
+        function deleteTeam(index) {
+            const savedTeams = JSON.parse(localStorage.getItem('volleyballTeams') || '[]');
+            const team = savedTeams[index];
+            
+            if (!team) {
+                alert('❌ Equipe não encontrada!');
+                return;
+            }
+            
+            if (confirm(`🗑️ Tem certeza que deseja excluir a equipe "${team.name}"?\n\nEsta ação não pode ser desfeita.`)) {
+                savedTeams.splice(index, 1);
+                localStorage.setItem('volleyballTeams', JSON.stringify(savedTeams));
+                
+                updateSavedTeamsList();
+                
+                showDeleteTeamFeedback(team.name);
+            }
+        }
+
+        function showLoadTeamFeedback(teamName, playerCount) {
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed top-20 right-4 bg-green-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            feedback.innerHTML = `
+                <div class="flex items-center">
+                    <div class="text-2xl mr-3">📥</div>
+                    <div>
+                        <div class="font-bold">Equipe Carregada!</div>
+                        <div class="text-sm opacity-90">${teamName} - ${playerCount} jogadores</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => feedback.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                feedback.classList.add('translate-x-full');
+                setTimeout(() => feedback.remove(), 300);
+            }, 4000);
+        }
+
+        function showDuplicateTeamFeedback(teamName) {
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed top-20 right-4 bg-blue-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            feedback.innerHTML = `
+                <div class="flex items-center">
+                    <div class="text-2xl mr-3">📋</div>
+                    <div>
+                        <div class="font-bold">Equipe Duplicada!</div>
+                        <div class="text-sm opacity-90">${teamName}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => feedback.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                feedback.classList.add('translate-x-full');
+                setTimeout(() => feedback.remove(), 300);
+            }, 3000);
+        }
+
+        function showDeleteTeamFeedback(teamName) {
+            const feedback = document.createElement('div');
+            feedback.className = 'fixed top-20 right-4 bg-red-600 text-white px-6 py-4 rounded-lg shadow-lg z-50 transform translate-x-full transition-transform duration-300';
+            feedback.innerHTML = `
+                <div class="flex items-center">
+                    <div class="text-2xl mr-3">🗑️</div>
+                    <div>
+                        <div class="font-bold">Equipe Excluída!</div>
+                        <div class="text-sm opacity-90">${teamName}</div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(feedback);
+            
+            setTimeout(() => feedback.classList.remove('translate-x-full'), 100);
+            setTimeout(() => {
+                feedback.classList.add('translate-x-full');
+                setTimeout(() => feedback.remove(), 300);
+            }, 3000);
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carregar dados salvos do localStorage
+            loadSavedData();
+            
+            // Configurar monitoramento de status offline/online
+            setupOfflineMonitoring();
+            
+            // Registrar Service Worker para funcionalidade offline
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js').catch(function(error) {
+                    console.log('Service Worker registration failed:', error);
+                });
+            }
+        });
+
+        // Monitoramento de status offline/online
+        function setupOfflineMonitoring() {
+            const offlineIndicator = document.getElementById('offlineIndicator');
+            
+            function updateOnlineStatus() {
+                if (navigator.onLine) {
+                    if (offlineIndicator) {
+                        offlineIndicator.classList.add('hidden');
+                    }
+                } else {
+                    if (offlineIndicator) {
+                        offlineIndicator.classList.remove('hidden');
+                        offlineIndicator.textContent = 'OFFLINE';
+                        offlineIndicator.className = 'ml-2 px-2 py-1 text-xs bg-orange-500 text-white rounded';
+                    }
+                }
+            }
+            
+            // Verificar status inicial
+            updateOnlineStatus();
+            
+            // Monitorar mudanças de status
+            window.addEventListener('online', updateOnlineStatus);
+            window.addEventListener('offline', updateOnlineStatus);
+            
+            // Mostrar indicador de que funciona offline
+            if (offlineIndicator) {
+                setTimeout(() => {
+                    offlineIndicator.textContent = 'FUNCIONA OFFLINE';
+                    offlineIndicator.className = 'ml-2 px-2 py-1 text-xs bg-green-500 text-white rounded';
+                    offlineIndicator.classList.remove('hidden');
+                    
+                    setTimeout(() => {
+                        if (navigator.onLine) {
+                            offlineIndicator.classList.add('hidden');
+                        }
+                    }, 3000);
+                }, 1000);
+            }
+        }
+
+        // Funções de armazenamento local
+        function saveDataToLocal() {
+            const gameData = {
+                players: players,
+                gameStats: gameStats,
+                currentSet: currentSet,
+                setHistory: setHistory,
+                allSetsStats: allSetsStats,
+                currentRotation: currentRotation,
+                initialRotation: initialRotation,
+                timestamp: new Date().toISOString()
+            };
+            localStorage.setItem('volleyballScout', JSON.stringify(gameData));
+        }
+
+        function loadSavedData() {
+            const savedData = localStorage.getItem('volleyballScout');
+            if (savedData) {
+                try {
+                    const gameData = JSON.parse(savedData);
+                    players = gameData.players || [];
+                    gameStats = gameData.gameStats || { teamA: 0, teamB: 0, playerStats: {} };
+                    currentSet = gameData.currentSet || 1;
+                    setHistory = gameData.setHistory || [];
+                    allSetsStats = gameData.allSetsStats || {};
+                    currentRotation = gameData.currentRotation || [1, 2, 3, 4, 5, 6];
+                    initialRotation = gameData.initialRotation || [1, 2, 3, 4, 5, 6];
+                } catch (error) {
+                    console.log('Erro ao carregar dados salvos:', error);
+                }
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Tem certeza que deseja limpar todos os dados? Esta ação não pode ser desfeita.')) {
+                localStorage.removeItem('volleyballScout');
+                players = [];
+                gameStats = { teamA: 0, teamB: 0, playerStats: {} };
+                currentSet = 1;
+                setHistory = [];
+                allSetsStats = {};
+                currentRotation = [1, 2, 3, 4, 5, 6];
+                initialRotation = [1, 2, 3, 4, 5, 6];
+                
+                // Atualizar displays
+                updatePlayersList();
+                updateAllDisplays();
+                updateSetHistoryDisplay();
+                
+                alert('Todos os dados foram limpos!');
+            }
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9800c5c3f1d8d985',t:'MTc1ODAyOTk5My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
