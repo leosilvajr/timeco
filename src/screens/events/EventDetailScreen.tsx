@@ -237,6 +237,11 @@ export const EventDetailScreen: React.FC = () => {
           {event.status === 'teams_drawn' ? (
             <Button title="Ver times sorteados" variant="outline" onPress={() => nav.navigate('DrawResult', { eventId: event.id })} />
           ) : null}
+          <Button
+            title="✏️ Editar evento"
+            variant="outline"
+            onPress={() => nav.navigate('EditEvent', { eventId: event.id })}
+          />
           <Button title="Cancelar evento" variant="outline" onPress={onCancel} />
           <Button title="Excluir evento" variant="ghost" onPress={onDelete} />
         </Card>

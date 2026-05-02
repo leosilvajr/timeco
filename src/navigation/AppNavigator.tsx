@@ -14,6 +14,7 @@ import { HomeScreen } from '../screens/home/HomeScreen';
 
 import { EventsListScreen } from '../screens/events/EventsListScreen';
 import { CreateEventScreen } from '../screens/events/CreateEventScreen';
+import { EditEventScreen } from '../screens/events/EditEventScreen';
 import { EventDetailScreen } from '../screens/events/EventDetailScreen';
 import { RatePlayersScreen } from '../screens/events/RatePlayersScreen';
 import { DrawResultScreen } from '../screens/events/DrawResultScreen';
@@ -65,6 +66,7 @@ const EventsNavigator = () => (
   <EventsStack.Navigator screenOptions={{ headerShown: false }}>
     <EventsStack.Screen name="EventsList" component={EventsListScreen} />
     <EventsStack.Screen name="CreateEvent" component={CreateEventScreen} />
+    <EventsStack.Screen name="EditEvent" component={EditEventScreen} />
     <EventsStack.Screen name="EventDetail" component={EventDetailScreen} />
     <EventsStack.Screen name="RatePlayers" component={RatePlayersScreen} />
     <EventsStack.Screen name="DrawResult" component={DrawResultScreen} />

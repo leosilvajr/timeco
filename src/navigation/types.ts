@@ -8,6 +8,7 @@ export type AuthStackParamList = {
 export type EventsStackParamList = {
   EventsList: { initialFilter?: 'upcoming' | 'history' | 'all' } | undefined;
   CreateEvent: undefined;
+  EditEvent: { eventId: string };
   EventDetail: { eventId: string };
   RatePlayers: { eventId: string };
   DrawResult: { eventId: string };
