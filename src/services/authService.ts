@@ -9,7 +9,7 @@ import {
   User as FirebaseUser,
   updateProfile,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp, deleteField } from 'firebase/firestore';
 import { auth, db } from './firebase';
 import { User, UserRole } from '../types';
 
@@ -102,10 +102,12 @@ export const ensureUserDocument = async (firebaseUser: FirebaseUser): Promise<Us
 };
 
 export const updateUserProfile = async (uid: string, patch: Partial<User>) => {
-  // Firestore rejeita undefined em updateDoc — filtra antes de enviar.
+  // Firestore rejeita undefined em updateDoc; null é aceito (remove o campo).
+  // Por convenção: undefined = ignora; null = remove.
   const cleaned: Record<string, unknown> = {};
   for (const [k, v] of Object.entries(patch)) {
-    if (v !== undefined) cleaned[k] = v;
+    if (v === undefined) continue;
+    cleaned[k] = v === null ? deleteField() : v;
   }
   cleaned.updatedAt = serverTimestamp();
   await updateDoc(doc(db, 'users', uid), cleaned);

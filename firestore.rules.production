@@ -69,6 +69,35 @@ service cloud.firestore {
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['confirmations', 'updatedAt']))
       );
       allow delete: if isAuth() && request.auth.uid == resource.data.organizerId;
+
+      // ====== PHOTOS (galeria do evento, subcollection) ======
+      match /photos/{photoId} {
+        function eventData() {
+          return get(/databases/$(database)/documents/events/$(eventId)).data;
+        }
+        function isParticipant() {
+          let e = eventData();
+          return isAuth() && (
+            request.auth.uid == e.organizerId ||
+            request.auth.uid in e.invitedUserIds
+          );
+        }
+        allow read: if isParticipant();
+        allow create: if isParticipant()
+          && request.auth.uid == request.resource.data.uploaderId;
+        allow delete: if isAuth() && (
+          request.auth.uid == resource.data.uploaderId ||
+          request.auth.uid == eventData().organizerId
+        );
+        allow update: if false;
+      }
+    }
+
+    // ====== COLLECTION GROUP: photos =====
+    // Permite list cross-event para a galeria de perfil (busca fotos
+    // do uploader em qualquer evento). Filtro by uploaderId já restringe.
+    match /{path=**}/photos/{photoId} {
+      allow list: if isAuth();
     }
 
     // ====== PLAYER RATINGS (estrelas por evento) ======

@@ -10,3 +10,7 @@ export { Header } from './Header';
 export { EmptyState } from './EmptyState';
 export { Chip } from './Chip';
 export { GoogleSignInButton } from './GoogleSignInButton';
+export { PhotoUploader } from './PhotoUploader';
+export { PhotoLightbox } from './PhotoLightbox';
+export { LocationPicker } from './LocationPicker';
+export type { SelectedLocation } from './LocationPicker';

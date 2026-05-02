@@ -30,6 +30,7 @@ import { ProfileHomeScreen } from '../screens/profile/ProfileHomeScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { SuperAdminScreen } from '../screens/profile/SuperAdminScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
+import { PrivacySettingsScreen } from '../screens/profile/PrivacySettingsScreen';
 import { NotificationsScreen } from '../screens/profile/NotificationsScreen';
 
 import { VolleyHomeScreen } from '../screens/volley/VolleyHomeScreen';
@@ -95,6 +96,7 @@ const ProfileNavigator = () => (
     <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
     <ProfileStack.Screen name="SuperAdmin" component={SuperAdminScreen} />
     <ProfileStack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
+    <ProfileStack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
     <ProfileStack.Screen name="Notifications" component={NotificationsScreen} />
   </ProfileStack.Navigator>
 );

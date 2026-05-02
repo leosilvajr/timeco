@@ -27,6 +27,7 @@ export type ProfileStackParamList = {
   EditProfile: undefined;
   SuperAdmin: undefined;
   ThemeSettings: undefined;
+  PrivacySettings: undefined;
   Notifications: undefined;
 };
 

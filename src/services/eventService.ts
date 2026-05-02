@@ -14,7 +14,7 @@ import {
   setDoc,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { DrawnTeam, Event, PlayerRating, User } from '../types';
+import { DrawnTeam, Event, EventLocation, PlayerRating, User } from '../types';
 import { notifySafe } from './notificationService';
 
 export interface CreateEventInput {
@@ -22,6 +22,7 @@ export interface CreateEventInput {
   title: string;
   sport: Event['sport'];
   location: string;
+  locationDetails?: EventLocation;
   scheduledAt: Date;
   playersPerTeam: number;
   teamsCount: number;
@@ -42,6 +43,7 @@ export const createEvent = async (input: CreateEventInput): Promise<string> => {
     title: input.title,
     sport: input.sport,
     location: input.location,
+    ...(input.locationDetails ? { locationDetails: input.locationDetails } : {}),
     scheduledAt: Timestamp.fromDate(input.scheduledAt),
     playersPerTeam: input.playersPerTeam,
     teamsCount: input.teamsCount,

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card, Avatar, Button } from '../../components';
+import { Screen, Header, Card, Avatar, Button, PhotoLightbox } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { getUserById } from '../../services/userService';
 import { removeFriend, areFriends } from '../../services/friendsService';
+import { listPhotosByUser } from '../../services/eventGalleryService';
+import { canViewFullProfile, canViewGallery } from '../../services/privacyLogic';
 import { useAuthStore, useThemedColors } from '../../store';
-import { User } from '../../types';
+import { EventPhoto, User } from '../../types';
 import { getSport } from '../../constants/sports';
 import type { SocialStackParamList } from '../../navigation/types';
 
@@ -29,10 +31,16 @@ export const PlayerProfileScreen: React.FC = () => {
   const current = useAuthStore((s) => s.user);
   const [target, setTarget] = useState<User | null>(null);
   const [isFriend, setIsFriend] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [photos, setPhotos] = useState<EventPhoto[]>([]);
+  const [galleryPhoto, setGalleryPhoto] = useState<EventPhoto | null>(null);
 
   useEffect(() => {
     getUserById(route.params.userId).then(setTarget);
     if (current) areFriends(current.id, route.params.userId).then(setIsFriend);
+    listPhotosByUser(route.params.userId)
+      .then(setPhotos)
+      .catch((e) => console.warn('listPhotosByUser', e));
   }, [route.params.userId, current]);
 
   const onRemove = async () => {
@@ -108,6 +116,17 @@ export const PlayerProfileScreen: React.FC = () => {
       color: colors.textSecondary,
       textAlign: 'center',
     },
+    galleryGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+    },
+    galleryThumb: {
+      width: 90,
+      height: 90,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceVariant,
+    },
   });
 
   if (!target) {
@@ -121,42 +140,73 @@ export const PlayerProfileScreen: React.FC = () => {
   const age = calcAge(target.birthDate);
   const hasInfo = !!(target.heightCm || age !== null || target.phone);
   const hasFavSports = (target.favoriteSports?.length ?? 0) > 0;
+  const isSelf = current?.id === target.id;
+  const canSeeFullProfile = canViewFullProfile(current, target, isFriend);
+  const canSeeGallery = canViewGallery(current, target, isFriend);
 
   return (
     <Screen maxWidth={600}>
       <Header title="Perfil" onBack={() => nav.goBack()} />
 
       <Card style={styles.hero}>
-        <Avatar name={target.name} photoURL={target.photoURL} size={88} />
+        <Pressable
+          onPress={() => target.photoURL && setLightboxOpen(true)}
+          disabled={!target.photoURL}
+        >
+          <Avatar name={target.name} photoURL={target.photoURL} size={88} />
+        </Pressable>
         <Text style={styles.name}>{target.name}</Text>
         <Text style={styles.email}>{target.email}</Text>
         {target.bio ? <Text style={styles.bio}>"{target.bio}"</Text> : null}
       </Card>
 
-      <Card style={{ marginTop: spacing.md }}>
-        <Text style={styles.sectionTitle}>Dados</Text>
-        {age !== null ? <Text style={styles.info}>🎂 {age} anos</Text> : null}
-        {target.heightCm ? <Text style={styles.info}>📏 {target.heightCm} cm</Text> : null}
-        {target.phone ? <Text style={styles.info}>📱 {target.phone}</Text> : null}
-        {!hasInfo ? <Text style={styles.empty}>Sem informações adicionais</Text> : null}
-      </Card>
-
-      {hasFavSports ? (
-        <Card style={{ marginTop: spacing.md }}>
-          <Text style={styles.sectionTitle}>Esportes favoritos</Text>
-          <View style={styles.sportsRow}>
-            {target.favoriteSports!.map((sid) => {
-              const cfg = getSport(sid);
-              return (
-                <View key={sid} style={styles.sportChip}>
-                  <Text style={{ fontSize: 14 }}>{cfg.emoji}</Text>
-                  <Text style={styles.sportChipTxt}>{cfg.label}</Text>
-                </View>
-              );
-            })}
-          </View>
-        </Card>
+      {target.photoURL ? (
+        <PhotoLightbox
+          visible={lightboxOpen}
+          url={target.photoURL}
+          caption={target.name}
+          onClose={() => setLightboxOpen(false)}
+        />
       ) : null}
+
+      {canSeeFullProfile || isSelf ? (
+        <>
+          <Card style={{ marginTop: spacing.md }}>
+            <Text style={styles.sectionTitle}>Dados</Text>
+            {age !== null ? <Text style={styles.info}>🎂 {age} anos</Text> : null}
+            {target.heightCm ? <Text style={styles.info}>📏 {target.heightCm} cm</Text> : null}
+            {target.phone ? <Text style={styles.info}>📱 {target.phone}</Text> : null}
+            {!hasInfo ? <Text style={styles.empty}>Sem informações adicionais</Text> : null}
+          </Card>
+
+          {hasFavSports ? (
+            <Card style={{ marginTop: spacing.md }}>
+              <Text style={styles.sectionTitle}>Esportes favoritos</Text>
+              <View style={styles.sportsRow}>
+                {target.favoriteSports!.map((sid) => {
+                  const cfg = getSport(sid);
+                  return (
+                    <View key={sid} style={styles.sportChip}>
+                      <Text style={{ fontSize: 14 }}>{cfg.emoji}</Text>
+                      <Text style={styles.sportChipTxt}>{cfg.label}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </Card>
+          ) : null}
+        </>
+      ) : (
+        <Card style={{ marginTop: spacing.md, alignItems: 'center', gap: 6 }}>
+          <Text style={{ fontSize: 26 }}>🔒</Text>
+          <Text style={[styles.sectionTitle, { textAlign: 'center', marginBottom: 0 }]}>
+            Perfil privado
+          </Text>
+          <Text style={styles.empty}>
+            Este usuário só compartilha os detalhes com amigos. Envie uma solicitação pra ver mais.
+          </Text>
+        </Card>
+      )}
 
       <View style={styles.actions}>
         {isFriend && current ? (
@@ -171,6 +221,28 @@ export const PlayerProfileScreen: React.FC = () => {
           <Button title="Remover amizade" variant="outline" onPress={onRemove} />
         ) : null}
       </View>
+
+      {canSeeGallery && photos.length > 0 ? (
+        <Card style={{ marginTop: spacing.lg }}>
+          <Text style={styles.sectionTitle}>📸 Galeria ({photos.length})</Text>
+          <View style={styles.galleryGrid}>
+            {photos.map((p) => (
+              <Pressable key={p.id} onPress={() => setGalleryPhoto(p)}>
+                <Image source={{ uri: p.url }} style={styles.galleryThumb} />
+              </Pressable>
+            ))}
+          </View>
+        </Card>
+      ) : null}
+
+      {galleryPhoto ? (
+        <PhotoLightbox
+          visible={!!galleryPhoto}
+          url={galleryPhoto.url}
+          caption={`Foto de ${galleryPhoto.uploaderName}`}
+          onClose={() => setGalleryPhoto(null)}
+        />
+      ) : null}
     </Screen>
   );
 };

@@ -1,8 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Alert, Linking } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card, Button, Avatar, EmptyState } from '../../components';
+import { Image } from 'react-native';
+import { Screen, Header, Card, Button, Avatar, EmptyState, PhotoUploader, PhotoLightbox } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { getSport } from '../../constants/sports';
 import { Event, User, ConfirmationStatus } from '../../types';
@@ -13,9 +14,17 @@ import {
   setEventStatus,
 } from '../../services/eventService';
 import { getUsersByIds } from '../../services/userService';
+import { googleMapsUrl } from '../../services/locationService';
+import {
+  addPhotoToEvent,
+  listEventPhotos,
+  removeEventPhoto,
+} from '../../services/eventGalleryService';
+import { uploadEventPhoto } from '../../services/photoService';
 import { useAuthStore, useThemedColors } from '../../store';
 import type { EventsStackParamList } from '../../navigation/types';
 import { Timestamp } from 'firebase/firestore';
+import { EventPhoto } from '../../types';
 
 type Nav = NativeStackNavigationProp<EventsStackParamList, 'EventDetail'>;
 type Rt = RouteProp<EventsStackParamList, 'EventDetail'>;
@@ -70,6 +79,9 @@ export const EventDetailScreen: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [busy, setBusy] = useState(false);
+  const [photos, setPhotos] = useState<EventPhoto[]>([]);
+  const [lightboxPhoto, setLightboxPhoto] = useState<EventPhoto | null>(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   const styles = StyleSheet.create({
     heroCard: {
@@ -100,6 +112,64 @@ export const EventDetailScreen: React.FC = () => {
       opacity: 0.9,
       marginTop: 6,
     },
+    mapsBtn: {
+      alignSelf: 'flex-start',
+      marginTop: 8,
+      paddingVertical: 6,
+      paddingHorizontal: 12,
+      backgroundColor: 'rgba(255,255,255,0.18)',
+      borderRadius: radius.md,
+    },
+    mapsTxt: {
+      color: colors.white,
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    galleryGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginTop: 6,
+    },
+    galleryThumb: {
+      width: 92,
+      height: 92,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceVariant,
+    },
+    galleryThumbWrap: {
+      position: 'relative',
+    },
+    galleryRemove: {
+      position: 'absolute',
+      top: 2,
+      right: 2,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    galleryRemoveTxt: {
+      color: colors.white,
+      fontSize: 14,
+      fontWeight: '900',
+    },
+    addPhotoBtn: {
+      width: 92,
+      height: 92,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceVariant,
+      borderWidth: 2,
+      borderStyle: 'dashed',
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+    },
+    addPhotoTxt: { fontSize: 26, color: colors.primary, fontWeight: '900', lineHeight: 28 },
+    addPhotoLabel: { fontSize: 10, fontWeight: '700', color: colors.primary },
     confirmCard: {
       marginBottom: spacing.lg,
     },
@@ -136,8 +206,34 @@ export const EventDetailScreen: React.FC = () => {
       const map: Record<string, User> = {};
       for (const u of all) map[u.id] = u;
       setUsers(map);
+      try {
+        const ps = await listEventPhotos(e.id);
+        setPhotos(ps);
+      } catch (err) {
+        console.warn('listEventPhotos', err);
+      }
     }
   }, [route.params.eventId]);
+
+  const onPickPhoto = async (file: File) => {
+    if (!event || !user) return;
+    setUploadingPhoto(true);
+    try {
+      const photo = await addPhotoToEvent(event.id, user.id, user.name, file);
+      setPhotos((prev) => [photo, ...prev]);
+    } finally {
+      setUploadingPhoto(false);
+    }
+  };
+
+  const onRemovePhoto = async (photo: EventPhoto) => {
+    if (!event || !user) return;
+    if (photo.uploaderId !== user.id && event.organizerId !== user.id) return;
+    const ok = typeof window !== 'undefined' ? window.confirm('Apagar esta foto?') : true;
+    if (!ok) return;
+    await removeEventPhoto(event.id, photo.id, photo.storagePath);
+    setPhotos((prev) => prev.filter((p) => p.id !== photo.id));
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -193,6 +289,22 @@ export const EventDetailScreen: React.FC = () => {
       <Card style={styles.heroCard}>
         <Text style={styles.dateBig}>{formatDate(event.scheduledAt)}</Text>
         <Text style={styles.location}>📍 {event.location}</Text>
+        {event.locationDetails ? (
+          <Pressable
+            onPress={() =>
+              Linking.openURL(
+                googleMapsUrl({
+                  lat: event.locationDetails!.lat,
+                  lng: event.locationDetails!.lng,
+                  name: event.location,
+                }),
+              )
+            }
+            style={styles.mapsBtn}
+          >
+            <Text style={styles.mapsTxt}>🗺️  Abrir no Google Maps</Text>
+          </Pressable>
+        ) : null}
         <Text style={styles.organizer}>👑 Organizador: {event.organizerName}</Text>
         {event.notes ? <Text style={styles.notes}>📝 {event.notes}</Text> : null}
       </Card>
@@ -273,7 +385,92 @@ export const EventDetailScreen: React.FC = () => {
           {declined.map((id) => <PlayerRow key={id} u={users[id]} />)}
         </>
       ) : null}
+
+      <Text style={styles.section}>📸 Galeria ({photos.length})</Text>
+      {photos.length === 0 && !canParticipate(event, user) ? (
+        <Text style={styles.emptyTxt}>Nenhuma foto ainda.</Text>
+      ) : null}
+      <View style={styles.galleryGrid}>
+        {photos.map((p) => (
+          <View key={p.id} style={styles.galleryThumbWrap}>
+            <Pressable onPress={() => setLightboxPhoto(p)}>
+              <Image source={{ uri: p.url }} style={styles.galleryThumb} />
+            </Pressable>
+            {p.uploaderId === user.id || isOrganizer ? (
+              <Pressable style={styles.galleryRemove} onPress={() => onRemovePhoto(p)}>
+                <Text style={styles.galleryRemoveTxt}>×</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        ))}
+        {canParticipate(event, user) ? (
+          <PhotoPickerThumb
+            uploading={uploadingPhoto}
+            onPick={onPickPhoto}
+            styles={styles}
+          />
+        ) : null}
+      </View>
+
+      {lightboxPhoto ? (
+        <PhotoLightbox
+          visible={!!lightboxPhoto}
+          url={lightboxPhoto.url}
+          caption={`Foto de ${lightboxPhoto.uploaderName}`}
+          onClose={() => setLightboxPhoto(null)}
+        />
+      ) : null}
+
       <View style={{ height: spacing.xxl }} />
     </Screen>
+  );
+};
+
+const canParticipate = (event: Event, user: User): boolean => {
+  return (
+    event.organizerId === user.id ||
+    event.invitedUserIds.includes(user.id) ||
+    event.confirmations?.[user.id] === 'confirmed'
+  );
+};
+
+interface PhotoPickerThumbProps {
+  uploading: boolean;
+  onPick: (file: File) => Promise<void>;
+  styles: ReturnType<typeof StyleSheet.create>;
+}
+
+const PhotoPickerThumb: React.FC<PhotoPickerThumbProps> = ({ uploading, onPick, styles }) => {
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const trigger = () => {
+    if (typeof window !== 'undefined' && inputRef.current) {
+      inputRef.current.click();
+    }
+  };
+  const onChange = async (e: { target: { files: FileList | null } }) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await onPick(file);
+    } catch (err) {
+      console.error('upload photo', err);
+    } finally {
+      if (inputRef.current) inputRef.current.value = '';
+    }
+  };
+  return (
+    <Pressable style={styles.addPhotoBtn} onPress={trigger} disabled={uploading}>
+      <Text style={styles.addPhotoTxt}>+</Text>
+      <Text style={styles.addPhotoLabel}>{uploading ? 'Enviando...' : 'Foto'}</Text>
+      {typeof window !== 'undefined'
+        ? React.createElement('input', {
+            ref: inputRef,
+            type: 'file',
+            accept: 'image/*',
+            onChange,
+            style: { display: 'none' },
+          })
+        : null}
+    </Pressable>
   );
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Input, Button, Card, Avatar, DateInput, TimeInput } from '../../components';
+import { Screen, Header, Input, Button, Card, Avatar, DateInput, TimeInput, LocationPicker, SelectedLocation } from '../../components';
 import { SPORTS, getSport } from '../../constants/sports';
 import { colors, radius, spacing } from '../../constants/theme';
 import { listFriends } from '../../services/friendsService';
@@ -37,7 +37,7 @@ export const EditEventScreen: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [title, setTitle] = useState('');
   const [sport, setSport] = useState<SportId>('soccer');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState<SelectedLocation | null>(null);
   const [dateStr, setDateStr] = useState('');
   const [timeStr, setTimeStr] = useState('');
   const [playersPerTeam, setPlayersPerTeam] = useState('5');
@@ -62,7 +62,12 @@ export const EditEventScreen: React.FC = () => {
       setEvent(e);
       setTitle(e.title);
       setSport(e.sport);
-      setLocation(e.location);
+      setLocation({
+        name: e.location,
+        address: e.locationDetails?.address ?? e.location,
+        lat: e.locationDetails?.lat ?? 0,
+        lng: e.locationDetails?.lng ?? 0,
+      });
       const { date, time } = splitDateTime(e.scheduledAt);
       setDateStr(date);
       setTimeStr(time);
@@ -107,7 +112,7 @@ export const EditEventScreen: React.FC = () => {
     if (!event || !user) return;
     if (event.organizerId !== user.id) return setError('Apenas o organizador pode editar');
     if (!title.trim()) return setError('Informe um título');
-    if (!location.trim()) return setError('Informe o local');
+    if (!location || !location.name.trim()) return setError('Informe o local');
     if (!dateStr || !timeStr) return setError('Informe data e horário');
 
     const scheduledAt = new Date(`${dateStr}T${timeStr}:00`);
@@ -131,7 +136,11 @@ export const EditEventScreen: React.FC = () => {
       await updateEvent(event.id, {
         title: title.trim(),
         sport,
-        location: location.trim(),
+        location: location.name.trim(),
+        locationDetails:
+          location.lat !== 0 && location.lng !== 0
+            ? { address: location.address, lat: location.lat, lng: location.lng }
+            : undefined,
         scheduledAt: Timestamp.fromDate(scheduledAt) as unknown as Date,
         playersPerTeam: parseInt(playersPerTeam, 10) || 5,
         teamsCount: parseInt(teamsCount, 10) || 2,
@@ -150,7 +159,7 @@ export const EditEventScreen: React.FC = () => {
             uid,
             'event_invite',
             `Convite: ${title.trim()}`,
-            `${user.name} convidou você para um jogo em ${location.trim()}`,
+            `${user.name} convidou você para um jogo em ${location.name.trim()}`,
             event.id,
           ),
         ),
@@ -278,7 +287,12 @@ export const EditEventScreen: React.FC = () => {
       </ScrollView>
 
       <Input label="Título do evento" value={title} onChangeText={setTitle} />
-      <Input label="Local" value={location} onChangeText={setLocation} />
+      <LocationPicker
+        label="Local"
+        value={location}
+        onChange={setLocation}
+        placeholder="Quadra do bairro, arena, estabelecimento..."
+      />
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>

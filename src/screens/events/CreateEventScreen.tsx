@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Input, Button, Card, Avatar, DateInput, TimeInput } from '../../components';
+import { Screen, Header, Input, Button, Card, Avatar, DateInput, TimeInput, LocationPicker, SelectedLocation } from '../../components';
 import { SPORTS, getSport } from '../../constants/sports';
 import { colors, radius, spacing } from '../../constants/theme';
 import { listFriends } from '../../services/friendsService';
@@ -22,7 +22,7 @@ export const CreateEventScreen: React.FC = () => {
 
   const [title, setTitle] = useState('');
   const [sport, setSport] = useState<SportId>('soccer');
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState<SelectedLocation | null>(null);
   const now = new Date();
   const defaultDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 19, 0, 0);
   const [dateStr, setDateStr] = useState(
@@ -85,7 +85,7 @@ export const CreateEventScreen: React.FC = () => {
     setError(null);
     if (!user) return;
     if (!title.trim()) return setError('Informe um título');
-    if (!location.trim()) return setError('Informe o local');
+    if (!location || !location.name.trim()) return setError('Informe o local');
     if (!dateStr || !timeStr) return setError('Informe data e horário');
     // Mínimo 1 amigo convidado: organizador + 1 oponente = evento 1v1.
     if (selected.size < 1) return setError('Convide pelo menos 1 jogador');
@@ -99,7 +99,11 @@ export const CreateEventScreen: React.FC = () => {
         organizer: user,
         title: title.trim(),
         sport,
-        location: location.trim(),
+        location: location.name.trim(),
+        locationDetails:
+          location.lat !== 0 && location.lng !== 0
+            ? { address: location.address, lat: location.lat, lng: location.lng }
+            : undefined,
         scheduledAt,
         playersPerTeam: parseInt(playersPerTeam, 10) || 5,
         teamsCount: parseInt(teamsCount, 10) || 2,
@@ -249,7 +253,13 @@ export const CreateEventScreen: React.FC = () => {
       </ScrollView>
 
       <Input label="Título do evento" value={title} onChangeText={setTitle} placeholder="Pelada de quarta" />
-      <Input label="Local" value={location} onChangeText={setLocation} placeholder="Quadra do bairro" />
+      <LocationPicker
+        label="Local"
+        value={location}
+        onChange={setLocation}
+        placeholder="Quadra do bairro, arena, estabelecimento..."
+        hint="Digite o nome ou endereço — selecione no mapa pra abrir no Google Maps depois"
+      />
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>

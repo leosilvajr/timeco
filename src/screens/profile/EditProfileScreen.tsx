@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { ScrollView, Text, StyleSheet, View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Input, Button, DateInput } from '../../components';
+import { Screen, Header, Input, Button, DateInput, PhotoUploader } from '../../components';
 import { maskPhone, maskDecimal, parseDecimal, unmaskPhone } from '../../utils/masks';
+import { uploadAvatar } from '../../services/photoService';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { updateUserProfile } from '../../services/authService';
@@ -107,6 +108,25 @@ export const EditProfileScreen: React.FC = () => {
   return (
     <Screen maxWidth={720}>
       <Header title="Meus dados" onBack={() => nav.goBack()} />
+
+      <PhotoUploader
+        label="Foto de perfil"
+        currentUrl={user?.photoURL}
+        name={name || user?.name || ''}
+        size={104}
+        onPick={async (file) => {
+          if (!user) return;
+          const result = await uploadAvatar(user.id, file);
+          await updateUserProfile(user.id, { photoURL: result.url });
+          patchUser({ photoURL: result.url });
+        }}
+        onRemove={async () => {
+          if (!user) return;
+          await updateUserProfile(user.id, { photoURL: null as unknown as string });
+          patchUser({ photoURL: undefined });
+        }}
+      />
+
       <Input label="Nome" value={name} onChangeText={setName} />
       <DateInput
         label="Data de nascimento"

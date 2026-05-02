@@ -44,6 +44,16 @@ export interface User {
   bio?: string;
   /** Esportes preferidos exibidos no perfil público. */
   favoriteSports?: SportId[];
+  /**
+   * Quando false, somente amigos veem o perfil completo. Estranhos só
+   * veem nome + foto. Default true (público) caso não definido.
+   */
+  isProfilePublic?: boolean;
+  /**
+   * Quando false, a galeria de fotos das partidas não aparece no perfil
+   * público. Default true.
+   */
+  isGalleryPublic?: boolean;
   createdAt: Timestamp | Date | null;
   updatedAt?: Timestamp | Date | null;
 }
@@ -83,13 +93,24 @@ export interface DrawnTeam {
   totalStars: number;
 }
 
+export interface EventLocation {
+  /** Endereço completo (display_name do OSM) */
+  address: string;
+  lat: number;
+  lng: number;
+}
+
 export interface Event {
   id: string;
   organizerId: string;
   organizerName: string;
   title: string;
   sport: SportId;
+  /** Nome curto do local (ex: "Arena XPTO"). Sempre presente. */
   location: string;
+  /** Localização completa com coordenadas (opcional, presente quando o
+   * organizador escolheu via mapa). */
+  locationDetails?: EventLocation;
   scheduledAt: Timestamp | Date | null;
   playersPerTeam: number;
   teamsCount: number;
@@ -109,6 +130,17 @@ export interface Event {
   notes?: string;
   createdAt: Timestamp | Date | null;
   updatedAt?: Timestamp | Date | null;
+}
+
+export interface EventPhoto {
+  id: string;
+  eventId: string;
+  uploaderId: string;
+  uploaderName: string;
+  url: string;
+  storagePath: string;
+  caption?: string;
+  createdAt: Timestamp | Date | null;
 }
 
 export interface PlayerRating {
