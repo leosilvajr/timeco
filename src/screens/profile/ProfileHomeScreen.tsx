@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Avatar, Button, PhotoLightbox } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
-import { useAuthStore, useThemedColors, useThemeStore, useUnreadCount } from '../../store';
+import { useAuthStore, useThemedColors, useUnreadCount } from '../../store';
 import { computeProfileCompletion } from '../../hooks/useProfileCompletion';
 import { logout } from '../../services/authService';
 import { listPhotosByUser } from '../../services/eventGalleryService';
@@ -16,7 +16,6 @@ type Nav = NativeStackNavigationProp<ProfileStackParamList, 'ProfileHome'>;
 export const ProfileHomeScreen: React.FC = () => {
   useThemedColors();
   const user = useAuthStore((s) => s.user);
-  const mode = useThemeStore((s) => s.mode);
   const unread = useUnreadCount();
   const completion = computeProfileCompletion(user);
   const nav = useNavigation<Nav>();
@@ -30,8 +29,6 @@ export const ProfileHomeScreen: React.FC = () => {
   }, [user]);
 
   if (!user) return null;
-
-  const themeLabel = mode === 'system' ? 'Sistema' : mode === 'dark' ? 'Escuro' : 'Claro';
 
   const styles = StyleSheet.create({
     hero: {
@@ -209,16 +206,6 @@ export const ProfileHomeScreen: React.FC = () => {
           onPress={() => nav.navigate('Notifications')}
         />
         <MenuItem label="✏️  Editar meus dados" onPress={() => nav.navigate('EditProfile')} />
-        <MenuItem
-          label="🎨  Aparência"
-          value={themeLabel}
-          onPress={() => nav.navigate('ThemeSettings')}
-        />
-        <MenuItem
-          label="🔒  Privacidade"
-          value={user.isProfilePublic === false ? 'Privado' : 'Público'}
-          onPress={() => nav.navigate('PrivacySettings')}
-        />
         {user.role === 'superadmin' ? (
           <MenuItem label="🛡️  Painel super admin" onPress={() => nav.navigate('SuperAdmin')} />
         ) : null}

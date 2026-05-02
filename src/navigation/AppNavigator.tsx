@@ -33,6 +33,9 @@ import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
 import { PrivacySettingsScreen } from '../screens/profile/PrivacySettingsScreen';
 import { NotificationsScreen } from '../screens/profile/NotificationsScreen';
 
+import { SettingsHomeScreen } from '../screens/settings/SettingsHomeScreen';
+import { HelpHomeScreen } from '../screens/help/HelpHomeScreen';
+
 import { VolleyHomeScreen } from '../screens/volley/VolleyHomeScreen';
 import { VolleyMatchSetupScreen } from '../screens/volley/VolleyMatchSetupScreen';
 import { VolleyScoutScreen } from '../screens/volley/VolleyScoutScreen';
@@ -45,10 +48,12 @@ import { ScoreboardLiveScreen } from '../screens/scoreboard/ScoreboardLiveScreen
 import {
   AuthStackParamList,
   EventsStackParamList,
+  HelpStackParamList,
   MainTabParamList,
   ProfileStackParamList,
   RootStackParamList,
   ScoreboardStackParamList,
+  SettingsStackParamList,
   SocialStackParamList,
   VolleyStackParamList,
 } from './types';
@@ -61,6 +66,8 @@ const SocialStack = createNativeStackNavigator<SocialStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
 const VolleyStack = createNativeStackNavigator<VolleyStackParamList>();
 const ScoreboardStack = createNativeStackNavigator<ScoreboardStackParamList>();
+const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
+const HelpStack = createNativeStackNavigator<HelpStackParamList>();
 
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
@@ -118,6 +125,20 @@ const ScoreboardNavigator = () => (
   </ScoreboardStack.Navigator>
 );
 
+const SettingsNavigator = () => (
+  <SettingsStack.Navigator screenOptions={{ headerShown: false }}>
+    <SettingsStack.Screen name="SettingsHome" component={SettingsHomeScreen} />
+    <SettingsStack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
+    <SettingsStack.Screen name="PrivacySettings" component={PrivacySettingsScreen} />
+  </SettingsStack.Navigator>
+);
+
+const HelpNavigator = () => (
+  <HelpStack.Navigator screenOptions={{ headerShown: false }}>
+    <HelpStack.Screen name="HelpHome" component={HelpHomeScreen} />
+  </HelpStack.Navigator>
+);
+
 const tabIcon = (emoji: string) => ({ color, focused }: { color: string; focused: boolean; size: number }) => (
   <Text style={{ fontSize: focused ? 24 : 22, color, opacity: focused ? 1 : 0.7 }}>{emoji}</Text>
 );
@@ -158,6 +179,8 @@ const MainNavigator = () => {
         component={ProfileNavigator}
         options={{ tabBarIcon: tabIcon('👤'), tabBarBadge: profileBadge }}
       />
+      <Tab.Screen name="Config" component={SettingsNavigator} options={{ tabBarIcon: tabIcon('⚙️') }} />
+      <Tab.Screen name="Ajuda" component={HelpNavigator} options={{ tabBarIcon: tabIcon('❓') }} />
     </Tab.Navigator>
   );
 };

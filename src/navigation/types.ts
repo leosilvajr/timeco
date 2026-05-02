@@ -31,10 +31,22 @@ export type ProfileStackParamList = {
   Notifications: undefined;
 };
 
+export type SettingsStackParamList = {
+  SettingsHome: undefined;
+  ThemeSettings: undefined;
+  PrivacySettings: undefined;
+};
+
+export type HelpStackParamList = {
+  HelpHome: undefined;
+};
+
 export type MainTabParamList = {
   Inicio: undefined;
   Jogos: NavigatorScreenParams<EventsStackParamList>;
   Social: NavigatorScreenParams<SocialStackParamList>;
+  Config: NavigatorScreenParams<SettingsStackParamList>;
+  Ajuda: NavigatorScreenParams<HelpStackParamList>;
   Perfil: NavigatorScreenParams<ProfileStackParamList>;
 };
 
