@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Screen, Input, Button, Header, GoogleSignInButton, DateInput } from '../../components';
+import { maskDecimal, parseDecimal } from '../../utils/masks';
 import { signUp, signInWithGoogle } from '../../services/authService';
 import { colors, spacing } from '../../constants/theme';
 import { useThemedColors } from '../../store';
@@ -51,7 +52,7 @@ export const SignUpScreen: React.FC = () => {
         email: email.trim().toLowerCase(),
         password,
         birthDate: birthDate.trim() || undefined,
-        heightCm: height ? parseInt(height, 10) : undefined,
+        heightCm: parseDecimal(height) ?? undefined,
       });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erro ao cadastrar';
@@ -123,9 +124,9 @@ export const SignUpScreen: React.FC = () => {
       <Input
         label="Altura em cm (opcional)"
         value={height}
-        onChangeText={setHeight}
-        keyboardType="numeric"
-        placeholder="175"
+        onChangeText={(v) => setHeight(maskDecimal(v))}
+        keyboardType="decimal-pad"
+        placeholder="Ex: 175.5"
         hint="Usada para equilibrar times por altura (vôlei, basquete...)"
       />
       {error ? <Text style={styles.error}>{error}</Text> : null}

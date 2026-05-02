@@ -3,6 +3,7 @@ import { ScrollView, Text, StyleSheet, View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Input, Button, DateInput } from '../../components';
+import { maskPhone, maskDecimal, parseDecimal, unmaskPhone } from '../../utils/masks';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { updateUserProfile } from '../../services/authService';
@@ -22,7 +23,7 @@ export const EditProfileScreen: React.FC = () => {
   const [birthDate, setBirthDate] = useState(user?.birthDate ?? '');
   const [heightCm, setHeightCm] = useState(user?.heightCm ? String(user.heightCm) : '');
   const [weightKg, setWeightKg] = useState(user?.weightKg ? String(user.weightKg) : '');
-  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [phone, setPhone] = useState(user?.phone ? maskPhone(user.phone) : '');
   const [bio, setBio] = useState(user?.bio ?? '');
   const [favoriteSports, setFavoriteSports] = useState<SportId[]>(user?.favoriteSports ?? []);
   const [loading, setLoading] = useState(false);
@@ -43,9 +44,9 @@ export const EditProfileScreen: React.FC = () => {
       const patch = {
         name: name.trim(),
         birthDate: birthDate.trim() || undefined,
-        heightCm: heightCm ? parseInt(heightCm, 10) : undefined,
-        weightKg: weightKg ? parseFloat(weightKg) : undefined,
-        phone: phone.trim() || undefined,
+        heightCm: parseDecimal(heightCm) ?? undefined,
+        weightKg: parseDecimal(weightKg) ?? undefined,
+        phone: phone.trim() ? unmaskPhone(phone) : undefined,
         bio: bio.trim() || undefined,
         favoriteSports: favoriteSports.length ? favoriteSports : undefined,
       };
@@ -113,16 +114,29 @@ export const EditProfileScreen: React.FC = () => {
         onChangeText={setBirthDate}
         mode="birthdate"
       />
-      <Input label="Altura (cm)" value={heightCm} onChangeText={setHeightCm} keyboardType="numeric" />
+      <Input
+        label="Altura (cm)"
+        value={heightCm}
+        onChangeText={(v) => setHeightCm(maskDecimal(v))}
+        keyboardType="decimal-pad"
+        placeholder="Ex: 175.5"
+      />
       <Input
         label="Peso (kg)"
         value={weightKg}
-        onChangeText={setWeightKg}
-        keyboardType="numeric"
-        placeholder="Ex: 72"
+        onChangeText={(v) => setWeightKg(maskDecimal(v))}
+        keyboardType="decimal-pad"
+        placeholder="Ex: 72.5"
         hint="🔒 Privado — usado apenas no sorteio de times. Nunca aparece no seu perfil público."
       />
-      <Input label="Telefone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+      <Input
+        label="Telefone"
+        value={phone}
+        onChangeText={(v) => setPhone(maskPhone(v))}
+        keyboardType="phone-pad"
+        placeholder="(11) 99999-0000"
+        maxLength={15}
+      />
       <Input
         label="Sobre você (bio)"
         value={bio}
