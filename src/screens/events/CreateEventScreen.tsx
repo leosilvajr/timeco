@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Input, Button, Card, Avatar } from '../../components';
+import { Screen, Header, Input, Button, Card, Avatar, DateInput, TimeInput } from '../../components';
 import { SPORTS, getSport } from '../../constants/sports';
 import { colors, radius, spacing } from '../../constants/theme';
 import { listFriends } from '../../services/friendsService';
@@ -253,10 +253,10 @@ export const CreateEventScreen: React.FC = () => {
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
-          <Input label="Data" value={dateStr} onChangeText={setDateStr} placeholder="AAAA-MM-DD" />
+          <DateInput label="Data" value={dateStr} onChangeText={setDateStr} mode="event" />
         </View>
         <View style={{ flex: 1 }}>
-          <Input label="Horário" value={timeStr} onChangeText={setTimeStr} placeholder="HH:MM" />
+          <TimeInput label="Horário" value={timeStr} onChangeText={setTimeStr} />
         </View>
       </View>
 

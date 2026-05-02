@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Input, Button, Card } from '../../components';
+import { Screen, Header, Input, Button, Card, DateInput } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { createVolleyMatch } from '../../services/volleyScoutService';
@@ -171,7 +171,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
       <Header title="Nova partida" onBack={() => nav.goBack()} />
 
       <Text style={styles.sectionTitle}>📋 Informações do jogo</Text>
-      <Input label="Data" value={date} onChangeText={setDate} placeholder="AAAA-MM-DD" />
+      <DateInput label="Data" value={date} onChangeText={setDate} mode="event" />
       <Input label="Local" value={location} onChangeText={setLocation} placeholder="Ginásio ou quadra" />
       <Input label="Sua equipe" value={teamAName} onChangeText={setTeamAName} placeholder="Ex: Vôlei do Lucas" />
       <Input label="Equipe adversária" value={teamBName} onChangeText={setTeamBName} placeholder="Nome da equipe B" />

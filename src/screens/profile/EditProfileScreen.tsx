@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ScrollView, Text, StyleSheet, View, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Input, Button } from '../../components';
+import { Screen, Header, Input, Button, DateInput } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { updateUserProfile } from '../../services/authService';
@@ -107,7 +107,12 @@ export const EditProfileScreen: React.FC = () => {
     <Screen maxWidth={720}>
       <Header title="Meus dados" onBack={() => nav.goBack()} />
       <Input label="Nome" value={name} onChangeText={setName} />
-      <Input label="Data de nascimento" value={birthDate} onChangeText={setBirthDate} placeholder="AAAA-MM-DD" />
+      <DateInput
+        label="Data de nascimento"
+        value={birthDate}
+        onChangeText={setBirthDate}
+        mode="birthdate"
+      />
       <Input label="Altura (cm)" value={heightCm} onChangeText={setHeightCm} keyboardType="numeric" />
       <Input
         label="Peso (kg)"

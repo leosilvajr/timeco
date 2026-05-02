@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Screen, Input, Button, Header, GoogleSignInButton } from '../../components';
+import { Screen, Input, Button, Header, GoogleSignInButton, DateInput } from '../../components';
 import { signUp, signInWithGoogle } from '../../services/authService';
 import { colors, spacing } from '../../constants/theme';
 import { useThemedColors } from '../../store';
@@ -113,11 +113,11 @@ export const SignUpScreen: React.FC = () => {
       />
       <Input label="Senha" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
       <Input label="Confirmar senha" value={confirm} onChangeText={setConfirm} secureTextEntry placeholder="••••••••" />
-      <Input
+      <DateInput
         label="Data de nascimento (opcional)"
         value={birthDate}
         onChangeText={setBirthDate}
-        placeholder="AAAA-MM-DD"
+        mode="birthdate"
         hint="Usada para equilibrar times por idade em esportes que precisam"
       />
       <Input
