@@ -102,10 +102,13 @@ export const ensureUserDocument = async (firebaseUser: FirebaseUser): Promise<Us
 };
 
 export const updateUserProfile = async (uid: string, patch: Partial<User>) => {
-  await updateDoc(doc(db, 'users', uid), {
-    ...patch,
-    updatedAt: serverTimestamp(),
-  });
+  // Firestore rejeita undefined em updateDoc — filtra antes de enviar.
+  const cleaned: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    if (v !== undefined) cleaned[k] = v;
+  }
+  cleaned.updatedAt = serverTimestamp();
+  await updateDoc(doc(db, 'users', uid), cleaned);
 };
 
 export const setUserRole = async (uid: string, role: UserRole) => {
