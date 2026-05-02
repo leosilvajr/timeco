@@ -7,6 +7,8 @@ import {
   LocationResult,
   getCurrentPosition,
   reverseGeocode,
+  findNearbyPlaces,
+  NearbyPlace,
 } from '../services/locationService';
 
 export interface SelectedLocation {
@@ -38,7 +40,7 @@ export const LocationPicker: React.FC<Props> = ({
 }) => {
   useThemedColors();
   const [query, setQuery] = useState(value?.name ?? '');
-  const [results, setResults] = useState<LocationResult[]>([]);
+  const [results, setResults] = useState<(LocationResult | NearbyPlace)[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -88,7 +90,7 @@ export const LocationPicker: React.FC<Props> = ({
     }, 350);
   };
 
-  const onSelect = (r: LocationResult) => {
+  const onSelect = (r: LocationResult | NearbyPlace) => {
     onChange({ name: r.name, address: r.address, lat: r.lat, lng: r.lng });
     setQuery(r.name);
     setOpen(false);
@@ -106,15 +108,40 @@ export const LocationPicker: React.FC<Props> = ({
     try {
       const pos = await getCurrentPosition();
       setGpsAccuracy(Math.round(pos.accuracy));
-      const result = await reverseGeocode(pos.lat, pos.lng);
-      onChange({
-        name: result.name,
-        address: result.address,
-        lat: result.lat,
-        lng: result.lng,
-      });
-      setQuery(result.name);
-      setOpen(false);
+
+      // 1. Busca estabelecimentos (POIs) próximos via Overpass
+      let nearby: NearbyPlace[] = [];
+      try {
+        nearby = await findNearbyPlaces(pos.lat, pos.lng, 250);
+      } catch (err) {
+        console.warn('findNearbyPlaces failed', err);
+      }
+
+      if (nearby.length > 0) {
+        // Mostra os POIs encontrados pra usuário escolher (sem autoselecionar)
+        setResults(nearby);
+        setOpen(true);
+        // Pré-seleciona o mais próximo automaticamente já como sugestão
+        const closest = nearby[0];
+        onChange({
+          name: closest.name,
+          address: closest.address,
+          lat: closest.lat,
+          lng: closest.lng,
+        });
+        setQuery(closest.name);
+      } else {
+        // Fallback: nenhum POI encontrado → usa reverse geocode (rua)
+        const result = await reverseGeocode(pos.lat, pos.lng);
+        onChange({
+          name: result.name,
+          address: result.address,
+          lat: result.lat,
+          lng: result.lng,
+        });
+        setQuery(result.name);
+        setOpen(false);
+      }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Não foi possível obter sua localização');
     } finally {
@@ -176,6 +203,7 @@ export const LocationPicker: React.FC<Props> = ({
     itemLast: { borderBottomWidth: 0 },
     itemName: { fontSize: 14, fontWeight: '700', color: colors.text },
     itemAddr: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
+    distBadge: { fontSize: 11, fontWeight: '700', color: colors.primary },
     manualBtn: {
       paddingVertical: 10,
       paddingHorizontal: spacing.md,
@@ -257,20 +285,36 @@ export const LocationPicker: React.FC<Props> = ({
       ) : null}
       {open && results.length > 0 ? (
         <View style={styles.dropdown}>
-          {results.map((r, i) => (
-            <Pressable
-              key={r.osmId}
-              style={[styles.item, i === results.length - 1 && styles.itemLast]}
-              onPress={() => onSelect(r)}
-            >
-              <Text style={styles.itemName} numberOfLines={1}>
-                📍 {r.name}
-              </Text>
-              <Text style={styles.itemAddr} numberOfLines={2}>
-                {r.address}
-              </Text>
-            </Pressable>
-          ))}
+          {results.map((r, i) => {
+            const dist = (r as NearbyPlace).distanceM;
+            const distLabel =
+              typeof dist === 'number'
+                ? dist < 50
+                  ? 'aqui'
+                  : dist < 1000
+                    ? `${Math.round(dist)}m`
+                    : `${(dist / 1000).toFixed(1)}km`
+                : null;
+            return (
+              <Pressable
+                key={r.osmId}
+                style={[styles.item, i === results.length - 1 && styles.itemLast]}
+                onPress={() => onSelect(r)}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Text style={styles.itemName} numberOfLines={1}>
+                    📍 {r.name}
+                  </Text>
+                  {distLabel ? (
+                    <Text style={styles.distBadge}>· {distLabel}</Text>
+                  ) : null}
+                </View>
+                <Text style={styles.itemAddr} numberOfLines={2}>
+                  {r.address}
+                </Text>
+              </Pressable>
+            );
+          })}
           {query.trim().length > 0 ? (
             <Pressable style={styles.manualBtn} onPress={onUseManual}>
               <Text style={styles.manualTxt}>+ Usar &quot;{query.trim()}&quot; como texto livre</Text>
