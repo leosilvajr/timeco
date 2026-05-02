@@ -264,6 +264,21 @@ export const HomeScreen: React.FC = () => {
       backgroundColor: colors.surfaceVariant,
     },
     helpLinkTxt: { fontSize: 12, fontWeight: '700', color: colors.primary },
+
+    // Botão WhatsApp em destaque
+    whatsBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: '#25D366',
+      marginTop: spacing.sm,
+    },
+    whatsEmoji: { fontSize: 24 },
+    whatsTitle: { fontSize: 14, fontWeight: '800', color: colors.white },
+    whatsSub: { fontSize: 12, color: 'rgba(255,255,255,0.9)', marginTop: 2 },
+    whatsChev: { fontSize: 22, color: colors.white },
   });
 
   const QuickBtn: React.FC<{
@@ -379,15 +394,34 @@ export const HomeScreen: React.FC = () => {
       <Card style={styles.helpCard}>
         <Text style={styles.helpTitle}>Precisa de ajuda?</Text>
         <Text style={styles.helpDesc}>
-          Apenas o organizador define as estrelas dos jogadores. O sorteio mistura atletas fortes e
-          iniciantes em cada time. Se algo não funcionar, fale com a gente.
+          Suporte, dúvidas, reclamações e sugestões: fale direto com a Incrivia pelo WhatsApp.
+          Apenas o organizador define as estrelas dos jogadores e o sorteio mistura atletas fortes
+          e iniciantes em cada time.
         </Text>
+
+        <Pressable
+          style={styles.whatsBtn}
+          onPress={() =>
+            Linking.openURL(
+              'https://wa.me/5517992850093?text=' +
+                encodeURIComponent('Olá! Preciso de ajuda com o Timeco.'),
+            )
+          }
+        >
+          <Text style={styles.whatsEmoji}>💬</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.whatsTitle}>Falar com a Incrivia no WhatsApp</Text>
+            <Text style={styles.whatsSub}>+55 17 99285-0093 · suporte, dúvidas e sugestões</Text>
+          </View>
+          <Text style={styles.whatsChev}>›</Text>
+        </Pressable>
+
         <View style={styles.helpLinks}>
           <Pressable
             style={styles.helpLink}
             onPress={() => Linking.openURL('mailto:suporte@timeco.app?subject=Suporte%20Timeco')}
           >
-            <Text style={styles.helpLinkTxt}>📧 Falar com suporte</Text>
+            <Text style={styles.helpLinkTxt}>📧 E-mail de suporte</Text>
           </Pressable>
           <Pressable style={styles.helpLink} onPress={goAddFriend}>
             <Text style={styles.helpLinkTxt}>👥 Convidar um amigo</Text>
