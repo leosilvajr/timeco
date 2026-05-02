@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -39,6 +39,26 @@ export const CreateEventScreen: React.FC = () => {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [friendQuery, setFriendQuery] = useState('');
+  const [friendsPage, setFriendsPage] = useState(1);
+
+  const FRIENDS_PAGE_SIZE = 30;
+
+  const filteredFriends = useMemo(() => {
+    const q = friendQuery.trim().toLowerCase();
+    if (!q) return friends;
+    return friends.filter(
+      (f) =>
+        f.name.toLowerCase().includes(q) || f.email.toLowerCase().includes(q),
+    );
+  }, [friends, friendQuery]);
+
+  const visibleFriends = useMemo(
+    () => filteredFriends.slice(0, friendsPage * FRIENDS_PAGE_SIZE),
+    [filteredFriends, friendsPage],
+  );
+
+  const hasMoreFriends = visibleFriends.length < filteredFriends.length;
 
   useEffect(() => {
     const cfg = getSport(sport);
@@ -188,6 +208,24 @@ export const CreateEventScreen: React.FC = () => {
       marginBottom: spacing.md,
       textAlign: 'center',
     },
+    loadMoreBtn: {
+      paddingVertical: spacing.md,
+      alignItems: 'center',
+      marginVertical: spacing.sm,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: radius.md,
+    },
+    loadMoreTxt: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    totalTxt: {
+      fontSize: 12,
+      color: colors.textMuted,
+      textAlign: 'center',
+      marginVertical: spacing.sm,
+    },
   });
 
   return (
@@ -264,25 +302,58 @@ export const CreateEventScreen: React.FC = () => {
           </Text>
         </Card>
       ) : (
-        friends.map((f) => {
-          const isSel = selected.has(f.id);
-          return (
-            <Pressable
-              key={f.id}
-              onPress={() => toggleFriend(f.id)}
-              style={[styles.friend, isSel && styles.friendSelected]}
-            >
-              <Avatar name={f.name} photoURL={f.photoURL} size={40} />
-              <View style={{ flex: 1, marginLeft: spacing.md }}>
-                <Text style={styles.friendName}>{f.name}</Text>
-                <Text style={styles.friendEmail}>{f.email}</Text>
-              </View>
-              <View style={[styles.toggle, isSel && styles.toggleOn]}>
-                {isSel ? <Text style={styles.toggleCheck}>✓</Text> : null}
-              </View>
-            </Pressable>
-          );
-        })
+        <>
+          <Input
+            value={friendQuery}
+            onChangeText={(t) => {
+              setFriendQuery(t);
+              setFriendsPage(1);
+            }}
+            placeholder="Buscar amigo por nome ou email"
+          />
+          {filteredFriends.length === 0 ? (
+            <Text style={{ color: colors.textSecondary, textAlign: 'center', marginVertical: spacing.md }}>
+              Nenhum amigo encontrado.
+            </Text>
+          ) : (
+            <>
+              {visibleFriends.map((f) => {
+                const isSel = selected.has(f.id);
+                return (
+                  <Pressable
+                    key={f.id}
+                    onPress={() => toggleFriend(f.id)}
+                    style={[styles.friend, isSel && styles.friendSelected]}
+                  >
+                    <Avatar name={f.name} photoURL={f.photoURL} size={40} />
+                    <View style={{ flex: 1, marginLeft: spacing.md }}>
+                      <Text style={styles.friendName}>{f.name}</Text>
+                      <Text style={styles.friendEmail}>{f.email}</Text>
+                    </View>
+                    <View style={[styles.toggle, isSel && styles.toggleOn]}>
+                      {isSel ? <Text style={styles.toggleCheck}>✓</Text> : null}
+                    </View>
+                  </Pressable>
+                );
+              })}
+              {hasMoreFriends ? (
+                <Pressable
+                  onPress={() => setFriendsPage((p) => p + 1)}
+                  style={styles.loadMoreBtn}
+                >
+                  <Text style={styles.loadMoreTxt}>
+                    Carregar mais ({filteredFriends.length - visibleFriends.length} restantes)
+                  </Text>
+                </Pressable>
+              ) : (
+                <Text style={styles.totalTxt}>
+                  {filteredFriends.length} {filteredFriends.length === 1 ? 'amigo' : 'amigos'}
+                  {friendQuery ? ' encontrado' + (filteredFriends.length === 1 ? '' : 's') : ''}
+                </Text>
+              )}
+            </>
+          )}
+        </>
       )}
 
       <Input label="Observações (opcional)" value={notes} onChangeText={setNotes} multiline numberOfLines={3} />
