@@ -16,6 +16,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Header } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
+import { useResponsive } from '../../hooks/useResponsive';
 import { chatId, sendMessage, subscribeMessages } from '../../services/chatService';
 import { ChatMessage } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
@@ -37,6 +38,8 @@ export const ChatScreen: React.FC = () => {
   const route = useRoute<Rt>();
   const nav = useNavigation<Nav>();
   const me = useAuthStore((s) => s.user);
+  const responsive = useResponsive();
+  const desktop = responsive.isDesktop;
   const { friendId, friendName } = route.params;
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [text, setText] = useState('');
@@ -77,6 +80,12 @@ export const ChatScreen: React.FC = () => {
     safe: {
       flex: 1,
       backgroundColor: colors.background,
+      alignItems: 'center',
+    },
+    column: {
+      flex: 1,
+      width: '100%',
+      maxWidth: desktop ? 720 : undefined,
     },
     body: {
       flex: 1,
@@ -200,7 +209,7 @@ export const ChatScreen: React.FC = () => {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.column}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.body}>

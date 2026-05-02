@@ -104,7 +104,7 @@ export const AddFriendScreen: React.FC = () => {
   });
 
   return (
-    <Screen>
+    <Screen maxWidth={600}>
       <Header title="Adicionar amigo" onBack={() => nav.goBack()} />
       <Input
         label="Buscar por email ou nome"

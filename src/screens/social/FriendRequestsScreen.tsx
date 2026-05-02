@@ -70,7 +70,7 @@ export const FriendRequestsScreen: React.FC = () => {
   });
 
   return (
-    <Screen>
+    <Screen maxWidth={720}>
       <Header title="Convites recebidos" onBack={() => nav.goBack()} />
       {requests.length === 0 ? (
         <EmptyState emoji="📭" title="Sem convites" description="Você não tem convites de amizade pendentes." />

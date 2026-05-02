@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Button } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
+import { useResponsive } from '../../hooks/useResponsive';
 import {
   finishCurrentSet,
   recordAction,
@@ -84,6 +85,8 @@ export const VolleyScoutScreen: React.FC = () => {
   useThemedColors();
   const route = useRoute<Rt>();
   const nav = useNavigation<Nav>();
+  const responsive = useResponsive();
+  const desktop = responsive.isDesktop;
   const { matchId } = route.params;
   const [match, setMatch] = useState<VolleyMatch | null>(null);
 
@@ -167,7 +170,15 @@ export const VolleyScoutScreen: React.FC = () => {
       color: colors.text,
     },
     playerCard: {
-      marginBottom: spacing.sm,
+      marginBottom: desktop ? 0 : spacing.sm,
+      flexBasis: desktop ? '48%' : '100%',
+      flexGrow: 1,
+    },
+    playersGrid: {
+      flexDirection: desktop ? 'row' : 'column',
+      flexWrap: 'wrap',
+      gap: desktop ? spacing.md : 0,
+      marginBottom: spacing.xxl,
     },
     playerHeader: {
       flexDirection: 'row',
@@ -368,6 +379,7 @@ export const VolleyScoutScreen: React.FC = () => {
         </View>
       </View>
 
+      <View style={styles.playersGrid}>
       {match.players.map((player) => (
         <Card key={player.number} style={styles.playerCard}>
           <View style={styles.playerHeader}>
@@ -405,6 +417,7 @@ export const VolleyScoutScreen: React.FC = () => {
           ))}
         </Card>
       ))}
+      </View>
     </Screen>
   );
 };

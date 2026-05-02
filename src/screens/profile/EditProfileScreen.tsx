@@ -102,7 +102,7 @@ export const EditProfileScreen: React.FC = () => {
   });
 
   return (
-    <Screen>
+    <Screen maxWidth={720}>
       <Header title="Meus dados" onBack={() => nav.goBack()} />
       <Input label="Nome" value={name} onChangeText={setName} />
       <Input label="Data de nascimento" value={birthDate} onChangeText={setBirthDate} placeholder="AAAA-MM-DD" />

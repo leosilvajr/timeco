@@ -119,7 +119,7 @@ export const ProfileHomeScreen: React.FC = () => {
   );
 
   return (
-    <Screen>
+    <Screen maxWidth={600}>
       <Header title="Perfil" />
 
       <Card style={styles.hero}>

@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
 import { useAuthStore, useThemedColors, useUnreadCount } from '../store';
 import { colors } from '../constants/theme';
+import { useResponsive } from '../hooks/useResponsive';
 
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { SignUpScreen } from '../screens/auth/SignUpScreen';
@@ -100,28 +101,56 @@ const VolleyNavigator = () => (
   </VolleyStack.Navigator>
 );
 
-const tabIcon = (emoji: string) => ({ color }: { color: string; focused: boolean; size: number }) => (
-  <Text style={{ fontSize: 22, color, opacity: color === colors.primary ? 1 : 0.7 }}>{emoji}</Text>
+const tabIcon = (emoji: string) => ({ color, focused }: { color: string; focused: boolean; size: number }) => (
+  <Text style={{ fontSize: focused ? 24 : 22, color, opacity: focused ? 1 : 0.7 }}>{emoji}</Text>
 );
 
 const MainNavigator = () => {
   useThemedColors();
+  const responsive = useResponsive();
+  const desktop = responsive.isDesktop;
   const unread = useUnreadCount();
   const profileBadge = unread > 0 ? (unread > 99 ? '99+' : String(unread)) : undefined;
+
   return (
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        tabBarPosition: desktop ? 'left' : 'bottom',
+        tabBarLabelPosition: desktop ? 'beside-icon' : 'below-icon',
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          height: 64,
-          paddingTop: 6,
-          paddingBottom: 8,
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarStyle: desktop
+          ? {
+              backgroundColor: colors.surface,
+              borderRightColor: colors.border,
+              borderTopWidth: 0,
+              width: 220,
+              paddingTop: 24,
+              paddingHorizontal: 12,
+            }
+          : {
+              backgroundColor: colors.surface,
+              borderTopColor: colors.border,
+              height: 64,
+              paddingTop: 6,
+              paddingBottom: 8,
+            },
+        tabBarLabelStyle: desktop
+          ? { fontSize: 14, fontWeight: '700', marginLeft: 8 }
+          : { fontSize: 11, fontWeight: '700' },
+        tabBarItemStyle: desktop
+          ? {
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+              alignItems: 'center',
+              borderRadius: 12,
+              marginVertical: 4,
+              paddingVertical: 12,
+              paddingHorizontal: 12,
+              height: 'auto',
+            }
+          : undefined,
         tabBarBadgeStyle: { backgroundColor: colors.danger, color: colors.white },
       }}
     >

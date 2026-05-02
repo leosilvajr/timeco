@@ -94,7 +94,7 @@ export const CreateEventScreen: React.FC = () => {
   };
 
   return (
-    <Screen>
+    <Screen maxWidth={720}>
       <Header title="Novo evento" onBack={() => nav.goBack()} />
 
       <Text style={styles.label}>Esporte</Text>

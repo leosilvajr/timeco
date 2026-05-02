@@ -142,7 +142,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
   });
 
   return (
-    <Screen>
+    <Screen maxWidth={840}>
       <Header title="Nova partida" onBack={() => nav.goBack()} />
 
       <Text style={styles.sectionTitle}>📋 Informações do jogo</Text>

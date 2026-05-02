@@ -87,7 +87,7 @@ export const SignUpScreen: React.FC = () => {
   });
 
   return (
-    <Screen>
+    <Screen maxWidth={520}>
       <Header title="Criar conta" onBack={() => nav.goBack()} />
 
       <GoogleSignInButton

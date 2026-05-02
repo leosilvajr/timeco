@@ -52,7 +52,7 @@ export const DrawResultScreen: React.FC = () => {
   const isOrganizer = event.organizerId === user?.id;
 
   return (
-    <Screen>
+    <Screen maxWidth={840}>
       <Header title="Times sorteados" onBack={() => nav.goBack()} subtitle={event.title} />
 
       {event.teams.map((t, idx) => (

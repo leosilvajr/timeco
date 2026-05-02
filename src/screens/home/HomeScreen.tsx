@@ -3,6 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card, Button } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
+import { useResponsive } from '../../hooks/useResponsive';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../../navigation/types';
@@ -39,6 +40,9 @@ const STEPS = [
 
 export const HomeScreen: React.FC = () => {
   useThemedColors();
+  const responsive = useResponsive();
+  const desktop = responsive.isDesktop;
+  const tabletOrUp = responsive.isTablet || responsive.isDesktop;
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
 
@@ -47,66 +51,83 @@ export const HomeScreen: React.FC = () => {
       marginBottom: spacing.xl,
     },
     greeting: {
-      fontSize: 16,
+      fontSize: desktop ? 18 : 16,
       color: colors.textSecondary,
     },
     title: {
-      fontSize: 30,
+      fontSize: desktop ? 38 : 30,
       fontWeight: '900',
       color: colors.text,
       marginTop: 4,
     },
     subtitle: {
-      fontSize: 16,
+      fontSize: desktop ? 18 : 16,
       color: colors.textSecondary,
       marginTop: 6,
-      lineHeight: 22,
+      lineHeight: desktop ? 26 : 22,
+      maxWidth: desktop ? 720 : undefined,
     },
     quickActions: {
       marginBottom: spacing.xl,
+      flexDirection: tabletOrUp ? 'row' : 'column',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    quickActionWrap: {
+      flexBasis: tabletOrUp ? '32%' : '100%',
+      flexGrow: 1,
+      minWidth: tabletOrUp ? 240 : undefined,
     },
     sectionTitle: {
-      fontSize: 18,
+      fontSize: desktop ? 22 : 18,
       fontWeight: '700',
       color: colors.text,
       marginBottom: spacing.md,
     },
-    step: {
+    stepsGrid: {
+      flexDirection: tabletOrUp ? 'row' : 'column',
+      flexWrap: 'wrap',
+      gap: spacing.md,
+    },
+    stepCard: {
+      flexBasis: tabletOrUp ? '48%' : '100%',
+      flexGrow: 1,
+      minWidth: tabletOrUp ? 280 : undefined,
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      marginBottom: spacing.md,
+      marginBottom: 0,
     },
     stepEmoji: {
-      fontSize: 38,
+      fontSize: desktop ? 42 : 38,
     },
     stepTitle: {
-      fontSize: 16,
+      fontSize: desktop ? 17 : 16,
       fontWeight: '700',
       color: colors.text,
     },
     stepDesc: {
       marginTop: 2,
-      fontSize: 14,
+      fontSize: desktop ? 15 : 14,
       color: colors.textSecondary,
-      lineHeight: 20,
+      lineHeight: desktop ? 22 : 20,
     },
     tipCard: {
-      marginTop: spacing.md,
+      marginTop: spacing.lg,
       backgroundColor: colors.surfaceVariant,
       borderColor: colors.primaryLight,
       borderRadius: radius.lg,
     },
     tipTitle: {
-      fontSize: 15,
+      fontSize: desktop ? 16 : 15,
       fontWeight: '700',
       color: colors.primaryDark,
       marginBottom: 4,
     },
     tipText: {
-      fontSize: 14,
+      fontSize: desktop ? 15 : 14,
       color: colors.text,
-      lineHeight: 20,
+      lineHeight: desktop ? 22 : 20,
     },
   });
 
@@ -121,31 +142,37 @@ export const HomeScreen: React.FC = () => {
       </View>
 
       <View style={styles.quickActions}>
-        <Button title="➕  Criar evento" onPress={() => nav.navigate('Jogos', { screen: 'CreateEvent' } as never)} />
-        <View style={{ height: spacing.sm }} />
-        <Button
-          title="👥  Adicionar amigos"
-          variant="outline"
-          onPress={() => nav.navigate('Social', { screen: 'AddFriend' } as never)}
-        />
-        <View style={{ height: spacing.sm }} />
-        <Button
-          title="🏐  Vôlei avançado (Scout)"
-          variant="outline"
-          onPress={() => (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate('Volley', { screen: 'VolleyHome' })}
-        />
+        <View style={styles.quickActionWrap}>
+          <Button title="➕  Criar evento" onPress={() => nav.navigate('Jogos', { screen: 'CreateEvent' } as never)} />
+        </View>
+        <View style={styles.quickActionWrap}>
+          <Button
+            title="👥  Adicionar amigos"
+            variant="outline"
+            onPress={() => nav.navigate('Social', { screen: 'AddFriend' } as never)}
+          />
+        </View>
+        <View style={styles.quickActionWrap}>
+          <Button
+            title="🏐  Vôlei avançado (Scout)"
+            variant="outline"
+            onPress={() => (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate('Volley', { screen: 'VolleyHome' })}
+          />
+        </View>
       </View>
 
       <Text style={styles.sectionTitle}>Como funciona</Text>
-      {STEPS.map((s) => (
-        <Card key={s.title} style={styles.step}>
-          <Text style={styles.stepEmoji}>{s.emoji}</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.stepTitle}>{s.title}</Text>
-            <Text style={styles.stepDesc}>{s.desc}</Text>
-          </View>
-        </Card>
-      ))}
+      <View style={styles.stepsGrid}>
+        {STEPS.map((s) => (
+          <Card key={s.title} style={styles.stepCard}>
+            <Text style={styles.stepEmoji}>{s.emoji}</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.stepTitle}>{s.title}</Text>
+              <Text style={styles.stepDesc}>{s.desc}</Text>
+            </View>
+          </Card>
+        ))}
+      </View>
 
       <Card style={styles.tipCard}>
         <Text style={styles.tipTitle}>💡 Dica</Text>

@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, EmptyState, Button } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
+import { useResponsive } from '../../hooks/useResponsive';
 import {
   deleteVolleyMatch,
   listUserVolleyMatches,
@@ -35,6 +36,8 @@ const winsCount = (match: VolleyMatch): { a: number; b: number } => {
 export const VolleyHomeScreen: React.FC = () => {
   useThemedColors();
   const nav = useNavigation<Nav>();
+  const responsive = useResponsive();
+  const cols = responsive.isDesktop ? 2 : 1;
   const user = useAuthStore((s) => s.user);
   const [matches, setMatches] = useState<VolleyMatch[]>([]);
   const [loading, setLoading] = useState(false);
@@ -136,7 +139,7 @@ export const VolleyHomeScreen: React.FC = () => {
     const w = winsCount(item);
     const isFinished = item.status === 'finished';
     return (
-      <Card style={styles.matchCard} onPress={() => nav.navigate('VolleyScout', { matchId: item.id })}>
+      <Card style={[styles.matchCard, cols > 1 && { flex: 1 }]} onPress={() => nav.navigate('VolleyScout', { matchId: item.id })}>
         <View style={styles.matchHeader}>
           <Text style={styles.title}>
             {item.teamAName} x {item.teamBName}
@@ -180,6 +183,9 @@ export const VolleyHomeScreen: React.FC = () => {
       <FlatList
         data={matches}
         keyExtractor={(m) => m.id}
+        key={`cols-${cols}`}
+        numColumns={cols}
+        columnWrapperStyle={cols > 1 ? { gap: spacing.md } : undefined}
         refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
         renderItem={renderMatch}
         ListEmptyComponent={

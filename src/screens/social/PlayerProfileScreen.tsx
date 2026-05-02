@@ -123,7 +123,7 @@ export const PlayerProfileScreen: React.FC = () => {
   const hasFavSports = (target.favoriteSports?.length ?? 0) > 0;
 
   return (
-    <Screen>
+    <Screen maxWidth={600}>
       <Header title="Perfil" onBack={() => nav.goBack()} />
 
       <Card style={styles.hero}>

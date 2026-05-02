@@ -109,7 +109,7 @@ export const LoginScreen: React.FC = () => {
   });
 
   return (
-    <Screen>
+    <Screen maxWidth={480}>
       <View style={styles.logo}>
         <Text style={styles.logoEmoji}>⚽</Text>
         <Text style={styles.logoText}>Timeco</Text>

@@ -8,6 +8,7 @@ import { useAuthStore } from '../../store';
 import { Event } from '../../types';
 import { colors, spacing, radius } from '../../constants/theme';
 import { getSport } from '../../constants/sports';
+import { useResponsive } from '../../hooks/useResponsive';
 import { Timestamp } from 'firebase/firestore';
 import type { EventsStackParamList } from '../../navigation/types';
 
@@ -38,6 +39,8 @@ const statusColor = (s: Event['status']) =>
 export const EventsListScreen: React.FC = () => {
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
+  const responsive = useResponsive();
+  const cols = responsive.isDesktop ? 2 : 1;
   const [events, setEvents] = useState<Event[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -79,6 +82,9 @@ export const EventsListScreen: React.FC = () => {
       <FlatList
         data={events}
         keyExtractor={(e) => e.id}
+        key={`cols-${cols}`}
+        numColumns={cols}
+        columnWrapperStyle={cols > 1 ? { gap: spacing.md } : undefined}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -103,7 +109,7 @@ export const EventsListScreen: React.FC = () => {
           const isOrganizer = item.organizerId === user?.id;
           const confirmedCount = Object.values(item.confirmations || {}).filter((s) => s === 'confirmed').length;
           return (
-            <Card style={styles.card} onPress={() => nav.navigate('EventDetail', { eventId: item.id })}>
+            <Card style={[styles.card, cols > 1 && { flex: 1 }]} onPress={() => nav.navigate('EventDetail', { eventId: item.id })}>
               <View style={styles.row}>
                 <Text style={styles.emoji}>{sport.emoji}</Text>
                 <View style={{ flex: 1 }}>

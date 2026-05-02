@@ -9,6 +9,7 @@ import {
   useNotificationStore,
   useThemedColors,
 } from '../../store';
+import { useResponsive } from '../../hooks/useResponsive';
 import {
   markAllNotificationsRead,
   markNotificationRead,
@@ -43,6 +44,8 @@ const formatRelative = (ts: AppNotification['createdAt']): string => {
 export const NotificationsScreen: React.FC = () => {
   useThemedColors();
   const nav = useNavigation<Nav>();
+  const responsive = useResponsive();
+  const cols = responsive.isDesktop ? 2 : 1;
   const user = useAuthStore((s) => s.user);
   const notifications = useNotificationStore((s) => s.notifications);
 
@@ -155,23 +158,29 @@ export const NotificationsScreen: React.FC = () => {
           description="Você verá aqui convites, mensagens, atualizações de eventos e mais."
         />
       ) : (
-        notifications.map((n) => (
-          <Pressable
-            key={n.id}
-            onPress={() => onTap(n)}
-            style={[styles.item, !n.read && styles.itemUnread]}
-          >
-            <Text style={styles.icon}>{ICONS[n.type] ?? '🔔'}</Text>
-            <View style={styles.body}>
-              <Text style={styles.title}>{n.title}</Text>
-              <Text style={styles.text}>{n.body}</Text>
-              <View style={styles.meta}>
-                {!n.read ? <View style={styles.unreadDot} /> : null}
-                <Text style={styles.time}>{formatRelative(n.createdAt)}</Text>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+          {notifications.map((n) => (
+            <Pressable
+              key={n.id}
+              onPress={() => onTap(n)}
+              style={[
+                styles.item,
+                !n.read && styles.itemUnread,
+                cols > 1 && { flexBasis: '48%', flexGrow: 1, marginBottom: 0 },
+              ]}
+            >
+              <Text style={styles.icon}>{ICONS[n.type] ?? '🔔'}</Text>
+              <View style={styles.body}>
+                <Text style={styles.title}>{n.title}</Text>
+                <Text style={styles.text}>{n.body}</Text>
+                <View style={styles.meta}>
+                  {!n.read ? <View style={styles.unreadDot} /> : null}
+                  <Text style={styles.time}>{formatRelative(n.createdAt)}</Text>
+                </View>
               </View>
-            </View>
-          </Pressable>
-        ))
+            </Pressable>
+          ))}
+        </View>
       )}
     </Screen>
   );

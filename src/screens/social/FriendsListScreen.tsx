@@ -10,6 +10,7 @@ import {
   subscribeFriendships,
 } from '../../services/friendsService';
 import { useAuthStore, useThemedColors } from '../../store';
+import { useResponsive } from '../../hooks/useResponsive';
 import { User, FriendRequest } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
 
@@ -19,6 +20,8 @@ export const FriendsListScreen: React.FC = () => {
   useThemedColors();
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
+  const responsive = useResponsive();
+  const cols = responsive.isDesktop ? 2 : 1;
   const [friends, setFriends] = useState<User[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [refreshing, setRefreshing] = useState(false);
@@ -130,6 +133,9 @@ export const FriendsListScreen: React.FC = () => {
       <FlatList
         data={friends}
         keyExtractor={(f) => f.id}
+        key={`cols-${cols}`}
+        numColumns={cols}
+        columnWrapperStyle={cols > 1 ? { gap: spacing.md } : undefined}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); reloadFriends(); }} />
         }
@@ -142,7 +148,7 @@ export const FriendsListScreen: React.FC = () => {
           />
         }
         renderItem={({ item }) => (
-          <Card style={styles.row} onPress={() => nav.navigate('PlayerProfile', { userId: item.id })}>
+          <Card style={[styles.row, cols > 1 && { flex: 1 }]} onPress={() => nav.navigate('PlayerProfile', { userId: item.id })}>
             <Avatar name={item.name} photoURL={item.photoURL} size={44} />
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{item.name}</Text>

@@ -86,7 +86,7 @@ export const ThemeSettingsScreen: React.FC = () => {
   });
 
   return (
-    <Screen>
+    <Screen maxWidth={600}>
       <Header title="Aparência" onBack={() => nav.goBack()} />
       <Text style={styles.intro}>
         Escolha como o Timeco aparece. A preferência fica salva no dispositivo e aplica

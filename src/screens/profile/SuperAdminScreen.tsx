@@ -82,7 +82,7 @@ export const SuperAdminScreen: React.FC = () => {
     : users;
 
   return (
-    <Screen>
+    <Screen maxWidth={840}>
       <Header title="Super admin" subtitle={`${users.length} usuários`} onBack={() => nav.goBack()} />
 
       <Input label="Buscar" value={q} onChangeText={setQ} placeholder="Nome ou email" autoCapitalize="none" />

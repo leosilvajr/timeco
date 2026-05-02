@@ -3,6 +3,7 @@ import { View, ScrollView, StyleSheet, ViewStyle, KeyboardAvoidingView, Platform
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
+import { useResponsive, maxContentWidth } from '../hooks/useResponsive';
 
 interface Props {
   children: React.ReactNode;
@@ -11,6 +12,12 @@ interface Props {
   style?: ViewStyle;
   contentStyle?: ViewStyle;
   keyboardAvoiding?: boolean;
+  /**
+   * Largura máxima do conteúdo no desktop (px). Default `maxContentWidth` (1200).
+   * Telas que precisam de leitura confortável (form, chat) podem passar menor (ex.: 720).
+   * Para ocupar toda a largura, passe `Infinity`.
+   */
+  maxWidth?: number;
 }
 
 export const Screen: React.FC<Props> = ({
@@ -20,32 +27,40 @@ export const Screen: React.FC<Props> = ({
   style,
   contentStyle,
   keyboardAvoiding = true,
+  maxWidth,
 }) => {
   useThemedColors();
+  const responsive = useResponsive();
+  const desktop = responsive.isDesktop;
+  const effectiveMaxWidth = maxWidth ?? maxContentWidth;
+
   const styles = StyleSheet.create({
     safe: {
       flex: 1,
       backgroundColor: colors.background,
     },
     padded: {
-      padding: spacing.lg,
+      padding: desktop ? spacing.xl : spacing.lg,
+    },
+    desktopCenter: {
+      width: '100%',
+      maxWidth: effectiveMaxWidth,
+      alignSelf: 'center',
     },
   });
+
+  const innerStyle: ViewStyle = desktop ? styles.desktopCenter : {};
+
   const content = (
-    <View
-      style={[
-        { flex: 1 },
-        padded && styles.padded,
-        contentStyle,
-      ]}
-    >
+    <View style={[{ flex: 1 }, padded && styles.padded, innerStyle, contentStyle]}>
       {children}
     </View>
   );
+
   const wrapped = scroll ? (
     <ScrollView
       style={{ flex: 1 }}
-      contentContainerStyle={padded ? styles.padded : undefined}
+      contentContainerStyle={[padded && styles.padded, innerStyle]}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
     >
@@ -54,6 +69,7 @@ export const Screen: React.FC<Props> = ({
   ) : (
     content
   );
+
   return (
     <SafeAreaView style={[styles.safe, style]} edges={['top', 'left', 'right']}>
       {keyboardAvoiding && Platform.OS !== 'web' ? (

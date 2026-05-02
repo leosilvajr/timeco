@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
+import { useResponsive } from '../../hooks/useResponsive';
 import { subscribeVolleyMatch } from '../../services/volleyScoutService';
 import {
   accumulateAcrossSets,
@@ -37,6 +38,8 @@ export const VolleyReportsScreen: React.FC = () => {
   useThemedColors();
   const route = useRoute<Rt>();
   const nav = useNavigation<Nav>();
+  const responsive = useResponsive();
+  const desktop = responsive.isDesktop;
   const { matchId } = route.params;
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [mode, setMode] = useState<Mode>('current');
@@ -91,7 +94,7 @@ export const VolleyReportsScreen: React.FC = () => {
     },
     summaryCard: {
       flex: 1,
-      minWidth: 140,
+      minWidth: desktop ? 200 : 140,
       borderRadius: radius.md,
       padding: spacing.md,
       backgroundColor: colors.surface,
@@ -161,7 +164,16 @@ export const VolleyReportsScreen: React.FC = () => {
     tableCellNum: { flex: 1, textAlign: 'center' },
     pctGood: { color: colors.success, fontWeight: '800' },
     pctBad: { color: colors.danger, fontWeight: '800' },
-    playerCard: { marginBottom: spacing.sm },
+    playerCard: {
+      marginBottom: desktop ? 0 : spacing.sm,
+      flexBasis: desktop ? '48%' : '100%',
+      flexGrow: 1,
+    },
+    playersGrid: {
+      flexDirection: desktop ? 'row' : 'column',
+      flexWrap: 'wrap',
+      gap: desktop ? spacing.md : 0,
+    },
     playerHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.sm },
     pNum: {
       width: 36,
@@ -334,6 +346,7 @@ export const VolleyReportsScreen: React.FC = () => {
       </ScrollView>
 
       <Text style={styles.sectionTitle}>Análise individual</Text>
+      <View style={styles.playersGrid}>
       {match.players.map((p) => {
         const s = playerStatsForMode[p.number] ?? emptyPlayerStats();
         const tA = totalAttacks(s);
@@ -407,6 +420,7 @@ export const VolleyReportsScreen: React.FC = () => {
           </Card>
         );
       })}
+      </View>
     </Screen>
   );
 };

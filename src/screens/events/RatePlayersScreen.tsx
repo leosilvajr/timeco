@@ -96,7 +96,7 @@ export const RatePlayersScreen: React.FC = () => {
   }
 
   return (
-    <Screen>
+    <Screen maxWidth={720}>
       <Header title="Definir estrelas" onBack={() => nav.goBack()} subtitle={event.title} />
 
       <Card style={styles.info}>

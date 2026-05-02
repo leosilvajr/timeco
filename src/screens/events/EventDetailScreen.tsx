@@ -96,7 +96,7 @@ export const EventDetailScreen: React.FC = () => {
   };
 
   return (
-    <Screen>
+    <Screen maxWidth={840}>
       <Header title={event.title} onBack={() => nav.goBack()} subtitle={`${sport.emoji} ${sport.label}`} />
 
       <Card style={styles.heroCard}>

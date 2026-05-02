@@ -226,7 +226,7 @@ export const VolleyRotationScreen: React.FC = () => {
   };
 
   return (
-    <Screen>
+    <Screen maxWidth={840}>
       <Header title="Rodízio" subtitle={`Sistema ${match.rotationSystem} · Set ${match.currentSet}`} onBack={() => nav.goBack()} />
 
       <View style={styles.autoBar}>
