@@ -35,9 +35,11 @@ export const RatePlayersScreen: React.FC = () => {
     const e = await getEventById(route.params.eventId);
     if (!e) return;
     setEvent(e);
-    const confirmedIds = e.invitedUserIds.filter((id) => (e.confirmations?.[id] ?? 'pending') === 'confirmed');
-    // Se ninguém confirmou, fallback: todos os convidados (organizador pode estimar antes)
-    const candidateIds = confirmedIds.length > 0 ? confirmedIds : e.invitedUserIds;
+    // Inclui organizador na lista de candidatos (sem duplicar caso já esteja em invitedUserIds)
+    const allCandidateIds = [e.organizerId, ...e.invitedUserIds.filter((id) => id !== e.organizerId)];
+    const confirmedIds = allCandidateIds.filter((id) => e.confirmations?.[id] === 'confirmed');
+    // Se ninguém confirmou, fallback: todos os convidados + organizador (pra estimar antes)
+    const candidateIds = confirmedIds.length > 0 ? confirmedIds : allCandidateIds;
     const us = await getUsersByIds(candidateIds);
     setPlayers(us);
     const existingRatings = await listEventRatings(e.id);

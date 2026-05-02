@@ -108,6 +108,12 @@ export const EventDetailScreen: React.FC = () => {
       fontWeight: '700',
       color: colors.text,
     },
+    confirmSub: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 4,
+      lineHeight: 17,
+    },
     section: {
       fontSize: 15,
       fontWeight: '800',
@@ -150,9 +156,13 @@ export const EventDetailScreen: React.FC = () => {
   const isOrganizer = event.organizerId === user.id;
   const myStatus: ConfirmationStatus = event.confirmations?.[user.id] ?? 'pending';
   const sport = getSport(event.sport);
-  const confirmed = event.invitedUserIds.filter((id) => event.confirmations?.[id] === 'confirmed');
-  const declined = event.invitedUserIds.filter((id) => event.confirmations?.[id] === 'declined');
-  const pending = event.invitedUserIds.filter((id) => (event.confirmations?.[id] ?? 'pending') === 'pending');
+
+  // Lista de pessoas a serem mostradas em cada status. Inclui o organizador
+  // (se ele se confirmou) — assim o próprio criador aparece na escalação.
+  const allParticipantIds = [event.organizerId, ...event.invitedUserIds.filter((id) => id !== event.organizerId)];
+  const confirmed = allParticipantIds.filter((id) => event.confirmations?.[id] === 'confirmed');
+  const declined = allParticipantIds.filter((id) => event.confirmations?.[id] === 'declined');
+  const pending = allParticipantIds.filter((id) => (event.confirmations?.[id] ?? 'pending') === 'pending');
 
   const setMyStatus = async (status: ConfirmationStatus) => {
     setBusy(true);
@@ -187,9 +197,16 @@ export const EventDetailScreen: React.FC = () => {
         {event.notes ? <Text style={styles.notes}>📝 {event.notes}</Text> : null}
       </Card>
 
-      {!isOrganizer && event.status === 'open' ? (
+      {event.status === 'open' || event.status === 'teams_drawn' ? (
         <Card style={styles.confirmCard}>
-          <Text style={styles.confirmTitle}>Você vai?</Text>
+          <Text style={styles.confirmTitle}>
+            {isOrganizer ? 'Você vai jogar?' : 'Você vai?'}
+          </Text>
+          {isOrganizer ? (
+            <Text style={styles.confirmSub}>
+              Como organizador, confirme se você também vai entrar nos times sorteados.
+            </Text>
+          ) : null}
           <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
             <View style={{ flex: 1 }}>
               <Button
