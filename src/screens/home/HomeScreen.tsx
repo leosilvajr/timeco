@@ -37,6 +37,8 @@ export const HomeScreen: React.FC = () => {
 
   const goCreate = () => nav.navigate('Jogos', { screen: 'CreateEvent' } as never);
   const goEvents = () => nav.navigate('Jogos', { screen: 'EventsList' } as never);
+  const goHistory = () =>
+    nav.navigate('Jogos', { screen: 'EventsList', params: { initialFilter: 'history' } } as never);
   const goFriends = () => nav.navigate('Social', { screen: 'FriendsList' } as never);
   const goAddFriend = () => nav.navigate('Social', { screen: 'AddFriend' } as never);
   const goRequests = () => nav.navigate('Social', { screen: 'FriendRequests' } as never);
@@ -161,11 +163,13 @@ export const HomeScreen: React.FC = () => {
       flexDirection: tabletOrUp ? 'row' : 'column',
       flexWrap: 'wrap',
       gap: spacing.sm,
+      alignItems: 'flex-start',
     },
     featureCard: {
-      flexBasis: tabletOrUp ? '48%' : '100%',
-      flexGrow: 1,
+      flexBasis: tabletOrUp ? '48%' : 'auto',
+      flexGrow: tabletOrUp ? 1 : 0,
       minWidth: tabletOrUp ? 260 : undefined,
+      width: tabletOrUp ? undefined : '100%',
       padding: spacing.md,
       gap: 6,
     },
@@ -185,6 +189,7 @@ export const HomeScreen: React.FC = () => {
     },
 
     // Utilitários (vôlei + futuras ferramentas)
+    utilList: { gap: spacing.sm },
     utilCard: {
       padding: spacing.md,
       flexDirection: 'row',
@@ -323,20 +328,35 @@ export const HomeScreen: React.FC = () => {
       </View>
 
       <Text style={styles.sectionTitle}>Utilitários</Text>
-      <Card style={styles.utilCard} onPress={goVolley}>
-        <View style={styles.utilIconBox}>
-          <Text style={styles.utilEmoji}>🏐</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.utilTitle}>Vôlei avançado · Scout</Text>
-          <Text style={styles.utilSub}>
-            Modo separado para registrar saques, ataques, passes e gerar relatórios profissionais
-            por jogador e set.
-          </Text>
-          <Text style={styles.utilTag}>FERRAMENTA EXTRA</Text>
-        </View>
-        <Text style={styles.utilChev}>›</Text>
-      </Card>
+      <View style={styles.utilList}>
+        <Card style={styles.utilCard} onPress={goHistory}>
+          <View style={styles.utilIconBox}>
+            <Text style={styles.utilEmoji}>📜</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.utilTitle}>Histórico de partidas</Text>
+            <Text style={styles.utilSub}>
+              Veja todos os eventos finalizados, jogos passados e times sorteados anteriormente.
+            </Text>
+          </View>
+          <Text style={styles.utilChev}>›</Text>
+        </Card>
+
+        <Card style={styles.utilCard} onPress={goVolley}>
+          <View style={styles.utilIconBox}>
+            <Text style={styles.utilEmoji}>🏐</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.utilTitle}>Vôlei avançado · Scout</Text>
+            <Text style={styles.utilSub}>
+              Modo separado pra registrar saques, ataques, passes e gerar relatórios profissionais
+              por jogador e set.
+            </Text>
+            <Text style={styles.utilTag}>FERRAMENTA EXTRA</Text>
+          </View>
+          <Text style={styles.utilChev}>›</Text>
+        </Card>
+      </View>
 
       <Text style={styles.sectionTitle}>Como funciona</Text>
       <Card>

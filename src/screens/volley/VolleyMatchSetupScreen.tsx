@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Input, Button, Card } from '../../components';
@@ -103,6 +103,31 @@ export const VolleyMatchSetupScreen: React.FC = () => {
     chipSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
     chipTxt: { fontSize: 13, fontWeight: '600', color: colors.text },
     chipTxtSelected: { color: colors.white },
+    posGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    posBtn: {
+      flexBasis: '31%',
+      flexGrow: 1,
+      minHeight: 44,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 10,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    posBtnSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    posBtnTxt: { fontSize: 13, fontWeight: '700', color: colors.text },
+    posBtnTxtSelected: { color: colors.white },
     playerRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -184,34 +209,28 @@ export const VolleyMatchSetupScreen: React.FC = () => {
       <Text style={styles.sectionTitle}>👥 Jogadores ({players.length})</Text>
       <Card>
         <Input label="Nome" value={pName} onChangeText={setPName} placeholder="Nome do jogador" />
-        <View style={styles.row}>
-          <View style={{ flex: 1 }}>
-            <Input
-              label="Número"
-              value={pNumber}
-              onChangeText={setPNumber}
-              keyboardType="numeric"
-              placeholder="1-99"
-            />
-          </View>
-          <View style={{ flex: 2 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 }}>
-              Posição
-            </Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {POSITIONS.map((p) => (
-                <Pressable
-                  key={p}
-                  onPress={() => setPPosition(p)}
-                  style={[styles.chip, pPosition === p && styles.chipSelected, { marginRight: 6 }]}
-                >
-                  <Text style={[styles.chipTxt, pPosition === p && styles.chipTxtSelected]}>
-                    {p}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
+        <Input
+          label="Número"
+          value={pNumber}
+          onChangeText={setPNumber}
+          keyboardType="numeric"
+          placeholder="1-99"
+        />
+        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6, marginTop: 4 }}>
+          Posição
+        </Text>
+        <View style={styles.posGrid}>
+          {POSITIONS.map((p) => (
+            <Pressable
+              key={p}
+              onPress={() => setPPosition(p)}
+              style={[styles.posBtn, pPosition === p && styles.posBtnSelected]}
+            >
+              <Text style={[styles.posBtnTxt, pPosition === p && styles.posBtnTxtSelected]}>
+                {p}
+              </Text>
+            </Pressable>
+          ))}
         </View>
         <View style={{ height: spacing.sm }} />
         <Button title="Adicionar jogador" variant="outline" onPress={addPlayer} />

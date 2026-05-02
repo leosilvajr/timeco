@@ -1,6 +1,6 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, RefreshControl, FlatList, Pressable } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, EmptyState, Button, Card } from '../../components';
 import { listEventsForUser } from '../../services/eventService';
@@ -13,6 +13,19 @@ import { Timestamp } from 'firebase/firestore';
 import type { EventsStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EventsStackParamList, 'EventsList'>;
+type Rt = RouteProp<EventsStackParamList, 'EventsList'>;
+
+type Filter = 'upcoming' | 'history' | 'all';
+
+const isHistory = (e: Event): boolean =>
+  e.status === 'finished' || e.status === 'cancelled';
+
+const eventDate = (e: Event): Date | null => {
+  const ts = e.scheduledAt as Timestamp | Date | null;
+  if (!ts) return null;
+  const d = (ts as Timestamp)?.toDate?.() ?? (ts as Date);
+  return d && !Number.isNaN(d.getTime()) ? d : null;
+};
 
 const formatDate = (date: Date | Timestamp | null): string => {
   if (!date) return 'Sem data';
@@ -39,11 +52,58 @@ const statusColor = (s: Event['status']) =>
 export const EventsListScreen: React.FC = () => {
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
+  const route = useRoute<Rt>();
   const responsive = useResponsive();
   const cols = responsive.isDesktop ? 2 : 1;
   const [events, setEvents] = useState<Event[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<Filter>(route.params?.initialFilter ?? 'upcoming');
+
+  useEffect(() => {
+    if (route.params?.initialFilter) {
+      setFilter(route.params.initialFilter);
+    }
+  }, [route.params?.initialFilter]);
+
+  const filteredEvents = useMemo(() => {
+    const now = Date.now();
+    const sorted = [...events];
+    if (filter === 'upcoming') {
+      return sorted
+        .filter((e) => !isHistory(e))
+        .sort((a, b) => {
+          const da = eventDate(a)?.getTime() ?? Infinity;
+          const db = eventDate(b)?.getTime() ?? Infinity;
+          return da - db;
+        });
+    }
+    if (filter === 'history') {
+      return sorted
+        .filter((e) => isHistory(e) || (eventDate(e)?.getTime() ?? Infinity) < now)
+        .sort((a, b) => {
+          const da = eventDate(a)?.getTime() ?? 0;
+          const db = eventDate(b)?.getTime() ?? 0;
+          return db - da;
+        });
+    }
+    return sorted.sort((a, b) => {
+      const da = eventDate(a)?.getTime() ?? 0;
+      const db = eventDate(b)?.getTime() ?? 0;
+      return db - da;
+    });
+  }, [events, filter]);
+
+  const counts = useMemo(() => {
+    const now = Date.now();
+    let upcoming = 0;
+    let history = 0;
+    for (const e of events) {
+      if (isHistory(e) || (eventDate(e)?.getTime() ?? Infinity) < now) history += 1;
+      else upcoming += 1;
+    }
+    return { upcoming, history, all: events.length };
+  }, [events]);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -79,8 +139,29 @@ export const EventsListScreen: React.FC = () => {
           </Pressable>
         }
       />
+      <View style={styles.filterRow}>
+        {(
+          [
+            { key: 'upcoming', label: 'Próximos', count: counts.upcoming },
+            { key: 'history', label: 'Histórico', count: counts.history },
+            { key: 'all', label: 'Todos', count: counts.all },
+          ] as { key: Filter; label: string; count: number }[]
+        ).map((f) => (
+          <Pressable
+            key={f.key}
+            onPress={() => setFilter(f.key)}
+            style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
+          >
+            <Text style={[styles.filterTxt, filter === f.key && styles.filterTxtActive]}>
+              {f.label}
+              {f.count > 0 ? ` · ${f.count}` : ''}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
       <FlatList
-        data={events}
+        data={filteredEvents}
         keyExtractor={(e) => e.id}
         key={`cols-${cols}`}
         numColumns={cols}
@@ -95,7 +176,13 @@ export const EventsListScreen: React.FC = () => {
           />
         }
         ListEmptyComponent={
-          loading ? null : (
+          loading ? null : filter === 'history' ? (
+            <EmptyState
+              emoji="📜"
+              title="Sem histórico"
+              description="Quando seus eventos forem finalizados, eles aparecem aqui."
+            />
+          ) : (
             <EmptyState
               emoji="🏟️"
               title="Nenhum jogo ainda"
@@ -200,5 +287,31 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: colors.secondary,
     fontWeight: '700',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+    flexWrap: 'wrap',
+  },
+  filterChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterTxt: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  filterTxtActive: {
+    color: colors.white,
   },
 });

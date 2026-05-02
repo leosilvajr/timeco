@@ -6,7 +6,7 @@ export type AuthStackParamList = {
 };
 
 export type EventsStackParamList = {
-  EventsList: undefined;
+  EventsList: { initialFilter?: 'upcoming' | 'history' | 'all' } | undefined;
   CreateEvent: undefined;
   EventDetail: { eventId: string };
   RatePlayers: { eventId: string };
