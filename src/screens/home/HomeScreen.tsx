@@ -4,6 +4,7 @@ import { Screen, Card } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors, useUnreadCount } from '../../store';
 import { useResponsive } from '../../hooks/useResponsive';
+import { computeProfileCompletion } from '../../hooks/useProfileCompletion';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../../navigation/types';
@@ -33,8 +34,10 @@ export const HomeScreen: React.FC = () => {
   const tabletOrUp = responsive.isTablet || responsive.isDesktop;
   const user = useAuthStore((s) => s.user);
   const unread = useUnreadCount();
+  const completion = computeProfileCompletion(user);
   const nav = useNavigation<Nav>();
 
+  const goEditProfile = () => nav.navigate('Perfil', { screen: 'EditProfile' } as never);
   const goCreate = () => nav.navigate('Jogos', { screen: 'CreateEvent' } as never);
   const goEvents = () => nav.navigate('Jogos', { screen: 'EventsList' } as never);
   const goHistory = () =>
@@ -110,6 +113,37 @@ export const HomeScreen: React.FC = () => {
       letterSpacing: 0.6,
       marginBottom: spacing.sm,
       marginTop: spacing.lg,
+    },
+
+    // Banner de cadastro incompleto
+    profileBanner: {
+      padding: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.surfaceVariant,
+      borderWidth: 1,
+      borderColor: colors.warning,
+      marginBottom: spacing.md,
+    },
+    profileBannerHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+    },
+    profileBannerEmoji: { fontSize: 26 },
+    profileBannerTitle: { fontSize: 14, fontWeight: '800', color: colors.text },
+    profileBannerSub: { fontSize: 12, color: colors.textSecondary, marginTop: 2, lineHeight: 17 },
+    profileBannerChev: { fontSize: 22, color: colors.textMuted },
+    progressTrack: {
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      overflow: 'hidden',
+      marginTop: spacing.sm,
+    },
+    progressFill: {
+      height: '100%',
+      backgroundColor: colors.primary,
+      borderRadius: 3,
     },
 
     // Banner de convite (quando há notificações pendentes)
@@ -306,6 +340,28 @@ export const HomeScreen: React.FC = () => {
           Organize partidas, monte times equilibrados e acompanhe seus jogos — tudo em um só lugar.
         </Text>
       </View>
+
+      {!completion.isComplete ? (
+        <Pressable style={styles.profileBanner} onPress={goEditProfile}>
+          <View style={styles.profileBannerHeader}>
+            <Text style={styles.profileBannerEmoji}>👤</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.profileBannerTitle}>
+                Complete seu cadastro · {completion.percent}%
+              </Text>
+              <Text style={styles.profileBannerSub}>
+                {completion.missingCritical.length > 0
+                  ? `Faltam dados pra equilibrar os times: ${completion.missingCritical.map((f) => f.label.toLowerCase()).join(', ')}`
+                  : `${completion.missing.length} ${completion.missing.length === 1 ? 'campo opcional' : 'campos opcionais'} restante${completion.missing.length === 1 ? '' : 's'}`}
+              </Text>
+            </View>
+            <Text style={styles.profileBannerChev}>›</Text>
+          </View>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${completion.percent}%` }]} />
+          </View>
+        </Pressable>
+      ) : null}
 
       {unread > 0 ? (
         <Pressable style={styles.alertCard} onPress={goNotifications}>

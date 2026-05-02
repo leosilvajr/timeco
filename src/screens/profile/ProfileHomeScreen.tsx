@@ -5,6 +5,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Avatar, Button } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors, useThemeStore, useUnreadCount } from '../../store';
+import { computeProfileCompletion } from '../../hooks/useProfileCompletion';
 import { logout } from '../../services/authService';
 import type { ProfileStackParamList } from '../../navigation/types';
 
@@ -15,6 +16,7 @@ export const ProfileHomeScreen: React.FC = () => {
   const user = useAuthStore((s) => s.user);
   const mode = useThemeStore((s) => s.mode);
   const unread = useUnreadCount();
+  const completion = computeProfileCompletion(user);
   const nav = useNavigation<Nav>();
 
   if (!user) return null;
@@ -95,6 +97,28 @@ export const ProfileHomeScreen: React.FC = () => {
       color: colors.textMuted,
       fontSize: 12,
     },
+    completionBox: {
+      width: '100%',
+      marginTop: spacing.md,
+    },
+    completionLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.textSecondary,
+      marginBottom: 6,
+      textAlign: 'center',
+    },
+    completionTrack: {
+      height: 6,
+      backgroundColor: colors.border,
+      borderRadius: 3,
+      overflow: 'hidden',
+    },
+    completionFill: {
+      height: '100%',
+      backgroundColor: colors.primary,
+      borderRadius: 3,
+    },
   });
 
   const MenuItem: React.FC<{
@@ -127,6 +151,15 @@ export const ProfileHomeScreen: React.FC = () => {
         <Text style={styles.name}>{user.name}</Text>
         <Text style={styles.email}>{user.email}</Text>
         {user.role === 'superadmin' ? <Text style={styles.badge}>👑 Super admin</Text> : null}
+        <View style={styles.completionBox}>
+          <Text style={styles.completionLabel}>
+            Cadastro {completion.percent}% completo
+            {completion.isComplete ? ' ✅' : ''}
+          </Text>
+          <View style={styles.completionTrack}>
+            <View style={[styles.completionFill, { width: `${completion.percent}%` }]} />
+          </View>
+        </View>
       </Card>
 
       <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
