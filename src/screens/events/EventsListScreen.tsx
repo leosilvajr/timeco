@@ -4,7 +4,7 @@ import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navig
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, EmptyState, Button, Card } from '../../components';
 import { listEventsForUser } from '../../services/eventService';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import { Event } from '../../types';
 import { colors, spacing, radius } from '../../constants/theme';
 import { getSport } from '../../constants/sports';
@@ -50,6 +50,7 @@ const statusColor = (s: Event['status']) =>
   }[s]);
 
 export const EventsListScreen: React.FC = () => {
+  useThemedColors();
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
   const route = useRoute<Rt>();
@@ -123,6 +124,95 @@ export const EventsListScreen: React.FC = () => {
       load();
     }, [load])
   );
+
+  const styles = StyleSheet.create({
+    addBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addBtnTxt: {
+      fontSize: 28,
+      color: colors.white,
+      lineHeight: 30,
+      marginTop: -2,
+    },
+    card: {
+      marginBottom: spacing.md,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      alignItems: 'center',
+    },
+    emoji: {
+      fontSize: 38,
+    },
+    title: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    meta: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      marginTop: 2,
+    },
+    footer: {
+      marginTop: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      flexWrap: 'wrap',
+    },
+    status: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: radius.pill,
+    },
+    statusTxt: {
+      fontSize: 12,
+      fontWeight: '700',
+    },
+    confCount: {
+      fontSize: 13,
+      color: colors.textSecondary,
+    },
+    organizer: {
+      fontSize: 12,
+      color: colors.secondary,
+      fontWeight: '700',
+    },
+    filterRow: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginBottom: spacing.md,
+      flexWrap: 'wrap',
+    },
+    filterChip: {
+      paddingHorizontal: spacing.md,
+      paddingVertical: 8,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    filterChipActive: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    filterTxt: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    filterTxtActive: {
+      color: colors.white,
+    },
+  });
 
   return (
     <Screen scroll={false}>
@@ -226,92 +316,3 @@ export const EventsListScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  addBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBtnTxt: {
-    fontSize: 28,
-    color: colors.white,
-    lineHeight: 30,
-    marginTop: -2,
-  },
-  card: {
-    marginBottom: spacing.md,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    alignItems: 'center',
-  },
-  emoji: {
-    fontSize: 38,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  meta: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  footer: {
-    marginTop: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    flexWrap: 'wrap',
-  },
-  status: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-  },
-  statusTxt: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  confCount: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  organizer: {
-    fontSize: 12,
-    color: colors.secondary,
-    fontWeight: '700',
-  },
-  filterRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-    marginBottom: spacing.md,
-    flexWrap: 'wrap',
-  },
-  filterChip: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 8,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  filterChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  filterTxt: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  filterTxtActive: {
-    color: colors.white,
-  },
-});

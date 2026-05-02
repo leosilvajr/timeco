@@ -7,7 +7,7 @@ import { SPORTS, getSport } from '../../constants/sports';
 import { colors, radius, spacing } from '../../constants/theme';
 import { listFriends } from '../../services/friendsService';
 import { createEvent } from '../../services/eventService';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import { SportId, User } from '../../types';
 import type { EventsStackParamList } from '../../navigation/types';
 
@@ -16,6 +16,7 @@ type Nav = NativeStackNavigationProp<EventsStackParamList, 'CreateEvent'>;
 const pad = (n: number) => String(n).padStart(2, '0');
 
 export const CreateEventScreen: React.FC = () => {
+  useThemedColors();
   const nav = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
 
@@ -92,6 +93,99 @@ export const CreateEventScreen: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const styles = StyleSheet.create({
+    label: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.sm,
+    },
+    sport: {
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: radius.lg,
+      backgroundColor: colors.surface,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      alignItems: 'center',
+      marginRight: 8,
+      minWidth: 78,
+    },
+    sportSelected: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    sportEmoji: {
+      fontSize: 24,
+    },
+    sportLabel: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.text,
+      marginTop: 4,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: spacing.md,
+    },
+    toggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: 8,
+    },
+    toggleTxt: {
+      fontSize: 15,
+      color: colors.text,
+    },
+    toggle: {
+      width: 28,
+      height: 28,
+      borderRadius: 6,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    toggleOn: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+    },
+    toggleCheck: {
+      color: colors.white,
+      fontWeight: '900',
+    },
+    friend: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      padding: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: spacing.sm,
+    },
+    friendSelected: {
+      borderColor: colors.primary,
+      backgroundColor: colors.surfaceVariant,
+    },
+    friendName: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    friendEmail: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    error: {
+      color: colors.danger,
+      marginBottom: spacing.md,
+      textAlign: 'center',
+    },
+  });
 
   return (
     <Screen maxWidth={720}>
@@ -190,96 +284,3 @@ export const CreateEventScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  label: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  sport: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: radius.lg,
-    backgroundColor: colors.surface,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    alignItems: 'center',
-    marginRight: 8,
-    minWidth: 78,
-  },
-  sportSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  sportEmoji: {
-    fontSize: 24,
-  },
-  sportLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: colors.text,
-    marginTop: 4,
-  },
-  row: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-  },
-  toggleTxt: {
-    fontSize: 15,
-    color: colors.text,
-  },
-  toggle: {
-    width: 28,
-    height: 28,
-    borderRadius: 6,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  toggleOn: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  toggleCheck: {
-    color: colors.white,
-    fontWeight: '900',
-  },
-  friend: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-    borderRadius: radius.md,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: spacing.sm,
-  },
-  friendSelected: {
-    borderColor: colors.primary,
-    backgroundColor: colors.surfaceVariant,
-  },
-  friendName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  friendEmail: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  error: {
-    color: colors.danger,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-});

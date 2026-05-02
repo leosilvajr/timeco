@@ -13,7 +13,7 @@ import {
   setEventStatus,
 } from '../../services/eventService';
 import { getUsersByIds } from '../../services/userService';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import type { EventsStackParamList } from '../../navigation/types';
 import { Timestamp } from 'firebase/firestore';
 
@@ -33,13 +33,94 @@ const formatDate = (date: Date | Timestamp | null): string => {
   });
 };
 
+const PlayerRow: React.FC<{ u?: User }> = ({ u }) => {
+  useThemedColors();
+  const styles = StyleSheet.create({
+    playerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      marginBottom: 6,
+    },
+    playerName: {
+      fontSize: 15,
+      color: colors.text,
+      fontWeight: '600',
+    },
+  });
+  if (!u) return null;
+  return (
+    <View style={styles.playerRow}>
+      <Avatar name={u.name} photoURL={u.photoURL} size={36} />
+      <Text style={styles.playerName}>{u.name}</Text>
+    </View>
+  );
+};
+
 export const EventDetailScreen: React.FC = () => {
+  useThemedColors();
   const route = useRoute<Rt>();
   const nav = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
   const [event, setEvent] = useState<Event | null>(null);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [busy, setBusy] = useState(false);
+
+  const styles = StyleSheet.create({
+    heroCard: {
+      backgroundColor: colors.primary,
+      borderColor: colors.primary,
+      marginBottom: spacing.lg,
+    },
+    dateBig: {
+      fontSize: 18,
+      fontWeight: '800',
+      color: colors.white,
+      textTransform: 'capitalize',
+    },
+    location: {
+      fontSize: 15,
+      color: colors.white,
+      marginTop: 6,
+    },
+    organizer: {
+      fontSize: 13,
+      color: colors.white,
+      opacity: 0.9,
+      marginTop: 8,
+    },
+    notes: {
+      fontSize: 13,
+      color: colors.white,
+      opacity: 0.9,
+      marginTop: 6,
+    },
+    confirmCard: {
+      marginBottom: spacing.lg,
+    },
+    confirmTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    section: {
+      fontSize: 15,
+      fontWeight: '800',
+      color: colors.text,
+      marginTop: spacing.lg,
+      marginBottom: spacing.sm,
+    },
+    emptyTxt: {
+      color: colors.textSecondary,
+      fontSize: 13,
+      paddingVertical: 4,
+    },
+  });
 
   const load = useCallback(async () => {
     const e = await getEventById(route.params.eventId);
@@ -174,80 +255,3 @@ export const EventDetailScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const PlayerRow: React.FC<{ u?: User }> = ({ u }) => {
-  if (!u) return null;
-  return (
-    <View style={styles.playerRow}>
-      <Avatar name={u.name} photoURL={u.photoURL} size={36} />
-      <Text style={styles.playerName}>{u.name}</Text>
-    </View>
-  );
-};
-
-const styles = StyleSheet.create({
-  heroCard: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-    marginBottom: spacing.lg,
-  },
-  dateBig: {
-    fontSize: 18,
-    fontWeight: '800',
-    color: colors.white,
-    textTransform: 'capitalize',
-  },
-  location: {
-    fontSize: 15,
-    color: colors.white,
-    marginTop: 6,
-  },
-  organizer: {
-    fontSize: 13,
-    color: colors.white,
-    opacity: 0.9,
-    marginTop: 8,
-  },
-  notes: {
-    fontSize: 13,
-    color: colors.white,
-    opacity: 0.9,
-    marginTop: 6,
-  },
-  confirmCard: {
-    marginBottom: spacing.lg,
-  },
-  confirmTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  section: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: colors.text,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  emptyTxt: {
-    color: colors.textSecondary,
-    fontSize: 13,
-    paddingVertical: 4,
-  },
-  playerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    marginBottom: 6,
-  },
-  playerName: {
-    fontSize: 15,
-    color: colors.text,
-    fontWeight: '600',
-  },
-});

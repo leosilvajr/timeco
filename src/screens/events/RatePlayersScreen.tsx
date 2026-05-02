@@ -4,7 +4,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Button, Avatar, StarRating } from '../../components';
 import { colors, spacing } from '../../constants/theme';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import {
   getEventById,
   listEventRatings,
@@ -20,6 +20,7 @@ type Nav = NativeStackNavigationProp<EventsStackParamList, 'RatePlayers'>;
 type Rt = RouteProp<EventsStackParamList, 'RatePlayers'>;
 
 export const RatePlayersScreen: React.FC = () => {
+  useThemedColors();
   const route = useRoute<Rt>();
   const nav = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
@@ -87,6 +88,34 @@ export const RatePlayersScreen: React.FC = () => {
     }
   };
 
+  const styles = StyleSheet.create({
+    info: {
+      backgroundColor: colors.surfaceVariant,
+      marginBottom: spacing.md,
+    },
+    infoTxt: {
+      fontSize: 13,
+      color: colors.text,
+      lineHeight: 19,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    name: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    error: {
+      color: colors.danger,
+      marginVertical: spacing.md,
+      textAlign: 'center',
+    },
+  });
+
   if (loading || !event) {
     return (
       <Screen>
@@ -135,31 +164,3 @@ export const RatePlayersScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  info: {
-    backgroundColor: colors.surfaceVariant,
-    marginBottom: spacing.md,
-  },
-  infoTxt: {
-    fontSize: 13,
-    color: colors.text,
-    lineHeight: 19,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  error: {
-    color: colors.danger,
-    marginVertical: spacing.md,
-    textAlign: 'center',
-  },
-});
