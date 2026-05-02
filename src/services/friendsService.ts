@@ -16,7 +16,7 @@ import {
 import { db } from './firebase';
 import { FriendRequest, Friendship, User } from '../types';
 import { getUserById, getUsersByIds } from './userService';
-import { createNotification } from './notificationService';
+import { createNotification, notifySafe } from './notificationService';
 
 const friendshipId = (a: string, b: string) => (a < b ? `${a}_${b}` : `${b}_${a}`);
 
@@ -122,6 +122,15 @@ export const acceptFriendRequest = async (request: FriendRequest) => {
     createdAt: serverTimestamp(),
   });
   await updateDoc(doc(db, 'friendRequests', request.id), { status: 'accepted' });
+
+  // Notifica quem enviou o convite que a amizade foi aceita.
+  await notifySafe(
+    request.fromUserId,
+    'friend_accepted',
+    'Convite aceito 🎉',
+    'Vocês agora são amigos!',
+    'FriendsList',
+  );
 };
 
 export const declineFriendRequest = async (requestId: string) => {

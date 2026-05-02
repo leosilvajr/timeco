@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { DrawnTeam, Event, PlayerRating, User } from '../types';
+import { notifySafe } from './notificationService';
 
 export interface CreateEventInput {
   organizer: User;
@@ -52,6 +53,20 @@ export const createEvent = async (input: CreateEventInput): Promise<string> => {
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  // Notifica todos os convidados sobre o novo evento (em paralelo).
+  await Promise.all(
+    input.invitedUserIds.map((uid) =>
+      notifySafe(
+        uid,
+        'event_invite',
+        `Convite: ${input.title}`,
+        `${input.organizer.name} convidou você para um jogo em ${input.location}`,
+        ref.id,
+      ),
+    ),
+  );
+
   return ref.id;
 };
 
@@ -119,6 +134,22 @@ export const saveDrawnTeams = async (eventId: string, teams: DrawnTeam[]) => {
     drawnAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
+
+  // Notifica todos os convidados que os times foram sorteados.
+  const ev = await getEventById(eventId);
+  if (ev) {
+    await Promise.all(
+      ev.invitedUserIds.map((uid) =>
+        notifySafe(
+          uid,
+          'teams_drawn',
+          'Times sorteados! 🎲',
+          `${ev.organizerName} sorteou os times de "${ev.title}"`,
+          eventId,
+        ),
+      ),
+    );
+  }
 };
 
 export const setEventStatus = async (eventId: string, status: Event['status']) => {
@@ -126,6 +157,24 @@ export const setEventStatus = async (eventId: string, status: Event['status']) =
     status,
     updatedAt: serverTimestamp(),
   });
+
+  // Avisa convidados quando o evento é cancelado.
+  if (status === 'cancelled') {
+    const ev = await getEventById(eventId);
+    if (ev) {
+      await Promise.all(
+        ev.invitedUserIds.map((uid) =>
+          notifySafe(
+            uid,
+            'event_cancelled',
+            'Evento cancelado',
+            `O jogo "${ev.title}" foi cancelado.`,
+            eventId,
+          ),
+        ),
+      );
+    }
+  }
 };
 
 // ============ PLAYER RATINGS ============

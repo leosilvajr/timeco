@@ -4,7 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Avatar, Button } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
-import { useAuthStore, useThemedColors, useThemeStore } from '../../store';
+import { useAuthStore, useThemedColors, useThemeStore, useUnreadCount } from '../../store';
 import { logout } from '../../services/authService';
 import type { ProfileStackParamList } from '../../navigation/types';
 
@@ -14,6 +14,7 @@ export const ProfileHomeScreen: React.FC = () => {
   useThemedColors();
   const user = useAuthStore((s) => s.user);
   const mode = useThemeStore((s) => s.mode);
+  const unread = useUnreadCount();
   const nav = useNavigation<Nav>();
 
   if (!user) return null;
@@ -70,6 +71,20 @@ export const ProfileHomeScreen: React.FC = () => {
       fontSize: 13,
       color: colors.textMuted,
     },
+    menuBadge: {
+      minWidth: 22,
+      height: 22,
+      paddingHorizontal: 6,
+      borderRadius: 11,
+      backgroundColor: colors.danger,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    menuBadgeTxt: {
+      color: colors.white,
+      fontSize: 12,
+      fontWeight: '800',
+    },
     menuChev: {
       fontSize: 22,
       color: colors.textMuted,
@@ -82,15 +97,22 @@ export const ProfileHomeScreen: React.FC = () => {
     },
   });
 
-  const MenuItem: React.FC<{ label: string; value?: string; onPress: () => void }> = ({
-    label,
-    value,
-    onPress,
-  }) => (
+  const MenuItem: React.FC<{
+    label: string;
+    value?: string;
+    badge?: number;
+    onPress: () => void;
+  }> = ({ label, value, badge, onPress }) => (
     <Pressable onPress={onPress} style={styles.menuItem}>
       <Text style={styles.menuTxt}>{label}</Text>
       <View style={styles.menuRight}>
-        {value ? <Text style={styles.menuValue}>{value}</Text> : null}
+        {badge && badge > 0 ? (
+          <View style={styles.menuBadge}>
+            <Text style={styles.menuBadgeTxt}>{badge > 99 ? '99+' : badge}</Text>
+          </View>
+        ) : value ? (
+          <Text style={styles.menuValue}>{value}</Text>
+        ) : null}
         <Text style={styles.menuChev}>›</Text>
       </View>
     </Pressable>
@@ -108,6 +130,11 @@ export const ProfileHomeScreen: React.FC = () => {
       </Card>
 
       <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+        <MenuItem
+          label="🔔  Notificações"
+          badge={unread}
+          onPress={() => nav.navigate('Notifications')}
+        />
         <MenuItem label="✏️  Editar meus dados" onPress={() => nav.navigate('EditProfile')} />
         <MenuItem
           label="🎨  Aparência"

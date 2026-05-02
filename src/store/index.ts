@@ -1,6 +1,7 @@
 export { useAuthStore } from './authStore';
 export { useThemeStore } from './themeStore';
 export type { ThemeMode } from './themeStore';
+export { useNotificationStore, useUnreadCount } from './notificationStore';
 
 import { useThemeStore } from './themeStore';
 

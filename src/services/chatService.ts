@@ -14,6 +14,8 @@ import {
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Chat, ChatMessage } from '../types';
+import { notifySafe } from './notificationService';
+import { getUserById } from './userService';
 
 /** doc id determinístico: uids ordenados alfabeticamente. */
 export const chatId = (a: string, b: string): string => (a < b ? `${a}_${b}` : `${b}_${a}`);
@@ -58,6 +60,23 @@ export const sendMessage = async (
     },
     { merge: true },
   );
+
+  // Notifica o destinatário (best-effort, fora do caminho crítico).
+  // Busca nome do remetente para personalizar o título.
+  try {
+    const sender = await getUserById(fromUserId);
+    const senderName = sender?.name ?? 'Alguém';
+    const preview = trimmed.length > 80 ? trimmed.slice(0, 77) + '...' : trimmed;
+    await notifySafe(
+      toUserId,
+      'chat_message',
+      `Mensagem de ${senderName}`,
+      preview,
+      `Chat:${fromUserId}`,
+    );
+  } catch (err) {
+    console.warn('chat notify failed', err);
+  }
 };
 
 /**

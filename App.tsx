@@ -7,15 +7,26 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppNavigator } from './src/navigation';
 import { onAuthStateChanged, ensureUserDocument } from './src/services/authService';
-import { useAuthStore, useThemeStore, useThemedColors } from './src/store';
+import { subscribeNotifications } from './src/services/notificationService';
+import { requestWebNotificationPermission, showWebNotification } from './src/services/webPush';
+import {
+  useAuthStore,
+  useThemeStore,
+  useThemedColors,
+  useNotificationStore,
+} from './src/store';
 import { User } from './src/types';
 
 export default function App() {
+  const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const setLoading = useAuthStore((s) => s.setLoading);
   const hydrateTheme = useThemeStore((s) => s.hydrate);
   const isDark = useThemeStore((s) => s.isDark);
   const colors = useThemedColors();
+  const setNotifications = useNotificationStore((s) => s.setNotifications);
+  const markSeen = useNotificationStore((s) => s.markSeen);
+  const resetNotifications = useNotificationStore((s) => s.reset);
 
   useEffect(() => {
     hydrateTheme();
@@ -59,11 +70,39 @@ export default function App() {
         }
       } else {
         setUser(null);
+        resetNotifications();
       }
       setLoading(false);
     });
     return () => unsub();
-  }, [setUser, setLoading]);
+  }, [setUser, setLoading, resetNotifications]);
+
+  // Subscription global de notificações + permissão de web push.
+  useEffect(() => {
+    if (!user) return;
+    requestWebNotificationPermission();
+
+    let firstBatch = true;
+    const unsub = subscribeNotifications(user.id, (list) => {
+      // No primeiro snapshot, marca todas como já vistas para não disparar
+      // push de notificações antigas. Em snapshots seguintes, dispara push
+      // só pra IDs novos não lidos.
+      const seen = useNotificationStore.getState().seenIds;
+      if (firstBatch) {
+        firstBatch = false;
+        markSeen(list.map((n) => n.id));
+      } else {
+        for (const n of list) {
+          if (!seen.has(n.id) && !n.read) {
+            showWebNotification(n);
+          }
+        }
+        markSeen(list.map((n) => n.id));
+      }
+      setNotifications(list);
+    });
+    return () => unsub();
+  }, [user, setNotifications, markSeen]);
 
   const navTheme = {
     ...DefaultTheme,

@@ -3,7 +3,7 @@ import { Text, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import { useAuthStore, useThemedColors } from '../store';
+import { useAuthStore, useThemedColors, useUnreadCount } from '../store';
 import { colors } from '../constants/theme';
 
 import { LoginScreen } from '../screens/auth/LoginScreen';
@@ -27,6 +27,7 @@ import { ProfileHomeScreen } from '../screens/profile/ProfileHomeScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { SuperAdminScreen } from '../screens/profile/SuperAdminScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
+import { NotificationsScreen } from '../screens/profile/NotificationsScreen';
 
 import {
   AuthStackParamList,
@@ -77,6 +78,7 @@ const ProfileNavigator = () => (
     <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
     <ProfileStack.Screen name="SuperAdmin" component={SuperAdminScreen} />
     <ProfileStack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
+    <ProfileStack.Screen name="Notifications" component={NotificationsScreen} />
   </ProfileStack.Navigator>
 );
 
@@ -86,6 +88,8 @@ const tabIcon = (emoji: string) => ({ color }: { color: string; focused: boolean
 
 const MainNavigator = () => {
   useThemedColors();
+  const unread = useUnreadCount();
+  const profileBadge = unread > 0 ? (unread > 99 ? '99+' : String(unread)) : undefined;
   return (
     <Tab.Navigator
       screenOptions={{
@@ -100,12 +104,17 @@ const MainNavigator = () => {
           paddingBottom: 8,
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarBadgeStyle: { backgroundColor: colors.danger, color: colors.white },
       }}
     >
       <Tab.Screen name="Inicio" component={HomeScreen} options={{ title: 'Início', tabBarIcon: tabIcon('🏠') }} />
       <Tab.Screen name="Jogos" component={EventsNavigator} options={{ tabBarIcon: tabIcon('🏟️') }} />
       <Tab.Screen name="Social" component={SocialNavigator} options={{ tabBarIcon: tabIcon('👥') }} />
-      <Tab.Screen name="Perfil" component={ProfileNavigator} options={{ tabBarIcon: tabIcon('👤') }} />
+      <Tab.Screen
+        name="Perfil"
+        component={ProfileNavigator}
+        options={{ tabBarIcon: tabIcon('👤'), tabBarBadge: profileBadge }}
+      />
     </Tab.Navigator>
   );
 };
