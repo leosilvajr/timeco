@@ -17,6 +17,6 @@ COPY storage.rules .
 
 RUN mkdir -p /data
 
-EXPOSE 4001 8081 9098 9198
+EXPOSE 4003 8083 9096 9196
 
 CMD ["firebase", "emulators:start", "--project", "timeco-dev", "--import", "/data", "--export-on-exit", "/data"]

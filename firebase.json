@@ -8,20 +8,20 @@
   },
   "emulators": {
     "auth": {
-      "port": 9098,
+      "port": 9096,
       "host": "0.0.0.0"
     },
     "firestore": {
-      "port": 8081,
+      "port": 8083,
       "host": "0.0.0.0"
     },
     "storage": {
-      "port": 9198,
+      "port": 9196,
       "host": "0.0.0.0"
     },
     "ui": {
       "enabled": true,
-      "port": 4001,
+      "port": 4003,
       "host": "0.0.0.0"
     },
     "singleProjectMode": true

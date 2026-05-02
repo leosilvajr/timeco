@@ -26,9 +26,9 @@ let emulatorsConnected = false;
 
 if (isEmulatorMode && !emulatorsConnected) {
   const host = process.env.EXPO_PUBLIC_EMULATOR_HOST || '127.0.0.1';
-  const authPort = parseInt(process.env.EXPO_PUBLIC_EMULATOR_AUTH_PORT || '9098', 10);
-  const firestorePort = parseInt(process.env.EXPO_PUBLIC_EMULATOR_FIRESTORE_PORT || '8081', 10);
-  const storagePort = parseInt(process.env.EXPO_PUBLIC_EMULATOR_STORAGE_PORT || '9198', 10);
+  const authPort = parseInt(process.env.EXPO_PUBLIC_EMULATOR_AUTH_PORT || '9096', 10);
+  const firestorePort = parseInt(process.env.EXPO_PUBLIC_EMULATOR_FIRESTORE_PORT || '8083', 10);
+  const storagePort = parseInt(process.env.EXPO_PUBLIC_EMULATOR_STORAGE_PORT || '9196', 10);
 
   try {
     connectAuthEmulator(auth, `http://${host}:${authPort}`, { disableWarnings: true });
@@ -40,7 +40,7 @@ if (isEmulatorMode && !emulatorsConnected) {
     console.log(`  Firestore: http://${host}:${firestorePort}`);
     console.log(`  Auth:      http://${host}:${authPort}`);
     console.log(`  Storage:   http://${host}:${storagePort}`);
-    console.log(`  UI:        http://${host}:4001`);
+    console.log(`  UI:        http://${host}:4003`);
     console.log('========================================');
   } catch (err) {
     console.warn('Emulator connection error', err);

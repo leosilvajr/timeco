@@ -30,7 +30,7 @@ npm run docker:seed            # popula dados de teste
 npm run dev                    # abre web em http://localhost:8085
 ```
 
-- **Emulator UI:** http://localhost:4001
+- **Emulator UI:** http://localhost:4003
 - **Contas de teste:**
   - `admin@timeco.com` / `admin123` — super admin
   - `leo@timeco.com` / `leo12345` — usuário com vários amigos

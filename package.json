@@ -7,15 +7,18 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "dev": "shx cp .env.docker .env && expo start --web --port 8085",
-    "dev:mobile": "shx cp .env.docker .env && expo start",
-    "prod": "shx cp .env.production .env && expo start --web --port 8085",
+    "dev": "shx cp .env.production .env && expo start --web --port 8095",
+    "dev:mobile": "shx cp .env.production .env && expo start",
+    "dev:emulator": "shx cp .env.docker .env && expo start --web --port 8095",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:logs": "docker compose logs -f firebase",
     "docker:seed": "node scripts/seed-emulators.js",
     "docker:reset": "docker compose down -v && docker compose up -d",
+    "deploy:rules": "shx cp firestore.rules.production firestore.rules && firebase --project timeco-e908e deploy --only firestore:rules,firestore:indexes,storage && shx cp firestore.rules.dev firestore.rules",
     "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "test:watch": "jest --watch",
     "build:web": "shx cp .env.production .env && expo export --platform web"
   },
   "dependencies": {
@@ -51,10 +54,13 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.1.0",
     "@types/uuid": "^10.0.0",
     "cross-env": "^10.1.0",
+    "jest": "^30.3.0",
     "shx": "^0.4.0",
+    "ts-jest": "^29.4.9",
     "typescript": "~5.9.2"
   },
   "private": true

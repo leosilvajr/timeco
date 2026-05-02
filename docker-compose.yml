@@ -6,10 +6,10 @@ services:
       dockerfile: docker/Dockerfile.emulators
     container_name: timeco-firebase
     ports:
-      - "4001:4001"   # Emulator UI
-      - "8081:8081"   # Firestore
-      - "9098:9098"   # Auth
-      - "9198:9198"   # Storage
+      - "4003:4003"   # Emulator UI
+      - "8083:8083"   # Firestore
+      - "9096:9096"   # Auth
+      - "9196:9196"   # Storage
     volumes:
       - firebase-data:/data
       - ./firestore.rules:/app/firestore.rules

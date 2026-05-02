@@ -6,8 +6,8 @@
 //
 // Certifique-se que os emuladores estão rodando (docker compose up -d).
 
-const AUTH_HOST = process.env.AUTH_HOST || 'http://127.0.0.1:9098';
-const FS_HOST = process.env.FS_HOST || 'http://127.0.0.1:8081';
+const AUTH_HOST = process.env.AUTH_HOST || 'http://127.0.0.1:9096';
+const FS_HOST = process.env.FS_HOST || 'http://127.0.0.1:8083';
 const PROJECT = process.env.PROJECT || 'timeco-dev';
 
 const USERS = [
