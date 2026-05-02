@@ -20,3 +20,5 @@ export { FilterChips } from './FilterChips';
 export type { FilterOption } from './FilterChips';
 export { SportPicker } from './SportPicker';
 export { FriendPicker } from './FriendPicker';
+export { EventForm } from './EventForm';
+export type { EventFormValues, EventFormInitial } from './EventForm';

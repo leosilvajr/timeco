@@ -1,62 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card, Button } from '../../components';
+import { Screen, Header, Card, Button, ToggleSwitch } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { updateUserProfile } from '../../services/authService';
 import type { ProfileStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'PrivacySettings'>;
-
-interface ToggleSwitchProps {
-  value: boolean;
-  onChange: (v: boolean) => void;
-  title: string;
-  hint: string;
-}
-
-const ToggleSwitch: React.FC<ToggleSwitchProps> = ({ value, onChange, title, hint }) => {
-  useThemedColors();
-  const styles = StyleSheet.create({
-    row: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingVertical: spacing.sm,
-      gap: spacing.md,
-    },
-    title: { fontSize: 15, color: colors.text, fontWeight: '700' },
-    hint: { fontSize: 12, color: colors.textSecondary, marginTop: 2, lineHeight: 17 },
-    track: {
-      width: 48,
-      height: 28,
-      borderRadius: 14,
-      backgroundColor: colors.border,
-      padding: 3,
-    },
-    trackActive: { backgroundColor: colors.primary },
-    handle: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      backgroundColor: colors.surface,
-    },
-    handleActive: { transform: [{ translateX: 20 }] },
-  });
-  return (
-    <Pressable style={styles.row} onPress={() => onChange(!value)}>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.title}>{title}</Text>
-        <Text style={styles.hint}>{hint}</Text>
-      </View>
-      <View style={[styles.track, value && styles.trackActive]}>
-        <View style={[styles.handle, value && styles.handleActive]} />
-      </View>
-    </Pressable>
-  );
-};
 
 export const PrivacySettingsScreen: React.FC = () => {
   useThemedColors();

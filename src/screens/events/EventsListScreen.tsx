@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, RefreshControl, FlatList, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, EmptyState, Button, Card } from '../../components';
+import { Screen, Header, EmptyState, Button, Card, FilterChips, FilterOption } from '../../components';
 import { listEventsForUser } from '../../services/eventService';
 import { useAuthStore, useThemedColors } from '../../store';
 import { Event } from '../../types';
@@ -186,32 +186,6 @@ export const EventsListScreen: React.FC = () => {
       color: colors.secondary,
       fontWeight: '700',
     },
-    filterRow: {
-      flexDirection: 'row',
-      gap: spacing.sm,
-      marginBottom: spacing.md,
-      flexWrap: 'wrap',
-    },
-    filterChip: {
-      paddingHorizontal: spacing.md,
-      paddingVertical: 8,
-      borderRadius: radius.pill,
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    filterChipActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    filterTxt: {
-      fontSize: 13,
-      fontWeight: '700',
-      color: colors.text,
-    },
-    filterTxtActive: {
-      color: colors.white,
-    },
   });
 
   return (
@@ -229,26 +203,15 @@ export const EventsListScreen: React.FC = () => {
           </Pressable>
         }
       />
-      <View style={styles.filterRow}>
-        {(
-          [
-            { key: 'upcoming', label: 'Próximos', count: counts.upcoming },
-            { key: 'history', label: 'Histórico', count: counts.history },
-            { key: 'all', label: 'Todos', count: counts.all },
-          ] as { key: Filter; label: string; count: number }[]
-        ).map((f) => (
-          <Pressable
-            key={f.key}
-            onPress={() => setFilter(f.key)}
-            style={[styles.filterChip, filter === f.key && styles.filterChipActive]}
-          >
-            <Text style={[styles.filterTxt, filter === f.key && styles.filterTxtActive]}>
-              {f.label}
-              {f.count > 0 ? ` · ${f.count}` : ''}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <FilterChips<Filter>
+        value={filter}
+        onChange={setFilter}
+        options={[
+          { key: 'upcoming', label: 'Próximos', count: counts.upcoming },
+          { key: 'history', label: 'Histórico', count: counts.history },
+          { key: 'all', label: 'Todos', count: counts.all },
+        ] as FilterOption<Filter>[]}
+      />
 
       <FlatList
         data={filteredEvents}
