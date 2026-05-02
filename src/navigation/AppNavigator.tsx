@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuthStore, useThemedColors, useUnreadCount } from '../store';
 import { colors } from '../constants/theme';
 import { useResponsive } from '../hooks/useResponsive';
+import { DesktopSidebar } from './DesktopSidebar';
 
 import { LoginScreen } from '../screens/auth/LoginScreen';
 import { SignUpScreen } from '../screens/auth/SignUpScreen';
@@ -116,21 +117,14 @@ const MainNavigator = () => {
 
   return (
     <Tab.Navigator
+      tabBar={desktop ? (props) => <DesktopSidebar {...props} /> : undefined}
       screenOptions={{
         headerShown: false,
         tabBarPosition: desktop ? 'left' : 'bottom',
-        tabBarLabelPosition: desktop ? 'beside-icon' : 'below-icon',
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
         tabBarStyle: desktop
-          ? {
-              backgroundColor: colors.surface,
-              borderRightColor: colors.border,
-              borderTopWidth: 0,
-              width: 220,
-              paddingTop: 24,
-              paddingHorizontal: 12,
-            }
+          ? undefined
           : {
               backgroundColor: colors.surface,
               borderTopColor: colors.border,
@@ -138,21 +132,7 @@ const MainNavigator = () => {
               paddingTop: 6,
               paddingBottom: 8,
             },
-        tabBarLabelStyle: desktop
-          ? { fontSize: 14, fontWeight: '700', marginLeft: 8 }
-          : { fontSize: 11, fontWeight: '700' },
-        tabBarItemStyle: desktop
-          ? {
-              flexDirection: 'row',
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              borderRadius: 12,
-              marginVertical: 4,
-              paddingVertical: 12,
-              paddingHorizontal: 12,
-              height: 'auto',
-            }
-          : undefined,
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
         tabBarBadgeStyle: { backgroundColor: colors.danger, color: colors.white },
       }}
     >
