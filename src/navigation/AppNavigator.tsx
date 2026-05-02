@@ -3,7 +3,7 @@ import { Text, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 
-import { useAuthStore } from '../store';
+import { useAuthStore, useThemedColors } from '../store';
 import { colors } from '../constants/theme';
 
 import { LoginScreen } from '../screens/auth/LoginScreen';
@@ -25,6 +25,7 @@ import { PlayerProfileScreen } from '../screens/social/PlayerProfileScreen';
 import { ProfileHomeScreen } from '../screens/profile/ProfileHomeScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
 import { SuperAdminScreen } from '../screens/profile/SuperAdminScreen';
+import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
 
 import {
   AuthStackParamList,
@@ -73,6 +74,7 @@ const ProfileNavigator = () => (
     <ProfileStack.Screen name="ProfileHome" component={ProfileHomeScreen} />
     <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} />
     <ProfileStack.Screen name="SuperAdmin" component={SuperAdminScreen} />
+    <ProfileStack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
   </ProfileStack.Navigator>
 );
 
@@ -80,32 +82,44 @@ const tabIcon = (emoji: string) => ({ color }: { color: string; focused: boolean
   <Text style={{ fontSize: 22, color, opacity: color === colors.primary ? 1 : 0.7 }}>{emoji}</Text>
 );
 
-const MainNavigator = () => (
-  <Tab.Navigator
-    screenOptions={{
-      headerShown: false,
-      tabBarActiveTintColor: colors.primary,
-      tabBarInactiveTintColor: colors.textMuted,
-      tabBarStyle: {
-        backgroundColor: colors.surface,
-        borderTopColor: colors.border,
-        height: 64,
-        paddingTop: 6,
-        paddingBottom: 8,
-      },
-      tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
-    }}
-  >
-    <Tab.Screen name="Inicio" component={HomeScreen} options={{ title: 'Início', tabBarIcon: tabIcon('🏠') }} />
-    <Tab.Screen name="Jogos" component={EventsNavigator} options={{ tabBarIcon: tabIcon('🏟️') }} />
-    <Tab.Screen name="Social" component={SocialNavigator} options={{ tabBarIcon: tabIcon('👥') }} />
-    <Tab.Screen name="Perfil" component={ProfileNavigator} options={{ tabBarIcon: tabIcon('👤') }} />
-  </Tab.Navigator>
-);
+const MainNavigator = () => {
+  useThemedColors();
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textMuted,
+        tabBarStyle: {
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
+          height: 64,
+          paddingTop: 6,
+          paddingBottom: 8,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+      }}
+    >
+      <Tab.Screen name="Inicio" component={HomeScreen} options={{ title: 'Início', tabBarIcon: tabIcon('🏠') }} />
+      <Tab.Screen name="Jogos" component={EventsNavigator} options={{ tabBarIcon: tabIcon('🏟️') }} />
+      <Tab.Screen name="Social" component={SocialNavigator} options={{ tabBarIcon: tabIcon('👥') }} />
+      <Tab.Screen name="Perfil" component={ProfileNavigator} options={{ tabBarIcon: tabIcon('👤') }} />
+    </Tab.Navigator>
+  );
+};
 
 export const AppNavigator: React.FC = () => {
+  useThemedColors();
   const user = useAuthStore((s) => s.user);
   const loading = useAuthStore((s) => s.loading);
+  const styles = StyleSheet.create({
+    loading: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.background,
+    },
+  });
 
   if (loading) {
     return (
@@ -125,12 +139,3 @@ export const AppNavigator: React.FC = () => {
     </RootStack.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.background,
-  },
-});

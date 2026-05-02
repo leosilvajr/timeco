@@ -1,4 +1,30 @@
-export const colors = {
+export interface ColorPalette {
+  primary: string;
+  primaryDark: string;
+  primaryLight: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  surface: string;
+  surfaceVariant: string;
+  card: string;
+  text: string;
+  textSecondary: string;
+  textMuted: string;
+  border: string;
+  success: string;
+  warning: string;
+  danger: string;
+  info: string;
+  star: string;
+  starEmpty: string;
+  white: string;
+  black: string;
+  transparent: string;
+  overlay: string;
+}
+
+export const lightColors: ColorPalette = {
   primary: '#0F9D58',
   primaryDark: '#0B7A43',
   primaryLight: '#34C77B',
@@ -23,6 +49,51 @@ export const colors = {
   transparent: 'transparent',
   overlay: 'rgba(0,0,0,0.4)',
 };
+
+export const darkColors: ColorPalette = {
+  primary: '#34C77B',
+  primaryDark: '#0F9D58',
+  primaryLight: '#5DDB97',
+  secondary: '#F4B400',
+  accent: '#FF6B5E',
+  background: '#0A1410',
+  surface: '#152620',
+  surfaceVariant: '#1E322B',
+  card: '#152620',
+  text: '#E8F0EB',
+  textSecondary: '#A8B5AC',
+  textMuted: '#7A8782',
+  border: '#2A3F37',
+  success: '#34C77B',
+  warning: '#F4B400',
+  danger: '#FF6B5E',
+  info: '#5B9DFF',
+  star: '#F4B400',
+  starEmpty: '#3A4A42',
+  white: '#FFFFFF',
+  black: '#000000',
+  transparent: 'transparent',
+  overlay: 'rgba(0,0,0,0.6)',
+};
+
+// Paleta ativa — mutável. Os componentes acessam via Proxy `colors`
+// (abaixo) para sempre lerem o valor atual sem precisar refatorar imports.
+let _active: ColorPalette = lightColors;
+
+export const setActivePalette = (p: ColorPalette): void => {
+  _active = p;
+};
+
+/**
+ * Proxy que sempre retorna o valor atual da paleta ativa.
+ * Componentes podem continuar usando `import { colors }` normalmente,
+ * mas precisam re-renderizar (via `useThemeStore(s => s.mode)` ou similar)
+ * e definir `StyleSheet.create({...})` DENTRO do componente para que
+ * cada render pegue os valores atualizados.
+ */
+export const colors: ColorPalette = new Proxy({} as ColorPalette, {
+  get: (_target, key: string) => _active[key as keyof ColorPalette],
+}) as ColorPalette;
 
 export const teamColors: { name: string; color: string }[] = [
   { name: 'Verde', color: '#0F9D58' },

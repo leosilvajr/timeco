@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
 import { colors, radius, spacing } from '../constants/theme';
+import { useThemedColors } from '../store';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
 
@@ -27,33 +28,8 @@ export const Button: React.FC<Props> = ({
   textStyle,
   fullWidth = true,
 }) => {
+  useThemedColors();
   const isDisabled = disabled || loading;
-  const styles = getStyles(variant);
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={isDisabled}
-      style={({ pressed }) => [
-        styles.base,
-        fullWidth && { alignSelf: 'stretch' },
-        pressed && !isDisabled && { opacity: 0.85, transform: [{ scale: 0.98 }] },
-        isDisabled && { opacity: 0.5 },
-        style,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={styles.text.color as string} />
-      ) : (
-        <>
-          {icon}
-          <Text style={[styles.text, textStyle]}>{title}</Text>
-        </>
-      )}
-    </Pressable>
-  );
-};
-
-const getStyles = (variant: Variant) => {
   const bg = {
     primary: colors.primary,
     secondary: colors.secondary,
@@ -69,7 +45,7 @@ const getStyles = (variant: Variant) => {
     danger: colors.white,
   }[variant];
   const border = variant === 'outline' ? colors.primary : 'transparent';
-  return StyleSheet.create({
+  const styles = StyleSheet.create({
     base: {
       minHeight: 50,
       borderRadius: radius.md,
@@ -89,4 +65,26 @@ const getStyles = (variant: Variant) => {
       fontWeight: '700',
     },
   });
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={isDisabled}
+      style={({ pressed }) => [
+        styles.base,
+        fullWidth && { alignSelf: 'stretch' },
+        pressed && !isDisabled && { opacity: 0.85, transform: [{ scale: 0.98 }] },
+        isDisabled && { opacity: 0.5 },
+        style,
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator color={txt} />
+      ) : (
+        <>
+          {icon}
+          <Text style={[styles.text, textStyle]}>{title}</Text>
+        </>
+      )}
+    </Pressable>
+  );
 };

@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import { colors, radius, spacing } from '../constants/theme';
+import { radius, spacing } from '../constants/theme';
+import { useThemedColors } from '../store';
 
 interface Props {
   onPress: () => void;
@@ -37,8 +38,37 @@ export const GoogleSignInButton: React.FC<Props> = ({
   disabled,
   label = 'Entrar com Google',
 }) => {
+  const themedColors = useThemedColors();
   const isDisabled = disabled || loading;
   const finalLabel = Platform.OS === 'web' ? label : `${label} (em breve)`;
+  // O botão "Sign in with Google" oficial é sempre branco com texto escuro
+  // (guideline do Google), independente do tema do app.
+  const styles = StyleSheet.create({
+    base: {
+      minHeight: 50,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: themedColors.border,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+      alignSelf: 'stretch',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    },
+    text: {
+      color: '#3C4043',
+      fontSize: 15,
+      fontWeight: '600',
+    },
+  });
   return (
     <Pressable
       onPress={onPress}
@@ -50,7 +80,7 @@ export const GoogleSignInButton: React.FC<Props> = ({
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={colors.text} />
+        <ActivityIndicator color="#3C4043" />
       ) : (
         <>
           <GoogleLogo />
@@ -60,30 +90,3 @@ export const GoogleSignInButton: React.FC<Props> = ({
     </Pressable>
   );
 };
-
-const styles = StyleSheet.create({
-  base: {
-    minHeight: 50,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.border,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    alignSelf: 'stretch',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  text: {
-    color: '#3C4043',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-});

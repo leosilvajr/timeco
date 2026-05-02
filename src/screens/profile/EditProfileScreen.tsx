@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Input, Button } from '../../components';
 import { colors, spacing } from '../../constants/theme';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import { updateUserProfile } from '../../services/authService';
 import type { ProfileStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'EditProfile'>;
 
 export const EditProfileScreen: React.FC = () => {
+  useThemedColors();
   const nav = useNavigation<Nav>();
   const user = useAuthStore((s) => s.user);
   const patchUser = useAuthStore((s) => s.patchUser);
@@ -44,6 +45,14 @@ export const EditProfileScreen: React.FC = () => {
     }
   };
 
+  const styles = StyleSheet.create({
+    error: {
+      color: colors.danger,
+      marginBottom: spacing.md,
+      textAlign: 'center',
+    },
+  });
+
   return (
     <Screen>
       <Header title="Meus dados" onBack={() => nav.goBack()} />
@@ -56,11 +65,3 @@ export const EditProfileScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  error: {
-    color: colors.danger,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-});

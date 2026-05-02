@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Screen, Card, Button } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
 import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../../navigation/types';
@@ -38,8 +38,77 @@ const STEPS = [
 ];
 
 export const HomeScreen: React.FC = () => {
+  useThemedColors();
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
+
+  const styles = StyleSheet.create({
+    hero: {
+      marginBottom: spacing.xl,
+    },
+    greeting: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    title: {
+      fontSize: 30,
+      fontWeight: '900',
+      color: colors.text,
+      marginTop: 4,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+      marginTop: 6,
+      lineHeight: 22,
+    },
+    quickActions: {
+      marginBottom: spacing.xl,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.md,
+    },
+    step: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.md,
+    },
+    stepEmoji: {
+      fontSize: 38,
+    },
+    stepTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    stepDesc: {
+      marginTop: 2,
+      fontSize: 14,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+    tipCard: {
+      marginTop: spacing.md,
+      backgroundColor: colors.surfaceVariant,
+      borderColor: colors.primaryLight,
+      borderRadius: radius.lg,
+    },
+    tipTitle: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.primaryDark,
+      marginBottom: 4,
+    },
+    tipText: {
+      fontSize: 14,
+      color: colors.text,
+      lineHeight: 20,
+    },
+  });
 
   return (
     <Screen>
@@ -82,71 +151,3 @@ export const HomeScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  hero: {
-    marginBottom: spacing.xl,
-  },
-  greeting: {
-    fontSize: 16,
-    color: colors.textSecondary,
-  },
-  title: {
-    fontSize: 30,
-    fontWeight: '900',
-    color: colors.text,
-    marginTop: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    marginTop: 6,
-    lineHeight: 22,
-  },
-  quickActions: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.md,
-  },
-  step: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  stepEmoji: {
-    fontSize: 38,
-  },
-  stepTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  stepDesc: {
-    marginTop: 2,
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-  },
-  tipCard: {
-    marginTop: spacing.md,
-    backgroundColor: colors.surfaceVariant,
-    borderColor: colors.primaryLight,
-    borderRadius: radius.lg,
-  },
-  tipTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.primaryDark,
-    marginBottom: 4,
-  },
-  tipText: {
-    fontSize: 14,
-    color: colors.text,
-    lineHeight: 20,
-  },
-});

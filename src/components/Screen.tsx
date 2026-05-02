@@ -2,6 +2,7 @@ import React from 'react';
 import { View, ScrollView, StyleSheet, ViewStyle, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing } from '../constants/theme';
+import { useThemedColors } from '../store';
 
 interface Props {
   children: React.ReactNode;
@@ -20,6 +21,16 @@ export const Screen: React.FC<Props> = ({
   contentStyle,
   keyboardAvoiding = true,
 }) => {
+  useThemedColors();
+  const styles = StyleSheet.create({
+    safe: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    padded: {
+      padding: spacing.lg,
+    },
+  });
   const content = (
     <View
       style={[
@@ -55,13 +66,3 @@ export const Screen: React.FC<Props> = ({
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  padded: {
-    padding: spacing.lg,
-  },
-});

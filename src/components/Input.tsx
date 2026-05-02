@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TextInput, StyleSheet, TextInputProps } from 'react-native';
 import { colors, radius, spacing } from '../constants/theme';
+import { useThemedColors } from '../store';
 
 interface Props extends TextInputProps {
   label?: string;
@@ -9,6 +10,42 @@ interface Props extends TextInputProps {
 }
 
 export const Input: React.FC<Props> = ({ label, error, hint, style, ...rest }) => {
+  useThemedColors();
+  const styles = StyleSheet.create({
+    wrap: {
+      marginBottom: spacing.md,
+      alignSelf: 'stretch',
+    },
+    label: {
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: 6,
+    },
+    input: {
+      minHeight: 50,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      fontSize: 16,
+      color: colors.text,
+    },
+    inputError: {
+      borderColor: colors.danger,
+    },
+    error: {
+      marginTop: 4,
+      fontSize: 12,
+      color: colors.danger,
+    },
+    hint: {
+      marginTop: 4,
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+  });
   return (
     <View style={styles.wrap}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -21,39 +58,3 @@ export const Input: React.FC<Props> = ({ label, error, hint, style, ...rest }) =
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  wrap: {
-    marginBottom: spacing.md,
-    alignSelf: 'stretch',
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 6,
-  },
-  input: {
-    minHeight: 50,
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1.5,
-    borderColor: colors.border,
-    fontSize: 16,
-    color: colors.text,
-  },
-  inputError: {
-    borderColor: colors.danger,
-  },
-  error: {
-    marginTop: 4,
-    fontSize: 12,
-    color: colors.danger,
-  },
-  hint: {
-    marginTop: 4,
-    fontSize: 12,
-    color: colors.textMuted,
-  },
-});

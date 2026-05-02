@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Screen, Input, Button, Header, GoogleSignInButton } from '../../components';
 import { signUp, signInWithGoogle } from '../../services/authService';
 import { colors, spacing } from '../../constants/theme';
+import { useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
@@ -10,6 +11,7 @@ import type { AuthStackParamList } from '../../navigation/types';
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'SignUp'>;
 
 export const SignUpScreen: React.FC = () => {
+  useThemedColors();
   const nav = useNavigation<Nav>();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -59,6 +61,30 @@ export const SignUpScreen: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const styles = StyleSheet.create({
+    error: {
+      color: colors.danger,
+      marginBottom: spacing.md,
+      textAlign: 'center',
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: spacing.lg,
+      gap: spacing.md,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      color: colors.textMuted,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+  });
 
   return (
     <Screen>
@@ -110,27 +136,3 @@ export const SignUpScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  error: {
-    color: colors.danger,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-    gap: spacing.md,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-});

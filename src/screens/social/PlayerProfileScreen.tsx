@@ -1,12 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Avatar, Button } from '../../components';
 import { colors, spacing } from '../../constants/theme';
 import { getUserById } from '../../services/userService';
 import { removeFriend, areFriends } from '../../services/friendsService';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import { User } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
 
@@ -14,6 +14,7 @@ type Nav = NativeStackNavigationProp<SocialStackParamList, 'PlayerProfile'>;
 type Rt = RouteProp<SocialStackParamList, 'PlayerProfile'>;
 
 export const PlayerProfileScreen: React.FC = () => {
+  useThemedColors();
   const route = useRoute<Rt>();
   const nav = useNavigation<Nav>();
   const current = useAuthStore((s) => s.user);
@@ -32,6 +33,28 @@ export const PlayerProfileScreen: React.FC = () => {
     await removeFriend(current.id, target.id);
     nav.goBack();
   };
+
+  const styles = StyleSheet.create({
+    hero: {
+      alignItems: 'center',
+      gap: 6,
+    },
+    name: {
+      fontSize: 22,
+      fontWeight: '800',
+      color: colors.text,
+      marginTop: 6,
+    },
+    email: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    info: {
+      fontSize: 15,
+      color: colors.text,
+      paddingVertical: 6,
+    },
+  });
 
   if (!target) {
     return (
@@ -69,25 +92,3 @@ export const PlayerProfileScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  hero: {
-    alignItems: 'center',
-    gap: 6,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '800',
-    color: colors.text,
-    marginTop: 6,
-  },
-  email: {
-    fontSize: 14,
-    color: colors.textSecondary,
-  },
-  info: {
-    fontSize: 15,
-    color: colors.text,
-    paddingVertical: 6,
-  },
-});

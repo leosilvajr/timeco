@@ -1,18 +1,19 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Avatar, Input, Button } from '../../components';
-import { colors, spacing, radius } from '../../constants/theme';
+import { colors, spacing } from '../../constants/theme';
 import { getAllUsers } from '../../services/userService';
 import { setUserRole } from '../../services/authService';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import { User, UserRole } from '../../types';
 import type { ProfileStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'SuperAdmin'>;
 
 export const SuperAdminScreen: React.FC = () => {
+  useThemedColors();
   const nav = useNavigation<Nav>();
   const current = useAuthStore((s) => s.user);
   const [users, setUsers] = useState<User[]>([]);
@@ -27,6 +28,24 @@ export const SuperAdminScreen: React.FC = () => {
   useEffect(() => {
     load();
   }, [load]);
+
+  const styles = StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    name: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    email: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+  });
 
   if (current?.role !== 'superadmin') {
     return (
@@ -58,7 +77,7 @@ export const SuperAdminScreen: React.FC = () => {
     ? users.filter(
         (u) =>
           u.name.toLowerCase().includes(q.toLowerCase()) ||
-          u.email.toLowerCase().includes(q.toLowerCase())
+          u.email.toLowerCase().includes(q.toLowerCase()),
       )
     : users;
 
@@ -94,21 +113,3 @@ export const SuperAdminScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  email: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-});

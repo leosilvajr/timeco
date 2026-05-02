@@ -24,6 +24,7 @@ export type ProfileStackParamList = {
   ProfileHome: undefined;
   EditProfile: undefined;
   SuperAdmin: undefined;
+  ThemeSettings: undefined;
 };
 
 export type MainTabParamList = {

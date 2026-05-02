@@ -7,14 +7,22 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppNavigator } from './src/navigation';
 import { onAuthStateChanged, ensureUserDocument } from './src/services/authService';
-import { useAuthStore } from './src/store';
-import { colors } from './src/constants/theme';
+import { useAuthStore, useThemeStore, useThemedColors } from './src/store';
 import { User } from './src/types';
 
 export default function App() {
   const setUser = useAuthStore((s) => s.setUser);
   const setLoading = useAuthStore((s) => s.setLoading);
+  const hydrateTheme = useThemeStore((s) => s.hydrate);
+  const isDark = useThemeStore((s) => s.isDark);
+  const colors = useThemedColors();
 
+  useEffect(() => {
+    hydrateTheme();
+  }, [hydrateTheme]);
+
+  // Re-injeta o CSS de autofill toda vez que o tema mudar (cores acompanham
+  // light/dark dinamicamente).
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
       const id = 'timeco-autofill-fix';
@@ -37,7 +45,7 @@ export default function App() {
         * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
       `;
     }
-  }, []);
+  }, [colors]);
 
   useEffect(() => {
     const unsub = onAuthStateChanged(async (firebaseUser) => {
@@ -75,7 +83,7 @@ export default function App() {
       <SafeAreaProvider>
         <NavigationContainer theme={navTheme}>
           <AppNavigator />
-          <StatusBar style="dark" />
+          <StatusBar style={isDark ? 'light' : 'dark'} />
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>

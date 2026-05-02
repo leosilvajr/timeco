@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
 import { colors } from '../constants/theme';
+import { useThemedColors } from '../store';
 
 interface Props {
   name?: string;
@@ -16,6 +17,21 @@ const initials = (name?: string) => {
 };
 
 export const Avatar: React.FC<Props> = ({ name, photoURL, size = 44 }) => {
+  useThemedColors();
+  const styles = StyleSheet.create({
+    img: {
+      backgroundColor: colors.surfaceVariant,
+    },
+    placeholder: {
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    text: {
+      color: colors.white,
+      fontWeight: '800',
+    },
+  });
   const style = { width: size, height: size, borderRadius: size / 2 };
   if (photoURL) {
     return <Image source={{ uri: photoURL }} style={[style, styles.img]} />;
@@ -26,18 +42,3 @@ export const Avatar: React.FC<Props> = ({ name, photoURL, size = 44 }) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  img: {
-    backgroundColor: colors.surfaceVariant,
-  },
-  placeholder: {
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    color: colors.white,
-    fontWeight: '800',
-  },
-});

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { Screen, Input, Button, GoogleSignInButton } from '../../components';
 import { signIn, signInWithGoogle } from '../../services/authService';
 import { colors, spacing } from '../../constants/theme';
+import { useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
@@ -10,6 +11,7 @@ import type { AuthStackParamList } from '../../navigation/types';
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
 
 export const LoginScreen: React.FC = () => {
+  useThemedColors();
   const nav = useNavigation<Nav>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -50,6 +52,61 @@ export const LoginScreen: React.FC = () => {
       setGoogleLoading(false);
     }
   };
+
+  const styles = StyleSheet.create({
+    logo: {
+      alignItems: 'center',
+      marginVertical: spacing.xxl,
+    },
+    logoEmoji: {
+      fontSize: 72,
+    },
+    logoText: {
+      fontSize: 42,
+      fontWeight: '900',
+      color: colors.primary,
+      marginTop: 4,
+    },
+    tagline: {
+      fontSize: 15,
+      color: colors.textSecondary,
+      marginTop: 6,
+      textAlign: 'center',
+    },
+    error: {
+      color: colors.danger,
+      marginBottom: spacing.md,
+      textAlign: 'center',
+    },
+    divider: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginVertical: spacing.lg,
+      gap: spacing.md,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      color: colors.textMuted,
+      fontSize: 13,
+      fontWeight: '500',
+    },
+    link: {
+      marginTop: spacing.xl,
+      alignItems: 'center',
+    },
+    linkTxt: {
+      color: colors.textSecondary,
+      fontSize: 15,
+    },
+    linkBold: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+  });
 
   return (
     <Screen>
@@ -95,58 +152,3 @@ export const LoginScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  logo: {
-    alignItems: 'center',
-    marginVertical: spacing.xxl,
-  },
-  logoEmoji: {
-    fontSize: 72,
-  },
-  logoText: {
-    fontSize: 42,
-    fontWeight: '900',
-    color: colors.primary,
-    marginTop: 4,
-  },
-  tagline: {
-    fontSize: 15,
-    color: colors.textSecondary,
-    marginTop: 6,
-    textAlign: 'center',
-  },
-  error: {
-    color: colors.danger,
-    marginBottom: spacing.md,
-    textAlign: 'center',
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing.lg,
-    gap: spacing.md,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: colors.border,
-  },
-  dividerText: {
-    color: colors.textMuted,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  link: {
-    marginTop: spacing.xl,
-    alignItems: 'center',
-  },
-  linkTxt: {
-    color: colors.textSecondary,
-    fontSize: 15,
-  },
-  linkBold: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-});
