@@ -15,54 +15,151 @@ export interface LocationResult {
   osmId: string;
 }
 
-const NOMINATIM = 'https://nominatim.openstreetmap.org/search';
+// ============================================================
+// Estratégia: tenta Mapbox primeiro (qualidade tipo Google Maps,
+// requer EXPO_PUBLIC_MAPBOX_TOKEN). Se não houver token, cai pro
+// Photon (gratuito, OSM, dados limitados no Brasil).
+// ============================================================
+
+const MAPBOX_TOKEN =
+  // Lê de env vars do Expo. Em Vercel/Expo Web, prefixar com EXPO_PUBLIC_
+  process.env.EXPO_PUBLIC_MAPBOX_TOKEN || '';
+
+const MAPBOX_GEOCODING = 'https://api.mapbox.com/geocoding/v5/mapbox.places';
+
+interface MapboxFeature {
+  id: string;
+  text: string;
+  place_name: string;
+  center: [number, number];
+  properties?: { category?: string };
+  context?: Array<{ id: string; text: string }>;
+}
+
+const mapboxSearch = async (
+  query: string,
+  signal?: AbortSignal,
+  bias?: { lat: number; lng: number },
+): Promise<LocationResult[]> => {
+  const params = new URLSearchParams({
+    access_token: MAPBOX_TOKEN,
+    language: 'pt',
+    country: 'br',
+    limit: '10',
+    autocomplete: 'true',
+    types: 'poi,address,locality,neighborhood,place',
+  });
+  if (bias) params.set('proximity', `${bias.lng},${bias.lat}`);
+
+  const url = `${MAPBOX_GEOCODING}/${encodeURIComponent(query)}.json?${params.toString()}`;
+  const res = await fetch(url, { signal });
+  if (!res.ok) throw new Error(`Mapbox geocoding error (${res.status})`);
+  const data = (await res.json()) as { features?: MapboxFeature[] };
+
+  return (data.features ?? []).map((f) => {
+    const [lng, lat] = f.center;
+    return {
+      name: f.text,
+      address: f.place_name,
+      lat,
+      lng,
+      osmId: f.id,
+    };
+  });
+};
+
+// Photon: fallback gratuito sem API key. Cobertura no Brasil é limitada,
+// mas funciona pra cidades, ruas e POIs grandes mapeados no OSM.
+const PHOTON = 'https://photon.komoot.io/api';
+
+interface PhotonProperties {
+  name?: string;
+  street?: string;
+  housenumber?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  osm_id?: number | string;
+  osm_type?: string;
+  osm_key?: string;
+  osm_value?: string;
+  type?: string;
+  postcode?: string;
+  district?: string;
+  county?: string;
+}
+
+interface PhotonFeature {
+  type: 'Feature';
+  geometry: { type: 'Point'; coordinates: [number, number] };
+  properties: PhotonProperties;
+}
+
+const buildAddress = (p: PhotonProperties): string => {
+  const parts: string[] = [];
+  if (p.name) parts.push(p.name);
+  if (p.street) {
+    parts.push(p.housenumber ? `${p.street}, ${p.housenumber}` : p.street);
+  }
+  if (p.district) parts.push(p.district);
+  if (p.city) parts.push(p.city);
+  if (p.state) parts.push(p.state);
+  return parts.join(', ');
+};
 
 /**
- * Busca lugares por texto. Limita resultados a Brasil pra reduzir ruído.
- * @param query Texto digitado pelo usuário
- * @param signal AbortSignal para cancelar quando usuário continua digitando
+ * Busca lugares por texto.
+ * - Se EXPO_PUBLIC_MAPBOX_TOKEN está configurado: usa Mapbox (qualidade
+ *   comparável ao Google Maps, com POIs brasileiros completos).
+ * - Senão: cai pro Photon (OSM gratuito, dados mais limitados).
+ *
+ * Suporta autocomplete fuzzy e bias geográfico.
  */
 export const searchLocations = async (
   query: string,
   signal?: AbortSignal,
+  bias?: { lat: number; lng: number },
 ): Promise<LocationResult[]> => {
   const q = query.trim();
-  if (q.length < 3) return [];
+  if (q.length < 2) return [];
 
-  const url = `${NOMINATIM}?format=json&addressdetails=1&limit=8&countrycodes=br&q=${encodeURIComponent(q)}`;
-  const res = await fetch(url, {
-    signal,
-    headers: { 'Accept-Language': 'pt-BR' },
+  if (MAPBOX_TOKEN) {
+    try {
+      return await mapboxSearch(q, signal, bias);
+    } catch (e) {
+      console.warn('Mapbox falhou, caindo pra Photon', e);
+    }
+  }
+
+  const params = new URLSearchParams({
+    q,
+    limit: '10',
   });
+  if (bias) {
+    params.set('lat', String(bias.lat));
+    params.set('lon', String(bias.lng));
+    params.set('location_bias_scale', '0.6');
+  }
+  // Restringe ao Brasil quando não há bias geográfico
+  if (!bias) {
+    params.set('bbox', '-74,-34,-33,5'); // bounding box aproximada do Brasil
+  }
+
+  const url = `${PHOTON}/?${params.toString()}`;
+  const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`Erro na busca de localização (${res.status})`);
+  const data = (await res.json()) as { features?: PhotonFeature[] };
 
-  const data = (await res.json()) as Array<{
-    place_id: number | string;
-    display_name: string;
-    name?: string;
-    lat: string;
-    lon: string;
-    address?: Record<string, string>;
-  }>;
-
-  return data.map((item) => {
-    const addr = item.address ?? {};
-    const shortName =
-      item.name ||
-      addr.amenity ||
-      addr.leisure ||
-      addr.sport ||
-      addr.shop ||
-      addr.tourism ||
-      addr.road ||
-      item.display_name.split(',')[0] ||
-      'Localização';
+  return (data.features ?? []).map((f) => {
+    const p = f.properties;
+    const [lng, lat] = f.geometry.coordinates;
+    const shortName = p.name || p.street || p.city || 'Localização';
     return {
       name: shortName,
-      address: item.display_name,
-      lat: parseFloat(item.lat),
-      lng: parseFloat(item.lon),
-      osmId: String(item.place_id),
+      address: buildAddress(p) || shortName,
+      lat,
+      lng,
+      osmId: `${p.osm_type ?? 'n'}/${p.osm_id ?? Math.random()}`,
     };
   });
 };
@@ -88,13 +185,42 @@ interface NominatimReverseResponse {
 
 /**
  * Reverse geocoding: dadas coordenadas, descobre o estabelecimento /
- * endereço mais provável. Usa Nominatim com zoom alto pra capturar POIs.
+ * endereço mais provável. Usa Mapbox quando disponível, Nominatim como
+ * fallback.
  */
 export const reverseGeocode = async (
   lat: number,
   lng: number,
   signal?: AbortSignal,
 ): Promise<LocationResult> => {
+  if (MAPBOX_TOKEN) {
+    try {
+      const params = new URLSearchParams({
+        access_token: MAPBOX_TOKEN,
+        language: 'pt',
+        types: 'poi,address',
+        limit: '1',
+      });
+      const url = `${MAPBOX_GEOCODING}/${lng},${lat}.json?${params.toString()}`;
+      const res = await fetch(url, { signal });
+      if (res.ok) {
+        const data = (await res.json()) as { features?: MapboxFeature[] };
+        const f = data.features?.[0];
+        if (f) {
+          return {
+            name: f.text,
+            address: f.place_name,
+            lat: f.center[1],
+            lng: f.center[0],
+            osmId: f.id,
+          };
+        }
+      }
+    } catch (e) {
+      console.warn('Mapbox reverse falhou, caindo pra Nominatim', e);
+    }
+  }
+
   const url = `${NOMINATIM_REVERSE}?format=json&addressdetails=1&namedetails=1&zoom=18&lat=${lat}&lon=${lng}`;
   const res = await fetch(url, {
     signal,
