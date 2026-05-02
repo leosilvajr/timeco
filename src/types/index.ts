@@ -11,6 +11,14 @@ export type SportId =
   | 'handball'
   | 'tableTennis'
   | 'tennis'
+  | 'padel'
+  | 'beachTennis'
+  | 'badminton'
+  | 'squash'
+  | 'pickleball'
+  | 'chess'
+  | 'pool'
+  | 'esports'
   | 'other';
 
 export type Gender = 'male' | 'female' | 'other' | 'not_specified';
@@ -26,6 +34,10 @@ export interface User {
   heightCm?: number;
   gender?: Gender;
   phone?: string;
+  /** Bio curta exibida no perfil público (opcional). */
+  bio?: string;
+  /** Esportes preferidos exibidos no perfil público. */
+  favoriteSports?: SportId[];
   createdAt: Timestamp | Date | null;
   updatedAt?: Timestamp | Date | null;
 }
@@ -102,7 +114,8 @@ export type NotificationType =
   | 'event_invite'
   | 'event_updated'
   | 'teams_drawn'
-  | 'event_cancelled';
+  | 'event_cancelled'
+  | 'chat_message';
 
 export interface AppNotification {
   id: string;
@@ -112,5 +125,24 @@ export interface AppNotification {
   body: string;
   link?: string;
   read: boolean;
+  createdAt: Timestamp | Date | null;
+}
+
+// ====== CHAT ======
+
+/** doc id = `${uidA}_${uidB}` (uids em ordem alfabética) */
+export interface Chat {
+  id: string;
+  members: [string, string];
+  lastMessage?: string;
+  lastMessageAt?: Timestamp | Date | null;
+  lastSenderId?: string;
+  createdAt: Timestamp | Date | null;
+}
+
+export interface ChatMessage {
+  id: string;
+  text: string;
+  senderId: string;
   createdAt: Timestamp | Date | null;
 }

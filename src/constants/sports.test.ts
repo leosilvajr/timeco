@@ -33,3 +33,34 @@ describe('getSport', () => {
     expect(getSport(fake).id).toBe('other');
   });
 });
+
+describe('esportes 1v1', () => {
+  const oneVsOneIds: SportId[] = [
+    'tennis', 'tableTennis', 'badminton', 'squash',
+    'chess', 'pool', 'esports',
+  ];
+
+  it.each(oneVsOneIds)('%s é configurado como 1v1 (1 por time, 2 times)', (id) => {
+    const cfg = getSport(id);
+    expect(cfg.defaultPlayersPerTeam).toBe(1);
+    expect(cfg.defaultTeamsCount).toBe(2);
+    expect(cfg.isOneVsOne).toBe(true);
+  });
+
+  it('esportes coletivos não são marcados como 1v1', () => {
+    expect(getSport('soccer').isOneVsOne).toBeFalsy();
+    expect(getSport('volleyball').isOneVsOne).toBeFalsy();
+    expect(getSport('basketball').isOneVsOne).toBeFalsy();
+  });
+});
+
+describe('novas modalidades adicionadas', () => {
+  const newSports: SportId[] = [
+    'padel', 'beachTennis', 'badminton', 'squash',
+    'pickleball', 'chess', 'pool', 'esports',
+  ];
+
+  it.each(newSports)('%s existe no catálogo', (id) => {
+    expect(SPORTS.find((s) => s.id === id)).toBeDefined();
+  });
+});

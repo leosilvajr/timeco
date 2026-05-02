@@ -64,7 +64,8 @@ export const CreateEventScreen: React.FC = () => {
     if (!title.trim()) return setError('Informe um título');
     if (!location.trim()) return setError('Informe o local');
     if (!dateStr || !timeStr) return setError('Informe data e horário');
-    if (selected.size < 2) return setError('Convide pelo menos 2 jogadores');
+    // Mínimo 1 amigo convidado: organizador + 1 oponente = evento 1v1.
+    if (selected.size < 1) return setError('Convide pelo menos 1 jogador');
 
     const scheduledAt = new Date(`${dateStr}T${timeStr}:00`);
     if (Number.isNaN(scheduledAt.getTime())) return setError('Data/horário inválidos');
