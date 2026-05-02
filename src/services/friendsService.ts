@@ -10,10 +10,13 @@ import {
   where,
   serverTimestamp,
   updateDoc,
+  onSnapshot,
+  Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { FriendRequest, Friendship, User } from '../types';
 import { getUserById, getUsersByIds } from './userService';
+import { createNotification } from './notificationService';
 
 const friendshipId = (a: string, b: string) => (a < b ? `${a}_${b}` : `${b}_${a}`);
 
@@ -41,7 +44,53 @@ export const sendFriendRequest = async (fromUser: User, toUserId: string): Promi
     status: 'pending',
     createdAt: serverTimestamp(),
   });
+
+  // Notificação na collection `notifications` para o destinatário ver em tempo real.
+  // Best-effort: se falhar (ex.: regra de Firestore), não invalida o convite.
+  try {
+    await createNotification(
+      toUserId,
+      'friend_request',
+      'Novo convite de amizade',
+      `${fromUser.name} enviou um convite de amizade pra você`,
+      'FriendRequests',
+    );
+  } catch (err) {
+    console.warn('createNotification(friend_request) falhou:', err);
+  }
+
   return ref.id;
+};
+
+/**
+ * Inscreve callback em mudanças nos convites pendentes do usuário (real-time).
+ * Retorna função de unsubscribe.
+ */
+export const subscribeIncomingRequests = (
+  userId: string,
+  cb: (requests: FriendRequest[]) => void,
+): Unsubscribe => {
+  const q = query(
+    collection(db, 'friendRequests'),
+    where('toUserId', '==', userId),
+    where('status', '==', 'pending'),
+  );
+  return onSnapshot(q, (snap) => {
+    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as FriendRequest)));
+  });
+};
+
+/**
+ * Inscreve callback em mudanças nas amizades do usuário (real-time).
+ */
+export const subscribeFriendships = (
+  userId: string,
+  cb: (friendships: Friendship[]) => void,
+): Unsubscribe => {
+  const q = query(collection(db, 'friendships'), where('members', 'array-contains', userId));
+  return onSnapshot(q, (snap) => {
+    cb(snap.docs.map((d) => ({ id: d.id, ...d.data() } as Friendship)));
+  });
 };
 
 export const listIncomingRequests = async (userId: string): Promise<FriendRequest[]> => {

@@ -6,13 +6,14 @@ import { Screen, Header, Input, Button, Card, Avatar } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { searchUsersByEmail, searchUsersByName } from '../../services/userService';
 import { sendFriendRequest, listFriendships, listOutgoingRequests } from '../../services/friendsService';
-import { useAuthStore } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import { User } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<SocialStackParamList, 'AddFriend'>;
 
 export const AddFriendScreen: React.FC = () => {
+  useThemedColors();
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
   const [q, setQ] = useState('');
@@ -29,10 +30,10 @@ export const AddFriendScreen: React.FC = () => {
     if (!trimmed) return;
     setLoading(true);
     try {
-      const isEmailLike = trimmed.includes('@');
+      // Busca em paralelo por email E por nome — independente de ter "@".
       const [byEmail, byName] = await Promise.all([
-        isEmailLike ? searchUsersByEmail(trimmed) : Promise.resolve([] as User[]),
-        isEmailLike ? Promise.resolve([] as User[]) : searchUsersByName(trimmed),
+        searchUsersByEmail(trimmed),
+        searchUsersByName(trimmed),
       ]);
       const map = new Map<string, User>();
       for (const u of [...byEmail, ...byName]) {
@@ -70,6 +71,38 @@ export const AddFriendScreen: React.FC = () => {
     }
   };
 
+  const styles = StyleSheet.create({
+    msg: {
+      marginTop: spacing.md,
+      textAlign: 'center',
+      color: colors.textSecondary,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    name: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    email: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    tag: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: radius.pill,
+    },
+    tagTxt: {
+      fontSize: 12,
+      fontWeight: '700',
+    },
+  });
+
   return (
     <Screen>
       <Header title="Adicionar amigo" onBack={() => nav.goBack()} />
@@ -77,7 +110,7 @@ export const AddFriendScreen: React.FC = () => {
         label="Buscar por email ou nome"
         value={q}
         onChangeText={setQ}
-        placeholder="exemplo@email.com"
+        placeholder="exemplo@email.com ou nome"
         autoCapitalize="none"
         onSubmitEditing={onSearch}
       />
@@ -119,35 +152,3 @@ export const AddFriendScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  msg: {
-    marginTop: spacing.md,
-    textAlign: 'center',
-    color: colors.textSecondary,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  email: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  tag: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: radius.pill,
-  },
-  tagTxt: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-});

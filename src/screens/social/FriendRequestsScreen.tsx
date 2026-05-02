@@ -1,31 +1,29 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Button, Avatar, EmptyState } from '../../components';
 import { colors, spacing } from '../../constants/theme';
-import { acceptFriendRequest, declineFriendRequest, listIncomingRequests } from '../../services/friendsService';
-import { useAuthStore } from '../../store';
+import { acceptFriendRequest, declineFriendRequest, subscribeIncomingRequests } from '../../services/friendsService';
+import { useAuthStore, useThemedColors } from '../../store';
 import { FriendRequest } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<SocialStackParamList, 'FriendRequests'>;
 
 export const FriendRequestsScreen: React.FC = () => {
+  useThemedColors();
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [busy, setBusy] = useState<Set<string>>(new Set());
 
-  const load = useCallback(async () => {
-    if (!user) return;
-    const r = await listIncomingRequests(user.id);
-    setRequests(r);
-  }, [user]);
-
+  // Realtime: a lista atualiza sozinha quando alguém envia um convite.
   useEffect(() => {
-    load();
-  }, [load]);
+    if (!user) return;
+    const unsub = subscribeIncomingRequests(user.id, setRequests);
+    return () => unsub();
+  }, [user]);
 
   const markBusy = (id: string, b: boolean) =>
     setBusy((s) => {
@@ -39,7 +37,6 @@ export const FriendRequestsScreen: React.FC = () => {
     markBusy(r.id, true);
     try {
       await acceptFriendRequest(r);
-      await load();
     } finally {
       markBusy(r.id, false);
     }
@@ -49,11 +46,28 @@ export const FriendRequestsScreen: React.FC = () => {
     markBusy(r.id, true);
     try {
       await declineFriendRequest(r.id);
-      await load();
     } finally {
       markBusy(r.id, false);
     }
   };
+
+  const styles = StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    name: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    sub: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+  });
 
   return (
     <Screen>
@@ -91,21 +105,3 @@ export const FriendRequestsScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  sub: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-});

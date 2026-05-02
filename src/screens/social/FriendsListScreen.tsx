@@ -1,29 +1,33 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, RefreshControl, Pressable } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Avatar, EmptyState, Button, Card } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
-import { listFriends, listIncomingRequests } from '../../services/friendsService';
-import { useAuthStore } from '../../store';
+import {
+  listFriends,
+  subscribeIncomingRequests,
+  subscribeFriendships,
+} from '../../services/friendsService';
+import { useAuthStore, useThemedColors } from '../../store';
 import { User, FriendRequest } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<SocialStackParamList, 'FriendsList'>;
 
 export const FriendsListScreen: React.FC = () => {
+  useThemedColors();
   const user = useAuthStore((s) => s.user);
   const nav = useNavigation<Nav>();
   const [friends, setFriends] = useState<User[]>([]);
   const [requests, setRequests] = useState<FriendRequest[]>([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async () => {
+  const reloadFriends = useCallback(async () => {
     if (!user) return;
     try {
-      const [f, r] = await Promise.all([listFriends(user.id), listIncomingRequests(user.id)]);
+      const f = await listFriends(user.id);
       setFriends(f);
-      setRequests(r);
     } catch (e) {
       console.error(e);
     } finally {
@@ -31,11 +35,73 @@ export const FriendsListScreen: React.FC = () => {
     }
   }, [user]);
 
-  useFocusEffect(
-    useCallback(() => {
-      load();
-    }, [load])
-  );
+  // Realtime: convites e amizades atualizam sem precisar refresh.
+  useEffect(() => {
+    if (!user) return;
+    const unsubReq = subscribeIncomingRequests(user.id, setRequests);
+    const unsubFriendships = subscribeFriendships(user.id, () => {
+      reloadFriends();
+    });
+    reloadFriends();
+    return () => {
+      unsubReq();
+      unsubFriendships();
+    };
+  }, [user, reloadFriends]);
+
+  const styles = StyleSheet.create({
+    addBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addBtnTxt: {
+      fontSize: 28,
+      color: colors.white,
+      lineHeight: 30,
+      marginTop: -2,
+    },
+    requestsBanner: {
+      backgroundColor: colors.secondary,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    requestsBannerTxt: {
+      fontWeight: '700',
+      color: colors.black,
+    },
+    requestsArrow: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.black,
+    },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    name: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    email: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    chev: {
+      fontSize: 22,
+      color: colors.textMuted,
+    },
+  });
 
   return (
     <Screen scroll={false}>
@@ -65,7 +131,7 @@ export const FriendsListScreen: React.FC = () => {
         data={friends}
         keyExtractor={(f) => f.id}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); reloadFriends(); }} />
         }
         ListEmptyComponent={
           <EmptyState
@@ -90,57 +156,3 @@ export const FriendsListScreen: React.FC = () => {
     </Screen>
   );
 };
-
-const styles = StyleSheet.create({
-  addBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBtnTxt: {
-    fontSize: 28,
-    color: colors.white,
-    lineHeight: 30,
-    marginTop: -2,
-  },
-  requestsBanner: {
-    backgroundColor: colors.secondary,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    marginBottom: spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  requestsBannerTxt: {
-    fontWeight: '700',
-    color: colors.black,
-  },
-  requestsArrow: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.black,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: spacing.sm,
-  },
-  name: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  email: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  chev: {
-    fontSize: 22,
-    color: colors.textMuted,
-  },
-});
