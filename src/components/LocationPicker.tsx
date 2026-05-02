@@ -2,7 +2,12 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { colors, spacing, radius } from '../constants/theme';
 import { useThemedColors } from '../store';
-import { searchLocations, LocationResult } from '../services/locationService';
+import {
+  searchLocations,
+  LocationResult,
+  getCurrentPosition,
+  reverseGeocode,
+} from '../services/locationService';
 
 export interface SelectedLocation {
   name: string;
@@ -37,6 +42,8 @@ export const LocationPicker: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [gpsBusy, setGpsBusy] = useState(false);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -90,6 +97,29 @@ export const LocationPicker: React.FC<Props> = ({
   const onUseManual = () => {
     onChange({ name: query.trim(), address: query.trim(), lat: 0, lng: 0 });
     setOpen(false);
+  };
+
+  const onUseCurrentLocation = async () => {
+    setError(null);
+    setGpsBusy(true);
+    setGpsAccuracy(null);
+    try {
+      const pos = await getCurrentPosition();
+      setGpsAccuracy(Math.round(pos.accuracy));
+      const result = await reverseGeocode(pos.lat, pos.lng);
+      onChange({
+        name: result.name,
+        address: result.address,
+        lat: result.lat,
+        lng: result.lng,
+      });
+      setQuery(result.name);
+      setOpen(false);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Não foi possível obter sua localização');
+    } finally {
+      setGpsBusy(false);
+    }
   };
 
   const styles = StyleSheet.create({
@@ -160,6 +190,29 @@ export const LocationPicker: React.FC<Props> = ({
       paddingVertical: 8,
     },
     loadingTxt: { fontSize: 12, color: colors.textSecondary },
+    gpsBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingVertical: 8,
+      paddingHorizontal: spacing.md,
+      backgroundColor: colors.primary + '15',
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.primary,
+      alignSelf: 'flex-start',
+      marginTop: 6,
+    },
+    gpsBtnTxt: {
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    gpsAccuracy: {
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: 4,
+    },
   });
 
   return (
@@ -173,6 +226,21 @@ export const LocationPicker: React.FC<Props> = ({
         style={styles.input}
         onFocus={() => results.length > 0 && setOpen(true)}
       />
+      <Pressable style={styles.gpsBtn} onPress={onUseCurrentLocation} disabled={gpsBusy}>
+        {gpsBusy ? (
+          <ActivityIndicator size="small" color={colors.primary} />
+        ) : (
+          <Text style={{ fontSize: 14 }}>📍</Text>
+        )}
+        <Text style={styles.gpsBtnTxt}>
+          {gpsBusy ? 'Buscando localização...' : 'Usar minha localização atual'}
+        </Text>
+      </Pressable>
+      {gpsAccuracy !== null && !gpsBusy ? (
+        <Text style={styles.gpsAccuracy}>
+          Precisão de aproximadamente {gpsAccuracy}m
+        </Text>
+      ) : null}
       {value && value.lat !== 0 ? (
         <View style={styles.selectedBox}>
           <Text style={styles.selectedPin}>📍</Text>

@@ -74,3 +74,91 @@ export const googleMapsUrl = (loc: { lat: number; lng: number; name?: string }):
   }
   return `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`;
 };
+
+const NOMINATIM_REVERSE = 'https://nominatim.openstreetmap.org/reverse';
+
+interface NominatimReverseResponse {
+  name?: string;
+  display_name: string;
+  lat: string;
+  lon: string;
+  place_id: number | string;
+  address?: Record<string, string>;
+}
+
+/**
+ * Reverse geocoding: dadas coordenadas, descobre o estabelecimento /
+ * endereço mais provável. Usa Nominatim com zoom alto pra capturar POIs.
+ */
+export const reverseGeocode = async (
+  lat: number,
+  lng: number,
+  signal?: AbortSignal,
+): Promise<LocationResult> => {
+  const url = `${NOMINATIM_REVERSE}?format=json&addressdetails=1&namedetails=1&zoom=18&lat=${lat}&lon=${lng}`;
+  const res = await fetch(url, {
+    signal,
+    headers: { 'Accept-Language': 'pt-BR' },
+  });
+  if (!res.ok) throw new Error(`Erro no reverse geocode (${res.status})`);
+  const data = (await res.json()) as NominatimReverseResponse;
+  const addr = data.address ?? {};
+  const shortName =
+    data.name ||
+    addr.amenity ||
+    addr.leisure ||
+    addr.sport ||
+    addr.shop ||
+    addr.tourism ||
+    addr.building ||
+    addr.road ||
+    data.display_name.split(',')[0] ||
+    'Local atual';
+  return {
+    name: shortName,
+    address: data.display_name,
+    lat: parseFloat(data.lat),
+    lng: parseFloat(data.lon),
+    osmId: String(data.place_id),
+  };
+};
+
+export interface CurrentPosition {
+  lat: number;
+  lng: number;
+  /** Precisão em metros (quanto menor, mais preciso) */
+  accuracy: number;
+}
+
+/**
+ * Obtém a localização atual do dispositivo via Geolocation API (web).
+ * Pede permissão se ainda não foi concedida.
+ */
+export const getCurrentPosition = (timeoutMs = 15000): Promise<CurrentPosition> => {
+  return new Promise((resolve, reject) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      reject(new Error('Geolocalização não disponível neste dispositivo'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) =>
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+        }),
+      (err) => {
+        if (err.code === err.PERMISSION_DENIED) {
+          reject(new Error('Permissão de localização negada'));
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          reject(new Error('Localização indisponível agora'));
+        } else if (err.code === err.TIMEOUT) {
+          reject(new Error('Tempo esgotado tentando obter sua localização'));
+        } else {
+          reject(new Error(err.message || 'Erro ao obter localização'));
+        }
+      },
+      { enableHighAccuracy: true, timeout: timeoutMs, maximumAge: 60000 },
+    );
+  });
+};
