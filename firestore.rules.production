@@ -30,7 +30,10 @@ service cloud.firestore {
     // ====== FRIENDSHIPS ======
     // doc id = `${uidA}_${uidB}` (uids em ordem alfabética)
     match /friendships/{id} {
-      allow read: if isAuth() && (request.auth.uid in resource.data.members);
+      // get: permite checagem de existência (resource == null) usada pelo
+      // fluxo de "adicionar amigo" antes de criar; ou se o user é membro.
+      allow get: if isAuth() && (resource == null || request.auth.uid in resource.data.members);
+      allow list: if isAuth() && request.auth.uid in resource.data.members;
       allow create: if isAuth() && (request.auth.uid in request.resource.data.members);
       allow update: if isAuth() && (request.auth.uid in resource.data.members);
       allow delete: if isAuth() && (request.auth.uid in resource.data.members);
