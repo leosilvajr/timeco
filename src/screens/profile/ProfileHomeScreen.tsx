@@ -206,6 +206,8 @@ export const ProfileHomeScreen: React.FC = () => {
           onPress={() => nav.navigate('Notifications')}
         />
         <MenuItem label="✏️  Editar meus dados" onPress={() => nav.navigate('EditProfile')} />
+        <MenuItem label="⚙️  Configurações" onPress={() => nav.navigate('SettingsHome')} />
+        <MenuItem label="❓  Ajuda" onPress={() => nav.navigate('HelpHome')} />
         {user.role === 'superadmin' ? (
           <MenuItem label="🛡️  Painel super admin" onPress={() => nav.navigate('SuperAdmin')} />
         ) : null}

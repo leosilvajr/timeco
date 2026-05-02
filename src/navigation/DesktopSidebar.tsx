@@ -9,8 +9,6 @@ const ICONS: Record<string, string> = {
   Jogos: '🏟️',
   Social: '👥',
   Perfil: '👤',
-  Config: '⚙️',
-  Ajuda: '❓',
 };
 
 export const DesktopSidebar: React.FC<BottomTabBarProps> = ({ state, descriptors, navigation }) => {

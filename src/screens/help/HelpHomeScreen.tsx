@@ -1,8 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
+import type { ProfileStackParamList } from '../../navigation/types';
+
+type Nav = NativeStackNavigationProp<ProfileStackParamList, 'HelpHome'>;
 
 interface HelpTopic {
   emoji: string;
@@ -154,6 +159,7 @@ const TOPICS: HelpTopic[] = [
 
 export const HelpHomeScreen: React.FC = () => {
   useThemedColors();
+  const nav = useNavigation<Nav>();
   const [expandedIdx, setExpandedIdx] = useState<number | null>(0);
 
   const styles = StyleSheet.create({
@@ -228,7 +234,7 @@ export const HelpHomeScreen: React.FC = () => {
 
   return (
     <Screen maxWidth={760}>
-      <Header title="Ajuda" subtitle="Como usar cada recurso do Timeco" />
+      <Header title="Ajuda" subtitle="Como usar cada recurso do Timeco" onBack={() => nav.goBack()} />
 
       <View style={styles.intro}>
         <Text style={styles.introTxt}>

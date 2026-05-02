@@ -5,9 +5,9 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors, useThemeStore } from '../../store';
-import type { SettingsStackParamList } from '../../navigation/types';
+import type { ProfileStackParamList } from '../../navigation/types';
 
-type Nav = NativeStackNavigationProp<SettingsStackParamList, 'SettingsHome'>;
+type Nav = NativeStackNavigationProp<ProfileStackParamList, 'SettingsHome'>;
 
 interface MenuRowProps {
   icon: string;
@@ -83,7 +83,7 @@ export const SettingsHomeScreen: React.FC = () => {
 
   return (
     <Screen maxWidth={600}>
-      <Header title="Configurações" subtitle="Personalize o app do seu jeito" />
+      <Header title="Configurações" subtitle="Personalize o app do seu jeito" onBack={() => nav.goBack()} />
 
       <Text style={styles.sectionTitle}>Aparência</Text>
       <Card style={styles.card}>
