@@ -36,7 +36,16 @@ export type MainTabParamList = {
   Perfil: NavigatorScreenParams<ProfileStackParamList>;
 };
 
+export type VolleyStackParamList = {
+  VolleyHome: undefined;
+  VolleyMatchSetup: undefined;
+  VolleyScout: { matchId: string };
+  VolleyRotation: { matchId: string };
+  VolleyReports: { matchId: string };
+};
+
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
+  Volley: NavigatorScreenParams<VolleyStackParamList>;
 };

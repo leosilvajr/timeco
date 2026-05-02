@@ -29,6 +29,12 @@ import { SuperAdminScreen } from '../screens/profile/SuperAdminScreen';
 import { ThemeSettingsScreen } from '../screens/profile/ThemeSettingsScreen';
 import { NotificationsScreen } from '../screens/profile/NotificationsScreen';
 
+import { VolleyHomeScreen } from '../screens/volley/VolleyHomeScreen';
+import { VolleyMatchSetupScreen } from '../screens/volley/VolleyMatchSetupScreen';
+import { VolleyScoutScreen } from '../screens/volley/VolleyScoutScreen';
+import { VolleyRotationScreen } from '../screens/volley/VolleyRotationScreen';
+import { VolleyReportsScreen } from '../screens/volley/VolleyReportsScreen';
+
 import {
   AuthStackParamList,
   EventsStackParamList,
@@ -36,6 +42,7 @@ import {
   ProfileStackParamList,
   RootStackParamList,
   SocialStackParamList,
+  VolleyStackParamList,
 } from './types';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
@@ -44,6 +51,7 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 const EventsStack = createNativeStackNavigator<EventsStackParamList>();
 const SocialStack = createNativeStackNavigator<SocialStackParamList>();
 const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+const VolleyStack = createNativeStackNavigator<VolleyStackParamList>();
 
 const AuthNavigator = () => (
   <AuthStack.Navigator screenOptions={{ headerShown: false }}>
@@ -80,6 +88,16 @@ const ProfileNavigator = () => (
     <ProfileStack.Screen name="ThemeSettings" component={ThemeSettingsScreen} />
     <ProfileStack.Screen name="Notifications" component={NotificationsScreen} />
   </ProfileStack.Navigator>
+);
+
+const VolleyNavigator = () => (
+  <VolleyStack.Navigator screenOptions={{ headerShown: false }}>
+    <VolleyStack.Screen name="VolleyHome" component={VolleyHomeScreen} />
+    <VolleyStack.Screen name="VolleyMatchSetup" component={VolleyMatchSetupScreen} />
+    <VolleyStack.Screen name="VolleyScout" component={VolleyScoutScreen} />
+    <VolleyStack.Screen name="VolleyRotation" component={VolleyRotationScreen} />
+    <VolleyStack.Screen name="VolleyReports" component={VolleyReportsScreen} />
+  </VolleyStack.Navigator>
 );
 
 const tabIcon = (emoji: string) => ({ color }: { color: string; focused: boolean; size: number }) => (
@@ -143,7 +161,10 @@ export const AppNavigator: React.FC = () => {
   return (
     <RootStack.Navigator screenOptions={{ headerShown: false }}>
       {user ? (
-        <RootStack.Screen name="Main" component={MainNavigator} />
+        <>
+          <RootStack.Screen name="Main" component={MainNavigator} />
+          <RootStack.Screen name="Volley" component={VolleyNavigator} />
+        </>
       ) : (
         <RootStack.Screen name="Auth" component={AuthNavigator} />
       )}

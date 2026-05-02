@@ -128,6 +128,12 @@ export const HomeScreen: React.FC = () => {
           variant="outline"
           onPress={() => nav.navigate('Social', { screen: 'AddFriend' } as never)}
         />
+        <View style={{ height: spacing.sm }} />
+        <Button
+          title="🏐  Vôlei avançado (Scout)"
+          variant="outline"
+          onPress={() => (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate('Volley', { screen: 'VolleyHome' })}
+        />
       </View>
 
       <Text style={styles.sectionTitle}>Como funciona</Text>
