@@ -7,3 +7,4 @@ export { Screen } from './Screen';
 export { Header } from './Header';
 export { EmptyState } from './EmptyState';
 export { Chip } from './Chip';
+export { GoogleSignInButton } from './GoogleSignInButton';

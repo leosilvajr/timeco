@@ -1,6 +1,9 @@
+import { Platform } from 'react-native';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged as firebaseOnAuthStateChanged,
   User as FirebaseUser,
@@ -47,12 +50,55 @@ export const signIn = async (email: string, password: string) => {
   return cred.user;
 };
 
+export const signInWithGoogle = async (): Promise<FirebaseUser> => {
+  if (Platform.OS !== 'web') {
+    throw new Error(
+      'Login com Google ainda não está disponível no app mobile. Use email e senha.',
+    );
+  }
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  const cred = await signInWithPopup(auth, provider);
+  await ensureUserDocument(cred.user);
+  return cred.user;
+};
+
 export const logout = () => signOut(auth);
 
 export const getUserDocument = async (uid: string): Promise<User | null> => {
   const snap = await getDoc(doc(db, 'users', uid));
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() } as User;
+};
+
+/**
+ * Garante que existe doc users/{uid}. Se não existir, cria com defaults
+ * extraídos do FirebaseUser (Google, email/senha, etc.).
+ */
+export const ensureUserDocument = async (firebaseUser: FirebaseUser): Promise<User> => {
+  const ref = doc(db, 'users', firebaseUser.uid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    return { id: snap.id, ...snap.data() } as User;
+  }
+
+  const fallbackName =
+    firebaseUser.displayName ||
+    firebaseUser.email?.split('@')[0] ||
+    'Usuário';
+
+  const newUser: User = {
+    id: firebaseUser.uid,
+    email: firebaseUser.email || '',
+    name: fallbackName,
+    displayName: fallbackName,
+    role: 'user',
+    createdAt: serverTimestamp() as unknown as null,
+  };
+  if (firebaseUser.photoURL) newUser.photoURL = firebaseUser.photoURL;
+
+  await setDoc(ref, newUser);
+  return newUser;
 };
 
 export const updateUserProfile = async (uid: string, patch: Partial<User>) => {

@@ -6,7 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppNavigator } from './src/navigation';
-import { onAuthStateChanged, getUserDocument } from './src/services/authService';
+import { onAuthStateChanged, ensureUserDocument } from './src/services/authService';
 import { useAuthStore } from './src/store';
 import { colors } from './src/constants/theme';
 import { User } from './src/types';
@@ -43,9 +43,8 @@ export default function App() {
     const unsub = onAuthStateChanged(async (firebaseUser) => {
       if (firebaseUser) {
         try {
-          const userDoc = await getUserDocument(firebaseUser.uid);
-          if (userDoc) setUser(userDoc as User);
-          else setUser(null);
+          const userDoc = await ensureUserDocument(firebaseUser);
+          setUser(userDoc as User);
         } catch (e) {
           console.error('load user', e);
           setUser(null);

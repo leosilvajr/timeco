@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Screen, Input, Button, Header } from '../../components';
-import { signUp } from '../../services/authService';
+import { Screen, Input, Button, Header, GoogleSignInButton } from '../../components';
+import { signUp, signInWithGoogle } from '../../services/authService';
 import { colors, spacing } from '../../constants/theme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -18,7 +18,23 @@ export const SignUpScreen: React.FC = () => {
   const [birthDate, setBirthDate] = useState('');
   const [height, setHeight] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const onGoogle = async () => {
+    setError(null);
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Erro ao criar conta com Google';
+      if (!msg.includes('popup-closed-by-user') && !msg.includes('cancelled')) {
+        setError(msg);
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const onSubmit = async () => {
     setError(null);
@@ -47,6 +63,18 @@ export const SignUpScreen: React.FC = () => {
   return (
     <Screen>
       <Header title="Criar conta" onBack={() => nav.goBack()} />
+
+      <GoogleSignInButton
+        onPress={onGoogle}
+        loading={googleLoading}
+        label="Criar conta com Google"
+      />
+
+      <View style={styles.divider}>
+        <View style={styles.dividerLine} />
+        <Text style={styles.dividerText}>ou preencha seus dados</Text>
+        <View style={styles.dividerLine} />
+      </View>
 
       <Input label="Nome completo" value={name} onChangeText={setName} placeholder="João Silva" />
       <Input
@@ -88,5 +116,21 @@ const styles = StyleSheet.create({
     color: colors.danger,
     marginBottom: spacing.md,
     textAlign: 'center',
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.lg,
+    gap: spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.border,
+  },
+  dividerText: {
+    color: colors.textMuted,
+    fontSize: 13,
+    fontWeight: '500',
   },
 });
