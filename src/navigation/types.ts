@@ -18,6 +18,7 @@ export type SocialStackParamList = {
   AddFriend: undefined;
   FriendRequests: undefined;
   PlayerProfile: { userId: string };
+  Chat: { friendId: string; friendName: string };
 };
 
 export type ProfileStackParamList = {

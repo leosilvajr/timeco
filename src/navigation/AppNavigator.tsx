@@ -21,6 +21,7 @@ import { FriendsListScreen } from '../screens/social/FriendsListScreen';
 import { AddFriendScreen } from '../screens/social/AddFriendScreen';
 import { FriendRequestsScreen } from '../screens/social/FriendRequestsScreen';
 import { PlayerProfileScreen } from '../screens/social/PlayerProfileScreen';
+import { ChatScreen } from '../screens/social/ChatScreen';
 
 import { ProfileHomeScreen } from '../screens/profile/ProfileHomeScreen';
 import { EditProfileScreen } from '../screens/profile/EditProfileScreen';
@@ -66,6 +67,7 @@ const SocialNavigator = () => (
     <SocialStack.Screen name="AddFriend" component={AddFriendScreen} />
     <SocialStack.Screen name="FriendRequests" component={FriendRequestsScreen} />
     <SocialStack.Screen name="PlayerProfile" component={PlayerProfileScreen} />
+    <SocialStack.Screen name="Chat" component={ChatScreen} />
   </SocialStack.Navigator>
 );
 

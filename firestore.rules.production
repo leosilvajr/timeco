@@ -90,5 +90,41 @@ service cloud.firestore {
       allow read: if isSuperadmin();
       allow create: if isAuth();
     }
+
+    // ====== CHATS (1-a-1) ======
+    // doc id = `${uidA}_${uidB}` (uids ordenados alfabeticamente)
+    match /chats/{chatId} {
+      function isChatMember() {
+        return isAuth() && request.auth.uid in resource.data.members;
+      }
+      function isChatMemberOnCreate() {
+        return isAuth() && request.auth.uid in request.resource.data.members
+          && request.resource.data.members.size() == 2;
+      }
+      // get permite resource == null para o cliente checar existência antes de
+      // criar o chat (mesmo padrão de friendships).
+      allow get: if isAuth() && (resource == null || isChatMember());
+      allow list: if isAuth() && request.auth.uid in resource.data.members;
+      allow create: if isChatMemberOnCreate();
+      // update só pelos membros e sem alterar o array members.
+      allow update: if isChatMember()
+        && request.resource.data.members == resource.data.members;
+      allow delete: if false;
+
+      // ====== MESSAGES (subcollection) ======
+      match /messages/{messageId} {
+        function chatMembers() {
+          return get(/databases/$(database)/documents/chats/$(chatId)).data.members;
+        }
+        allow read: if isAuth() && request.auth.uid in chatMembers();
+        allow create: if isAuth()
+          && request.auth.uid in chatMembers()
+          && request.auth.uid == request.resource.data.senderId
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 2000;
+        allow update, delete: if false;
+      }
+    }
   }
 }
