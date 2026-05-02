@@ -1,9 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert, Linking } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Image } from 'react-native';
-import { Screen, Header, Card, Button, Avatar, EmptyState, PhotoUploader, PhotoLightbox } from '../../components';
+import { Screen, Header, Card, Button, Avatar, PhotoLightbox } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { getSport } from '../../constants/sports';
 import { Event, User, ConfirmationStatus } from '../../types';
@@ -20,7 +20,6 @@ import {
   listEventPhotos,
   removeEventPhoto,
 } from '../../services/eventGalleryService';
-import { uploadEventPhoto } from '../../services/photoService';
 import { useAuthStore, useThemedColors } from '../../store';
 import type { EventsStackParamList } from '../../navigation/types';
 import { Timestamp } from 'firebase/firestore';

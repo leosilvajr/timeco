@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Pressable } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Input, Button, Card, Avatar, DateInput, TimeInput, LocationPicker, SelectedLocation } from '../../components';
-import { SPORTS, getSport } from '../../constants/sports';
+import { SPORTS } from '../../constants/sports';
 import { colors, radius, spacing } from '../../constants/theme';
 import { listFriends } from '../../services/friendsService';
 import { getEventById, updateEvent } from '../../services/eventService';

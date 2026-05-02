@@ -11,7 +11,6 @@ import {
   setPercentage,
   sumPlayerStats,
   teamSummary,
-  totalActions,
   totalAttacks,
   totalErrors,
   totalPasses,

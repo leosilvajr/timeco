@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card, EmptyState, Button } from '../../components';
+import { Screen, Header, EmptyState, Button } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import {
   useAuthStore,
