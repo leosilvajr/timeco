@@ -234,7 +234,7 @@ export const LoginScreen: React.FC = () => {
         />
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Button title="🚀  Entrar e jogar" onPress={onSubmit} loading={loading} />
+        <Button title="Entrar" onPress={onSubmit} loading={loading} />
 
         {googleAuth.available ? (
           <>

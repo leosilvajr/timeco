@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet, ActivityIndicator, Platform } from 'react-native';
+import { Pressable, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { radius, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
@@ -40,7 +40,7 @@ export const GoogleSignInButton: React.FC<Props> = ({
 }) => {
   const themedColors = useThemedColors();
   const isDisabled = disabled || loading;
-  const finalLabel = Platform.OS === 'web' ? label : `${label} (em breve)`;
+  const finalLabel = label;
   // O botão "Sign in with Google" oficial é sempre branco com texto escuro
   // (guideline do Google), independente do tema do app.
   const styles = StyleSheet.create({
