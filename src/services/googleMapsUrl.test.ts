@@ -1,4 +1,4 @@
-import { googleMapsUrl } from './locationService';
+import { googleMapsUrl } from './googleMapsUrl';
 
 describe('googleMapsUrl', () => {
   it('gera URL apenas com lat/lng quando não tem nome', () => {

@@ -3,6 +3,7 @@
  * Sem key necessária, mas tem rate limit de 1 req/seg — ok pra autocomplete
  * com debounce.
  */
+import { Platform } from 'react-native';
 
 export interface LocationResult {
   /** Nome curto/local (place_name) */
@@ -164,13 +165,8 @@ export const searchLocations = async (
   });
 };
 
-/** Constrói URL do Google Maps pra abrir o local. */
-export const googleMapsUrl = (loc: { lat: number; lng: number; name?: string }): string => {
-  if (loc.name) {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(loc.name)}&query_place_id=${loc.lat},${loc.lng}`;
-  }
-  return `https://www.google.com/maps/search/?api=1&query=${loc.lat},${loc.lng}`;
-};
+// Re-exportado de googleMapsUrl.ts (helper puro, sem deps de RN)
+export { googleMapsUrl } from './googleMapsUrl';
 
 const NOMINATIM_REVERSE = 'https://nominatim.openstreetmap.org/reverse';
 
@@ -367,10 +363,28 @@ out center 30;`;
 };
 
 /**
- * Obtém a localização atual do dispositivo via Geolocation API (web).
- * Pede permissão se ainda não foi concedida.
+ * Obtém a localização atual do dispositivo.
+ * - Web: navigator.geolocation
+ * - Native (iOS/Android): expo-location
  */
-export const getCurrentPosition = (timeoutMs = 15000): Promise<CurrentPosition> => {
+export const getCurrentPosition = async (timeoutMs = 15000): Promise<CurrentPosition> => {
+  if (Platform.OS !== 'web') {
+    // Lazy-load pra que web bundles não puxem expo-location desnecessariamente
+    const Location = await import('expo-location');
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      throw new Error('Permissão de localização negada');
+    }
+    const pos = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.High,
+    });
+    return {
+      lat: pos.coords.latitude,
+      lng: pos.coords.longitude,
+      accuracy: pos.coords.accuracy ?? 0,
+    };
+  }
+
   return new Promise((resolve, reject) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       reject(new Error('Geolocalização não disponível neste dispositivo'));

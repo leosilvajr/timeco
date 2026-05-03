@@ -15,7 +15,12 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.timeco.app"
+      "bundleIdentifier": "com.timeco.app",
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "O Timeco precisa acessar suas fotos para você poder enviar fotos de perfil e da galeria de eventos.",
+        "NSCameraUsageDescription": "O Timeco precisa acessar sua câmera para tirar fotos para o perfil e para a galeria de eventos.",
+        "NSLocationWhenInUseUsageDescription": "O Timeco usa sua localização atual apenas quando você toca em \"Usar minha localização\" ao definir o local de um evento. Não rastreamos sua posição em background."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +28,17 @@
         "backgroundColor": "#FFFFFF"
       },
       "package": "com.timeco.app",
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -35,7 +50,27 @@
     },
     "plugins": [
       "@react-native-community/datetimepicker",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Timeco precisa acessar suas fotos para você poder enviar fotos de perfil e da galeria de eventos.",
+          "cameraPermission": "O Timeco precisa acessar sua câmera para tirar fotos para o perfil e para a galeria de eventos."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "color": "#0F9D58",
+          "defaultChannel": "default"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O Timeco usa sua localização atual apenas quando você toca em \"Usar minha localização\" ao definir o local de um evento. Não rastreamos sua posição em background."
+        }
+      ]
     ]
   }
 }
