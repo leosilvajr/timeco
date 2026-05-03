@@ -9,6 +9,7 @@ import {
   listEventPhotos,
   removeEventPhoto,
 } from '../../../services/eventGalleryService';
+import { pickImage } from '../../../utils/imagePicker';
 
 interface Props {
   event: Event;
@@ -31,7 +32,6 @@ export const EventGallery: React.FC<Props> = ({ event, user, isOrganizer }) => {
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
   const [lightboxPhoto, setLightboxPhoto] = useState<EventPhoto | null>(null);
   const [uploading, setUploading] = useState(false);
-  const inputRef = React.useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     listEventPhotos(event.id)
@@ -89,24 +89,18 @@ export const EventGallery: React.FC<Props> = ({ event, user, isOrganizer }) => {
     empty: { color: colors.textSecondary, fontSize: 13, paddingVertical: 4 },
   });
 
-  const triggerPicker = () => {
-    if (typeof window !== 'undefined' && inputRef.current) {
-      inputRef.current.click();
-    }
-  };
-
-  const onPick = async (e: { target: { files: FileList | null } }) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    setUploading(true);
+  const handlePick = async () => {
+    if (!user) return;
     try {
+      const file = await pickImage();
+      if (!file) return;
+      setUploading(true);
       const photo = await addPhotoToEvent(event.id, user.id, user.name, file);
       setPhotos((prev) => [photo, ...prev]);
     } catch (err) {
       console.error('upload photo', err);
     } finally {
       setUploading(false);
-      if (inputRef.current) inputRef.current.value = '';
     }
   };
 
@@ -140,18 +134,9 @@ export const EventGallery: React.FC<Props> = ({ event, user, isOrganizer }) => {
           </View>
         ))}
         {userCanParticipate ? (
-          <Pressable style={styles.addBtn} onPress={triggerPicker} disabled={uploading}>
+          <Pressable style={styles.addBtn} onPress={handlePick} disabled={uploading}>
             <Text style={styles.addTxt}>+</Text>
             <Text style={styles.addLabel}>{uploading ? 'Enviando...' : 'Foto'}</Text>
-            {typeof window !== 'undefined'
-              ? React.createElement('input', {
-                  ref: inputRef,
-                  type: 'file',
-                  accept: 'image/*',
-                  onChange: onPick,
-                  style: { display: 'none' },
-                })
-              : null}
           </Pressable>
         ) : null}
       </View>
