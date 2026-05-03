@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, StyleSheet, Easing } from 'react-native';
+import { View, Text, Animated, StyleSheet, Easing, Platform } from 'react-native';
+
+const USE_NATIVE_DRIVER = Platform.OS !== 'web';
 
 interface DecorItem {
   emoji: string;
@@ -37,13 +39,13 @@ const FloatingEmoji: React.FC<FloatingEmojiProps> = ({ item }) => {
           duration: 3500,
           delay: item.delay,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
         Animated.timing(translate, {
           toValue: 0,
           duration: 3500,
           easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
+          useNativeDriver: USE_NATIVE_DRIVER,
         }),
       ]),
     );

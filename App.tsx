@@ -10,10 +10,6 @@ import { onAuthStateChanged, ensureUserDocument } from './src/services/authServi
 import { subscribeNotifications } from './src/services/notificationService';
 import { requestWebNotificationPermission, showWebNotification } from './src/services/webPush';
 import {
-  registerForPushNotifications,
-  savePushTokenForUser,
-} from './src/services/nativePush';
-import {
   useAuthStore,
   useThemeStore,
   useThemedColors,
@@ -82,13 +78,17 @@ export default function App() {
   }, [setUser, setLoading, resetNotifications]);
 
   // Registro de push token nativo (Android/iOS) — best-effort.
-  // No web é no-op.
+  // No web nem importamos nativePush (evita warnings de expo-notifications
+  // que executa side-effects no module load mesmo sem usar).
   useEffect(() => {
     if (!user) return;
     if (Platform.OS === 'web') return;
     let cancelled = false;
     (async () => {
       try {
+        const { registerForPushNotifications, savePushTokenForUser } = await import(
+          './src/services/nativePush'
+        );
         const token = await registerForPushNotifications();
         if (!cancelled && token) {
           await savePushTokenForUser(user.id, token);

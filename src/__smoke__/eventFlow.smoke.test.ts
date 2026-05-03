@@ -57,8 +57,13 @@ describe('SMOKE · Fluxo completo de evento (caixa preta)', () => {
   });
 
   it('4) participantes confirmam — reconcilia mantendo status', () => {
-    let confirmations = buildInitialConfirmations(players.map((p) => p.id));
-    confirmations = { ...confirmations, p1: 'confirmed', p2: 'confirmed', p3: 'declined' };
+    const initial = buildInitialConfirmations(players.map((p) => p.id));
+    const confirmations: Record<string, 'pending' | 'confirmed' | 'declined'> = {
+      ...initial,
+      p1: 'confirmed',
+      p2: 'confirmed',
+      p3: 'declined',
+    };
     // Organizer adiciona um novo convidado e remove um
     const updated = reconcileConfirmations(
       confirmations,

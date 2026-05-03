@@ -55,7 +55,7 @@ export const ScoreboardSide: React.FC<Props> = ({
     scaleAnim.setValue(0.7);
     Animated.spring(scaleAnim, {
       toValue: 1,
-      useNativeDriver: true,
+      useNativeDriver: Platform.OS !== 'web',
       friction: 4,
       tension: 80,
     }).start();
