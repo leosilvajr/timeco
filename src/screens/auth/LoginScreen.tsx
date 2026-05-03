@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
 import { Screen, Input, Button, GoogleSignInButton } from '../../components';
 import { signIn, signInWithGoogle } from '../../services/authService';
 import { colors, spacing } from '../../constants/theme';
@@ -58,8 +58,10 @@ export const LoginScreen: React.FC = () => {
       alignItems: 'center',
       marginVertical: spacing.xxl,
     },
-    logoEmoji: {
-      fontSize: 72,
+    logoImage: {
+      width: 120,
+      height: 90,
+      resizeMode: 'contain',
     },
     logoText: {
       fontSize: 42,
@@ -111,7 +113,7 @@ export const LoginScreen: React.FC = () => {
   return (
     <Screen maxWidth={480}>
       <View style={styles.logo}>
-        <Text style={styles.logoEmoji}>⚽</Text>
+        <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
         <Text style={styles.logoText}>Timeco</Text>
         <Text style={styles.tagline}>Monte times equilibrados em segundos</Text>
       </View>
