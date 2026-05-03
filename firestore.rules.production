@@ -25,6 +25,11 @@ service cloud.firestore {
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isSuperadmin();
       allow delete: if isSuperadmin();
+
+      // Push tokens — só o próprio user gerencia os seus
+      match /pushTokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     // ====== FRIENDSHIPS ======

@@ -10,6 +10,10 @@ import { onAuthStateChanged, ensureUserDocument } from './src/services/authServi
 import { subscribeNotifications } from './src/services/notificationService';
 import { requestWebNotificationPermission, showWebNotification } from './src/services/webPush';
 import {
+  registerForPushNotifications,
+  savePushTokenForUser,
+} from './src/services/nativePush';
+import {
   useAuthStore,
   useThemeStore,
   useThemedColors,
@@ -76,6 +80,27 @@ export default function App() {
     });
     return () => unsub();
   }, [setUser, setLoading, resetNotifications]);
+
+  // Registro de push token nativo (Android/iOS) — best-effort.
+  // No web é no-op.
+  useEffect(() => {
+    if (!user) return;
+    if (Platform.OS === 'web') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await registerForPushNotifications();
+        if (!cancelled && token) {
+          await savePushTokenForUser(user.id, token);
+        }
+      } catch (e) {
+        console.warn('Falha ao registrar push token:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   // Subscription global de notificações + permissão de web push.
   useEffect(() => {
