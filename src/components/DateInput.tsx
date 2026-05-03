@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, TextInput, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, StyleSheet, Platform, Pressable } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { colors, radius, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
 
@@ -15,38 +16,55 @@ interface Props {
   mode?: 'birthdate' | 'event';
 }
 
-const today = (): string => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const pad = (n: number): string => String(n).padStart(2, '0');
+
+const dateToISO = (d: Date): string =>
+  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+const isoToDate = (iso: string): Date => {
+  if (!iso) return new Date();
+  const [y, m, d] = iso.split('-').map(Number);
+  if (!y || !m || !d) return new Date();
+  return new Date(y, m - 1, d);
 };
 
-const yearsAgo = (n: number): string => {
+const todayISO = (): string => dateToISO(new Date());
+
+const yearsAgoISO = (n: number): string => {
   const d = new Date();
   d.setFullYear(d.getFullYear() - n);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return dateToISO(d);
+};
+
+const formatDisplayDate = (iso: string): string => {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  if (!y || !m || !d) return iso;
+  return `${d}/${m}/${y}`;
 };
 
 /**
  * Input de data cross-platform.
- * - Web: renderiza <input type="date"> HTML direto pro calendário nativo
- *   do navegador (RN Web não propaga `type=date` no TextInput).
- * - Native: TextInput simples como fallback.
+ * - Web: <input type="date"> HTML (calendário do navegador)
+ * - Native (iOS/Android): @react-native-community/datetimepicker
  */
 export const DateInput: React.FC<Props> = ({
   label,
   value,
   onChangeText,
-  placeholder = 'AAAA-MM-DD',
+  placeholder = 'Selecione a data',
   error,
   hint,
   mode,
 }) => {
   useThemedColors();
+  const [showPicker, setShowPicker] = useState(false);
+
+  const minDate = mode === 'event' ? new Date() : isoToDate(yearsAgoISO(120));
+  const maxDate = mode === 'birthdate' ? new Date() : undefined;
+
   const styles = StyleSheet.create({
-    wrap: {
-      marginBottom: spacing.md,
-      alignSelf: 'stretch',
-    },
+    wrap: { marginBottom: spacing.md, alignSelf: 'stretch' },
     label: {
       fontSize: 14,
       fontWeight: '600',
@@ -59,36 +77,36 @@ export const DateInput: React.FC<Props> = ({
       borderRadius: radius.md,
       paddingHorizontal: spacing.md,
       borderWidth: 1.5,
-      borderColor: colors.border,
+      borderColor: error ? colors.danger : colors.border,
       fontSize: 16,
       color: colors.text,
+      justifyContent: 'center',
     },
-    inputError: {
-      borderColor: colors.danger,
+    inputText: {
+      fontSize: 16,
+      color: value ? colors.text : colors.textMuted,
     },
-    error: {
-      marginTop: 4,
-      fontSize: 12,
-      color: colors.danger,
-    },
-    hint: {
-      marginTop: 4,
-      fontSize: 12,
-      color: colors.textMuted,
-    },
+    error: { marginTop: 4, fontSize: 12, color: colors.danger },
+    hint: { marginTop: 4, fontSize: 12, color: colors.textMuted },
   });
+
+  const onNativeChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    // Android dispara evento "set" ao confirmar e "dismissed" ao cancelar
+    if (Platform.OS !== 'ios') {
+      setShowPicker(false);
+    }
+    if (event.type === 'set' && selectedDate) {
+      onChangeText(dateToISO(selectedDate));
+    }
+  };
 
   const renderInput = () => {
     if (Platform.OS === 'web') {
-      const min = mode === 'event' ? today() : yearsAgo(120);
-      const max = mode === 'birthdate' ? today() : undefined;
-      // Usa <input> HTML direto. RN Web sobrescreve `type` no TextInput,
-      // então spread não funciona.
       return React.createElement('input', {
         type: 'date',
         value,
-        min,
-        max,
+        min: mode === 'event' ? todayISO() : yearsAgoISO(120),
+        max: mode === 'birthdate' ? todayISO() : undefined,
         onChange: (e: { target: { value: string } }) => onChangeText(e.target.value),
         placeholder,
         style: {
@@ -109,17 +127,47 @@ export const DateInput: React.FC<Props> = ({
         } as React.CSSProperties,
       });
     }
+
+    // Native: botão que abre o picker do sistema
     return (
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textMuted}
-        style={[styles.input, !!error && styles.inputError]}
-        keyboardType="numbers-and-punctuation"
-      />
+      <>
+        <Pressable style={styles.input} onPress={() => setShowPicker(true)}>
+          <Text style={styles.inputText}>
+            {value ? formatDisplayDate(value) : placeholder}
+          </Text>
+        </Pressable>
+        {showPicker ? (
+          <DateTimePicker
+            value={value ? isoToDate(value) : new Date()}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={onNativeChange}
+            minimumDate={minDate}
+            maximumDate={maxDate}
+          />
+        ) : null}
+      </>
     );
   };
+
+  // Fallback de texto livre não é mais usado — DateTimePicker cobre native.
+  // Mantido apenas para tipos não suportados (improvável).
+  if (Platform.OS !== 'web' && Platform.OS !== 'ios' && Platform.OS !== 'android') {
+    return (
+      <View style={styles.wrap}>
+        {label && <Text style={styles.label}>{label}</Text>}
+        <TextInput
+          value={value}
+          onChangeText={onChangeText}
+          placeholder="AAAA-MM-DD"
+          placeholderTextColor={colors.textMuted}
+          style={styles.input as never}
+          keyboardType="numbers-and-punctuation"
+        />
+        {error ? <Text style={styles.error}>{error}</Text> : hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      </View>
+    );
+  }
 
   return (
     <View style={styles.wrap}>

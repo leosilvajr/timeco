@@ -32,6 +32,9 @@
       "shortName": "Timeco",
       "themeColor": "#0F9D58",
       "backgroundColor": "#FFFFFF"
-    }
+    },
+    "plugins": [
+      "@react-native-community/datetimepicker"
+    ]
   }
 }
