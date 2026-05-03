@@ -176,17 +176,21 @@ export const SignUpScreen: React.FC = () => {
       </Animated.View>
 
       <Animated.View style={[styles.formCard, { opacity }]}>
-        <GoogleSignInButton
-          onPress={onGoogle}
-          loading={googleLoading}
-          label="Criar conta com Google"
-        />
+        {googleAuth.available ? (
+          <>
+            <GoogleSignInButton
+              onPress={onGoogle}
+              loading={googleLoading}
+              label="Criar conta com Google"
+            />
 
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>ou preencha seus dados</Text>
-          <View style={styles.dividerLine} />
-        </View>
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>ou preencha seus dados</Text>
+              <View style={styles.dividerLine} />
+            </View>
+          </>
+        ) : null}
 
         <Input label="Nome completo" value={name} onChangeText={setName} placeholder="João Silva" />
         <Input

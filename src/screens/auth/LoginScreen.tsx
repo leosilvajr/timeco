@@ -229,13 +229,17 @@ export const LoginScreen: React.FC = () => {
 
         <Button title="🚀  Entrar e jogar" onPress={onSubmit} loading={loading} />
 
-        <View style={styles.divider}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>ou</Text>
-          <View style={styles.dividerLine} />
-        </View>
+        {googleAuth.available ? (
+          <>
+            <View style={styles.divider}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>ou</Text>
+              <View style={styles.dividerLine} />
+            </View>
 
-        <GoogleSignInButton onPress={onGoogle} loading={googleLoading} />
+            <GoogleSignInButton onPress={onGoogle} loading={googleLoading} />
+          </>
+        ) : null}
       </Animated.View>
 
       <Pressable onPress={() => nav.navigate('SignUp')} style={styles.link}>

@@ -7,11 +7,29 @@ import { signInWithGoogleIdToken } from '../services/authService';
 // Necessário para fechar o pop-up de auth corretamente no web.
 WebBrowser.maybeCompleteAuthSession();
 
+const ANDROID_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
+const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
+const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+
+/**
+ * Verifica se a plataforma atual tem Client ID OAuth configurado.
+ * No web, sempre retorna true porque o login usa Firebase popup direto
+ * (não passa por esse hook).
+ */
+const isPlatformConfigured = (): boolean => {
+  if (Platform.OS === 'web') return true;
+  if (Platform.OS === 'android') return !!ANDROID_CLIENT_ID;
+  if (Platform.OS === 'ios') return !!IOS_CLIENT_ID;
+  return false;
+};
+
 interface UseGoogleAuthResult {
   /** Dispara o fluxo de login (abre o seletor de contas Google) */
   promptAsync: () => Promise<void>;
   /** Indica se o pedido OAuth está pronto (depende de ter clientIds) */
   ready: boolean;
+  /** Se o login Google está disponível na plataforma atual (config OK) */
+  available: boolean;
 }
 
 /**
@@ -20,19 +38,25 @@ interface UseGoogleAuthResult {
  * Lê os Client IDs OAuth das env vars do Expo:
  * - EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID
  * - EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID
- * - EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID  (usado como fallback)
+ * - EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID
  *
- * Esses IDs vêm do Google Cloud Console → Credentials. Crie um OAuth
- * client ID por plataforma e cole nas env vars.
+ * Se algum Client ID não estiver configurado, o hook retorna
+ * `available: false` e `promptAsync` dispara erro claro em vez de
+ * crashar o app.
  *
- * No web, o login via popup do Firebase já funciona — não precisa
- * desse hook. Use signInWithGoogle() direto.
+ * No web, o login via popup do Firebase já funciona — esse hook
+ * é principalmente pra native.
  */
 export const useGoogleAuth = (): UseGoogleAuthResult => {
+  const available = isPlatformConfigured();
+
+  // O hook do expo-auth-session crasha se o ID for undefined na plataforma
+  // atual. Usamos placeholders pra evitar crash no carregamento; validamos
+  // de verdade no promptAsync.
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+    iosClientId: IOS_CLIENT_ID || 'not-configured',
+    androidClientId: ANDROID_CLIENT_ID || 'not-configured',
+    webClientId: WEB_CLIENT_ID || 'not-configured',
   });
 
   useEffect(() => {
@@ -44,12 +68,17 @@ export const useGoogleAuth = (): UseGoogleAuthResult => {
   }, [response]);
 
   return {
-    ready: !!request,
+    available,
+    ready: !!request && available,
     promptAsync: async () => {
       if (Platform.OS === 'web') {
-        // No web continuamos usando o popup do Firebase (já implementado
-        // em signInWithGoogle). Esse hook é principalmente pra native.
+        // No web usamos signInWithGoogle() (popup Firebase) direto.
         return;
+      }
+      if (!available) {
+        throw new Error(
+          'Login Google não está configurado pra esta plataforma. Use email e senha por enquanto.',
+        );
       }
       await promptAsync();
     },
