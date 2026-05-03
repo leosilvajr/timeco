@@ -19,7 +19,11 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "build:web": "shx cp .env.production .env && expo export --platform web"
+    "build:web": "shx cp .env.production .env && expo export --platform web",
+    "eas:login": "eas login",
+    "eas:build:preview": "eas build --platform android --profile preview",
+    "eas:build:production": "eas build --platform android --profile production",
+    "eas:submit": "eas submit --platform android"
   },
   "dependencies": {
     "@expo/metro-runtime": "~6.1.2",
