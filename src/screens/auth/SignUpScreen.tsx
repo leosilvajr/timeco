@@ -1,6 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Screen, Input, Button, Header, GoogleSignInButton, DateInput } from '../../components';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Animated, Easing, Image } from 'react-native';
+import {
+  Screen,
+  Input,
+  Button,
+  Header,
+  GoogleSignInButton,
+  DateInput,
+  SportsBackdrop,
+} from '../../components';
+import { radius } from '../../constants/theme';
 import { maskDecimal, parseDecimal } from '../../utils/masks';
 import { signUp, signInWithGoogle } from '../../services/authService';
 import { colors, spacing } from '../../constants/theme';
@@ -23,6 +32,26 @@ export const SignUpScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, translateY]);
 
   const onGoogle = async () => {
     setError(null);
@@ -64,10 +93,46 @@ export const SignUpScreen: React.FC = () => {
   };
 
   const styles = StyleSheet.create({
+    hero: {
+      alignItems: 'center',
+      paddingTop: spacing.md,
+      paddingBottom: spacing.lg,
+      gap: 8,
+    },
+    logoBubble: {
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.primary,
+      shadowOpacity: 0.2,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 4,
+    },
+    logoImage: { width: 64, height: 48, resizeMode: 'contain' },
+    title: { fontSize: 28, fontWeight: '900', color: colors.text, marginTop: 8 },
+    subtitle: { fontSize: 14, color: colors.textSecondary, textAlign: 'center' },
+    formCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.black,
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 2,
+    },
     error: {
       color: colors.danger,
       marginBottom: spacing.md,
       textAlign: 'center',
+      fontWeight: '600',
     },
     divider: {
       flexDirection: 'row',
@@ -82,57 +147,90 @@ export const SignUpScreen: React.FC = () => {
     },
     dividerText: {
       color: colors.textMuted,
-      fontSize: 13,
-      fontWeight: '500',
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
     },
   });
 
   return (
     <Screen maxWidth={520}>
-      <Header title="Criar conta" onBack={() => nav.goBack()} />
+      <SportsBackdrop />
+      <Header title="" onBack={() => nav.goBack()} />
 
-      <GoogleSignInButton
-        onPress={onGoogle}
-        loading={googleLoading}
-        label="Criar conta com Google"
-      />
+      <Animated.View style={[styles.hero, { opacity, transform: [{ translateY }] }]}>
+        <View style={styles.logoBubble}>
+          <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
+        </View>
+        <Text style={styles.title}>Bora começar! 🏆</Text>
+        <Text style={styles.subtitle}>
+          Cria sua conta em 30 segundos e já chama a galera pra jogar.
+        </Text>
+      </Animated.View>
 
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>ou preencha seus dados</Text>
-        <View style={styles.dividerLine} />
-      </View>
+      <Animated.View style={[styles.formCard, { opacity }]}>
+        <GoogleSignInButton
+          onPress={onGoogle}
+          loading={googleLoading}
+          label="Criar conta com Google"
+        />
 
-      <Input label="Nome completo" value={name} onChangeText={setName} placeholder="João Silva" />
-      <Input
-        label="Email"
-        value={email}
-        onChangeText={setEmail}
-        placeholder="seu@email.com"
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
-      <Input label="Senha" value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
-      <Input label="Confirmar senha" value={confirm} onChangeText={setConfirm} secureTextEntry placeholder="••••••••" />
-      <DateInput
-        label="Data de nascimento (opcional)"
-        value={birthDate}
-        onChangeText={setBirthDate}
-        mode="birthdate"
-        hint="Usada para equilibrar times por idade em esportes que precisam"
-      />
-      <Input
-        label="Altura em cm (opcional)"
-        value={height}
-        onChangeText={(v) => setHeight(maskDecimal(v))}
-        keyboardType="decimal-pad"
-        placeholder="Ex: 175.5"
-        hint="Usada para equilibrar times por altura (vôlei, basquete...)"
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Criar conta" onPress={onSubmit} loading={loading} />
-      <Pressable onPress={() => nav.goBack()} style={{ marginTop: spacing.lg, alignItems: 'center' }}>
-        <Text style={{ color: colors.textSecondary }}>Já tenho conta</Text>
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>ou preencha seus dados</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <Input label="Nome completo" value={name} onChangeText={setName} placeholder="João Silva" />
+        <Input
+          label="Email"
+          value={email}
+          onChangeText={setEmail}
+          placeholder="seu@email.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        <Input
+          label="Senha"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+          placeholder="••••••••"
+        />
+        <Input
+          label="Confirmar senha"
+          value={confirm}
+          onChangeText={setConfirm}
+          secureTextEntry
+          placeholder="••••••••"
+        />
+        <DateInput
+          label="Data de nascimento (opcional)"
+          value={birthDate}
+          onChangeText={setBirthDate}
+          mode="birthdate"
+          hint="Usada para equilibrar times por idade em esportes que precisam"
+        />
+        <Input
+          label="Altura em cm (opcional)"
+          value={height}
+          onChangeText={(v) => setHeight(maskDecimal(v))}
+          keyboardType="decimal-pad"
+          placeholder="Ex: 175.5"
+          hint="Usada para equilibrar times por altura (vôlei, basquete...)"
+        />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
+        <Button title="🚀  Criar conta" onPress={onSubmit} loading={loading} />
+      </Animated.View>
+
+      <Pressable
+        onPress={() => nav.goBack()}
+        style={{ marginTop: spacing.lg, paddingVertical: spacing.md, alignItems: 'center' }}
+      >
+        <Text style={{ color: colors.textSecondary }}>
+          Já tem conta? <Text style={{ color: colors.primary, fontWeight: '800' }}>Entrar</Text>
+        </Text>
       </Pressable>
     </Screen>
   );

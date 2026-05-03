@@ -22,3 +22,4 @@ export { SportPicker } from './SportPicker';
 export { FriendPicker } from './FriendPicker';
 export { EventForm } from './EventForm';
 export type { EventFormValues, EventFormInitial } from './EventForm';
+export { SportsBackdrop } from './SportsBackdrop';

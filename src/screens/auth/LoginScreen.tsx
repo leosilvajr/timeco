@@ -1,14 +1,52 @@
-import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, Pressable } from 'react-native';
-import { Screen, Input, Button, GoogleSignInButton } from '../../components';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Image, StyleSheet, Pressable, Animated, Easing } from 'react-native';
+import { Screen, Input, Button, GoogleSignInButton, SportsBackdrop } from '../../components';
 import { signIn, signInWithGoogle } from '../../services/authService';
-import { colors, spacing } from '../../constants/theme';
+import { colors, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<AuthStackParamList, 'Login'>;
+
+const TAGLINES = [
+  'Bora montar seu time?',
+  'Pelada no fim de semana?',
+  'Vôlei, basquete, futsal — só clicar.',
+  'Times equilibrados em segundos.',
+];
+
+const useAnimatedEntry = () => {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+  const logoScale = useRef(new Animated.Value(0.7)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(opacity, {
+        toValue: 1,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 600,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(logoScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 60,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [opacity, translateY, logoScale]);
+
+  return { opacity, translateY, logoScale };
+};
 
 export const LoginScreen: React.FC = () => {
   useThemedColors();
@@ -18,6 +56,11 @@ export const LoginScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Tagline rotativa: muda a cada visita à tela
+  const [tagline] = useState(() => TAGLINES[Math.floor(Math.random() * TAGLINES.length)]);
+
+  const { opacity, translateY, logoScale } = useAnimatedEntry();
 
   const onSubmit = async () => {
     setError(null);
@@ -43,9 +86,7 @@ export const LoginScreen: React.FC = () => {
       await signInWithGoogle();
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erro ao entrar com Google';
-      if (msg.includes('popup-closed-by-user') || msg.includes('cancelled')) {
-        // usuário fechou a popup — silencioso
-      } else {
+      if (!msg.includes('popup-closed-by-user') && !msg.includes('cancelled')) {
         setError(msg);
       }
     } finally {
@@ -54,31 +95,61 @@ export const LoginScreen: React.FC = () => {
   };
 
   const styles = StyleSheet.create({
-    logo: {
+    hero: {
       alignItems: 'center',
-      marginVertical: spacing.xxl,
+      paddingTop: spacing.xl,
+      paddingBottom: spacing.xl,
+      gap: 8,
+    },
+    logoBubble: {
+      width: 132,
+      height: 132,
+      borderRadius: 66,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: colors.primary,
+      shadowOpacity: 0.2,
+      shadowRadius: 24,
+      shadowOffset: { width: 0, height: 8 },
+      elevation: 6,
     },
     logoImage: {
-      width: 120,
-      height: 90,
+      width: 96,
+      height: 72,
       resizeMode: 'contain',
     },
-    logoText: {
-      fontSize: 42,
+    appName: {
+      fontSize: 44,
       fontWeight: '900',
       color: colors.primary,
-      marginTop: 4,
+      letterSpacing: -1.2,
+      marginTop: 8,
     },
     tagline: {
-      fontSize: 15,
+      fontSize: 16,
       color: colors.textSecondary,
-      marginTop: 6,
       textAlign: 'center',
+      fontWeight: '500',
+    },
+    formCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.xl,
+      padding: spacing.lg,
+      gap: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      shadowColor: colors.black,
+      shadowOpacity: 0.06,
+      shadowRadius: 16,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 2,
     },
     error: {
       color: colors.danger,
-      marginBottom: spacing.md,
+      marginBottom: spacing.sm,
       textAlign: 'center',
+      fontWeight: '600',
     },
     divider: {
       flexDirection: 'row',
@@ -93,11 +164,14 @@ export const LoginScreen: React.FC = () => {
     },
     dividerText: {
       color: colors.textMuted,
-      fontSize: 13,
-      fontWeight: '500',
+      fontSize: 12,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+      textTransform: 'uppercase',
     },
     link: {
       marginTop: spacing.xl,
+      paddingVertical: spacing.md,
       alignItems: 'center',
     },
     linkTxt: {
@@ -106,49 +180,60 @@ export const LoginScreen: React.FC = () => {
     },
     linkBold: {
       color: colors.primary,
-      fontWeight: '700',
+      fontWeight: '800',
     },
   });
 
   return (
     <Screen maxWidth={480}>
-      <View style={styles.logo}>
-        <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
-        <Text style={styles.logoText}>Timeco</Text>
-        <Text style={styles.tagline}>Monte times equilibrados em segundos</Text>
-      </View>
+      <SportsBackdrop />
 
-      <Input
-        label="Email"
-        placeholder="seu@email.com"
-        autoCapitalize="none"
-        autoComplete="email"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <Input
-        label="Senha"
-        placeholder="••••••••"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      <Animated.View
+        style={[
+          styles.hero,
+          { opacity, transform: [{ translateY }] },
+        ]}
+      >
+        <Animated.View style={[styles.logoBubble, { transform: [{ scale: logoScale }] }]}>
+          <Image source={require('../../../assets/logo.png')} style={styles.logoImage} />
+        </Animated.View>
+        <Text style={styles.appName}>Timeco</Text>
+        <Text style={styles.tagline}>{tagline}</Text>
+      </Animated.View>
 
-      <Button title="Entrar" onPress={onSubmit} loading={loading} />
+      <Animated.View style={[styles.formCard, { opacity }]}>
+        <Input
+          label="Email"
+          placeholder="seu@email.com"
+          autoCapitalize="none"
+          autoComplete="email"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Input
+          label="Senha"
+          placeholder="••••••••"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <View style={styles.divider}>
-        <View style={styles.dividerLine} />
-        <Text style={styles.dividerText}>ou</Text>
-        <View style={styles.dividerLine} />
-      </View>
+        <Button title="🚀  Entrar e jogar" onPress={onSubmit} loading={loading} />
 
-      <GoogleSignInButton onPress={onGoogle} loading={googleLoading} />
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>ou</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <GoogleSignInButton onPress={onGoogle} loading={googleLoading} />
+      </Animated.View>
 
       <Pressable onPress={() => nav.navigate('SignUp')} style={styles.link}>
         <Text style={styles.linkTxt}>
-          Não tem conta? <Text style={styles.linkBold}>Criar conta</Text>
+          É a primeira vez aqui? <Text style={styles.linkBold}>Cria sua conta</Text>
         </Text>
       </Pressable>
     </Screen>
