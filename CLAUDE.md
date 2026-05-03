@@ -4,36 +4,37 @@ App multi-esporte para sorteio de times equilibrados. Stack: Expo + React Native
 
 ---
 
-## 🟡 Submissão Play Store — PAUSADA em 2026-05-03
+## 🟢 Submissão Play Store — RETOMADA em 2026-05-03 (versão 1.1.0)
 
-Snapshot do progresso. Quando voltar pra retomar, o que tá ✅ não precisa refazer (Play Console preserva).
+### ✅ Concluído na retomada
+- Bump 1.0.0 → **1.1.0** (commits dev `465e1f4` / prd `139b52f`)
+- Deploy das Firestore + Storage rules em produção (`npm run deploy:rules`)
+- AAB de produção em build no EAS (build ID inicial `379f486c-12ed-47ce-b9db-142710233d96`)
 
-### ✅ Já feito na Play Console
+### ✅ Já feito na Play Console (continua valendo)
 - App criado: pacote `com.timeco.app`, nome `Timeco · Times equilibrados`
-- Acesso de apps: credencial de teste `teste@timeco.com.br` / `teste123`
-- Classificações de conteúdo: categoria "Todos os Outros Tipos de Aplicações", questionário respondido (resultado esperado: Livre)
-- Segurança dos dados: 5 etapas. Tipos marcados: Local exato, Nome, Email, ID do usuário, Outras informações, Mensagens em apps, Fotos, Interações no app, ID do dispositivo. (Saúde NÃO marcado, pra ficar consistente com "Apps de saúde = sem recursos")
-- Apps de saúde: "Meu app não tem recursos de saúde"
-- Configurações da loja: Categoria Esportes; contato `dev07@pratickosolucoes.com.br` + `+55 17 99285-0093` + `https://timeco.com.br`; marketing externo ativo
-- Página "Detalhes do app": textos + ícone 512x512 + feature graphic 1024x500 (textos em [PLAY_STORE_LISTING.md](PLAY_STORE_LISTING.md))
+- Acesso de apps: credencial de teste `teste@timeco.com.br` / `teste123` declarada
+- Classificações de conteúdo (Livre)
+- Segurança dos dados (5 etapas)
+- Apps de saúde: "sem recursos"
+- Configurações da loja (Esportes + contato)
+- Página "Detalhes do app": textos + ícone 512x512 + feature graphic 1024x500
 
-### ⏳ Pendente no menu lateral "Conteúdo do app"
-- **Política de privacidade** → URL: `https://timeco.com.br/privacy`
-- **Anúncios** → "Não, meu app não contém anúncios"
-- **Público-alvo e conteúdo** → faixas 13-15, 16-17, 18+ (NUNCA marcar <13, vira COPPA)
-- **Apps governamentais** → "Não"
-- **Recursos financeiros** → "Não"
+### ⏳ Pendente — Leonardo precisa fazer
+1. **Criar conta `teste@timeco.com.br`** no Firebase Auth produção (Console → Authentication → Add user). Sem ela o revisor Google trava.
+2. **Itens do menu "Conteúdo do app"** na Play Console:
+   - Política de privacidade → `https://timeco.com.br/privacy`
+   - Anúncios → "Não contém anúncios"
+   - Público-alvo → 13-15, 16-17, 18+
+   - Apps governamentais → "Não"
+   - Recursos financeiros → "Não"
+3. **Screenshots** (mínimo 2). Chrome F12 + Pixel 7 em `https://timeco-eosin.vercel.app`. Salvar em `assets/_play-store/screenshots/`.
+4. **Subir AAB em Teste Interno** após o build terminar
+5. **Adicionar testadores** (mínimo seu próprio email)
 
-### ⏳ Pendente — outros
-- Screenshots do app (mínimo 2). Estratégia: Chrome DevTools mobile (Pixel 7) em `https://timeco-eosin.vercel.app` — Login, Home, Criar evento, Sorteio, Placar, Galeria
-- AAB de produção: `npm run eas:build:production` (~15min na nuvem EAS)
-- Upload AAB em **Teste Interno** (sem mínimo de testers)
-- Recrutar 12 testadores
-- **Teste Fechado**: 12 testers x 14 dias (exigência Google pra contas novas, não tem como pular)
-- Solicitar acesso à **Produção**
-
-### ⚠️ Antes de submeter pra revisão
-A última tentativa de login com `teste@timeco.com.br` retornou `INVALID_LOGIN_CREDENTIALS`. **Conferir** se essa conta foi criada no Firebase Auth de produção (`timeco-e908e`) — sem ela, o revisor da Google trava. Criar via Console Firebase ou via signup do app.
+### ⏳ Ciclo obrigatório
+- **Teste Fechado**: 12 testers × 14 dias corridos (exigência Google pra contas novas)
+- Depois libera "Solicitar produção"
 
 ---
 
@@ -47,14 +48,16 @@ A última tentativa de login com `teste@timeco.com.br` retornou `INVALID_LOGIN_C
 | Build guide Android | [BUILD_ANDROID.md](BUILD_ANDROID.md) |
 | Landing | `c:/Git/timeco-landing-page` (Next.js → timeco.com.br) |
 | Páginas legais | landing/`/privacy`, `/terms`, `/delete-account`, `/support` |
+| Página pública de perfil | `timeco.com.br/u/[userId]` |
 
 ---
 
 ## 🛠️ Build & deploy
 
-- **Web (Vercel):** branch `prd` → deploy automático em `timeco-eosin.vercel.app`. Script `build:web` chama `expo export --platform web`. Vercel injeta `EXPO_PUBLIC_*` automaticamente das env vars do dashboard (não copiar `.env.production`).
-- **Android (EAS):** `eas.json` tem profiles `development`, `preview`, `production`. Production gera AAB. Google OAuth Client IDs já cadastrados como EAS secrets. SHA-1 da keystore: `15:58:99:2A:23:51:F9:D8:06:5A:18:FA:60:21:C1:60:E0:32:37:6A`.
-- **Cloud Functions:** `onNotificationCreated` escrita em `functions/src/index.ts` mas **não deployada** (falta plano Blaze no Firebase).
+- **Web (Vercel):** branch `prd` → deploy automático em `timeco-eosin.vercel.app`. Script `build:web` chama `expo export --platform web`. `EXPO_PUBLIC_*` injetadas via env vars do dashboard.
+- **Android (EAS):** `eas.json` tem 3 profiles. Production gera AAB com `autoIncrement: true` e `appVersionSource: "remote"` (versão controlada pelo EAS).
+- **Cloud Functions:** `onNotificationCreated` escrita mas não deployada (falta Blaze plan).
+- **SHA-1 da keystore:** `15:58:99:2A:23:51:F9:D8:06:5A:18:FA:60:21:C1:60:E0:32:37:6A`
 
 ## 🔄 Workflow de desenvolvimento
 
@@ -67,10 +70,19 @@ npm run dev
 git checkout prd
 git merge dev
 git push origin prd   # Vercel rebuilda em ~1-2min
+
+# Build AAB pra Play Store
+npm run eas:build:production
 ```
 
 ---
 
-## 🎯 Estratégia atual
+## 📊 Cobertura de testes
 
-Leonardo decidiu **adicionar mais features e testar via Vercel** antes de subir AAB e iniciar o ciclo obrigatório de Teste Fechado (14 dias). Não faz sentido começar o ciclo com produto incompleto.
+**417 testes em 30 suítes** (100% verde). Inclui:
+- Validators (84 testes — email, ranges, dates)
+- errorMessages (24 testes — Firebase code mapping pra pt-BR)
+- Smoke tests caixa-preta (33 testes — fluxo evento + scoreboard + erros)
+- Services puros: scoreboardLogic, teamDraw, userStats, etc
+
+Type-check sempre limpo via `npx tsc --noEmit`.
