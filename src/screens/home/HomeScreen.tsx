@@ -10,10 +10,8 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { MainTabParamList } from '../../navigation/types';
 
 import { ProfileCompletionBanner } from './components/ProfileCompletionBanner';
-import { FeaturesGrid, FeatureCardData } from './components/FeaturesGrid';
+import { UpcomingEvents } from './components/UpcomingEvents';
 import { UtilitiesList, UtilityItem } from './components/UtilitiesList';
-import { HowItWorks } from './components/HowItWorks';
-import { HelpFooter } from './components/HelpFooter';
 
 type Nav = BottomTabNavigationProp<MainTabParamList>;
 
@@ -67,9 +65,8 @@ export const HomeScreen: React.FC = () => {
   const goEditProfile = () => nav.navigate('Perfil', { screen: 'EditProfile' } as never);
   const goCreate = () => nav.navigate('Jogos', { screen: 'CreateEvent' } as never);
   const goEvents = () => nav.navigate('Jogos', { screen: 'EventsList' } as never);
-  const goHistory = () =>
-    nav.navigate('Jogos', { screen: 'EventsList', params: { initialFilter: 'history' } } as never);
-  const goFriends = () => nav.navigate('Social', { screen: 'FriendsList' } as never);
+  const goEventDetail = (eventId: string) =>
+    nav.navigate('Jogos', { screen: 'EventDetail', params: { eventId } } as never);
   const goAddFriend = () => nav.navigate('Social', { screen: 'AddFriend' } as never);
   const goRequests = () => nav.navigate('Social', { screen: 'FriendRequests' } as never);
   const goNotifications = () => nav.navigate('Perfil', { screen: 'Notifications' } as never);
@@ -82,58 +79,18 @@ export const HomeScreen: React.FC = () => {
       screen: 'ScoreboardSetup',
     });
 
-  const features: FeatureCardData[] = [
-    {
-      emoji: '🏟️',
-      title: 'Eventos esportivos',
-      desc: 'Crie partidas, escolha o esporte, defina local, horário e convide amigos.',
-      onPress: goEvents,
-      cta: 'Ver meus jogos',
-    },
-    {
-      emoji: '🎲',
-      title: 'Sorteio inteligente',
-      desc: 'Times equilibrados automaticamente por estrelas, idade e altura.',
-      onPress: goCreate,
-      cta: 'Criar evento',
-    },
-    {
-      emoji: '👥',
-      title: 'Rede de amigos',
-      desc: 'Encontre jogadores, troque mensagens no chat e organize sua trupe.',
-      onPress: goFriends,
-      cta: 'Meus amigos',
-    },
-    {
-      emoji: '🔔',
-      title: 'Notificações',
-      desc: 'Avisos em tempo real de convites, mensagens e atualizações de eventos.',
-      onPress: goNotifications,
-      cta: unread > 0 ? `${unread} não lidas` : 'Abrir',
-    },
-  ];
-
   const utilities: UtilityItem[] = [
     {
       emoji: '🏆',
       title: 'Placar eletrônico',
-      description:
-        'Marcador digital com números gigantes, sets, regra de vantagem 2 e undo. Deixe o celular fixo durante o jogo.',
+      description: 'Marcador digital pra usar durante o jogo.',
       onPress: goScoreboard,
-    },
-    {
-      emoji: '📜',
-      title: 'Histórico de partidas',
-      description:
-        'Veja todos os eventos finalizados, jogos passados e times sorteados anteriormente.',
-      onPress: goHistory,
     },
     {
       emoji: '🏐',
       title: 'Vôlei avançado · Scout',
-      description:
-        'Modo separado pra registrar saques, ataques, passes e gerar relatórios profissionais por jogador e set.',
-      tag: 'FERRAMENTA EXTRA',
+      description: 'Estatísticas profissionais por jogador e set.',
+      tag: 'EXTRA',
       onPress: goVolley,
     },
   ];
@@ -142,18 +99,11 @@ export const HomeScreen: React.FC = () => {
     hero: { marginBottom: spacing.lg },
     greeting: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
     title: {
-      fontSize: desktop ? 32 : 24,
+      fontSize: desktop ? 32 : 26,
       fontWeight: '900',
       color: colors.text,
       marginTop: 2,
       letterSpacing: -0.3,
-    },
-    subtitle: {
-      fontSize: desktop ? 15 : 14,
-      color: colors.textSecondary,
-      marginTop: 4,
-      lineHeight: desktop ? 22 : 20,
-      maxWidth: desktop ? 640 : undefined,
     },
     alertCard: {
       flexDirection: 'row',
@@ -177,14 +127,13 @@ export const HomeScreen: React.FC = () => {
     },
   });
 
+  const firstName = user?.name?.split(' ')[0] ?? 'atleta';
+
   return (
     <Screen>
       <View style={styles.hero}>
-        <Text style={styles.greeting}>Olá, {user?.name?.split(' ')[0] ?? 'atleta'} 👋</Text>
-        <Text style={styles.title}>Seu painel esportivo</Text>
-        <Text style={styles.subtitle}>
-          Organize partidas, monte times equilibrados e acompanhe seus jogos — tudo em um só lugar.
-        </Text>
+        <Text style={styles.greeting}>Olá, {firstName} 👋</Text>
+        <Text style={styles.title}>Bora jogar?</Text>
       </View>
 
       {!completion.isComplete ? (
@@ -196,12 +145,21 @@ export const HomeScreen: React.FC = () => {
           <Text style={styles.alertEmoji}>🔔</Text>
           <View style={{ flex: 1 }}>
             <Text style={styles.alertTitle}>
-              Você tem {unread} notificação{unread === 1 ? '' : 'ões'} não lida{unread === 1 ? '' : 's'}
+              {unread} notificação{unread === 1 ? '' : 'ões'} não lida{unread === 1 ? '' : 's'}
             </Text>
-            <Text style={styles.alertSub}>Toque para ver convites, mensagens e atualizações</Text>
+            <Text style={styles.alertSub}>Convites, mensagens e atualizações</Text>
           </View>
           <Text style={styles.alertChev}>›</Text>
         </Pressable>
+      ) : null}
+
+      <SectionTitle small>Próximos jogos</SectionTitle>
+      {user ? (
+        <UpcomingEvents
+          userId={user.id}
+          onPressEvent={goEventDetail}
+          onPressViewAll={goEvents}
+        />
       ) : null}
 
       <SectionTitle small>Ações rápidas</SectionTitle>
@@ -211,17 +169,8 @@ export const HomeScreen: React.FC = () => {
         <QuickBtn emoji="📨" label="Convites" onPress={goRequests} variant="outline" />
       </View>
 
-      <SectionTitle small>Recursos do Timeco</SectionTitle>
-      <FeaturesGrid features={features} />
-
       <SectionTitle small>Utilitários</SectionTitle>
       <UtilitiesList items={utilities} />
-
-      <SectionTitle small>Como funciona</SectionTitle>
-      <HowItWorks />
-
-      <SectionTitle small>Ajuda e suporte</SectionTitle>
-      <HelpFooter onAddFriend={goAddFriend} />
     </Screen>
   );
 };
