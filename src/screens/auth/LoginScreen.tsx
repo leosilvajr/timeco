@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, Image, StyleSheet, Pressable, Animated, Easing } from 'react-native';
+import { View, Text, Image, StyleSheet, Pressable, Animated, Easing, Platform } from 'react-native';
 import { Screen, Input, Button, GoogleSignInButton, SportsBackdrop } from '../../components';
 import { signIn, signInWithGoogle } from '../../services/authService';
+import { useGoogleAuth } from '../../hooks/useGoogleAuth';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
@@ -61,6 +62,7 @@ export const LoginScreen: React.FC = () => {
   const [tagline] = useState(() => TAGLINES[Math.floor(Math.random() * TAGLINES.length)]);
 
   const { opacity, translateY, logoScale } = useAnimatedEntry();
+  const googleAuth = useGoogleAuth();
 
   const onSubmit = async () => {
     setError(null);
@@ -83,7 +85,12 @@ export const LoginScreen: React.FC = () => {
     setError(null);
     setGoogleLoading(true);
     try {
-      await signInWithGoogle();
+      if (Platform.OS === 'web') {
+        await signInWithGoogle();
+      } else {
+        await googleAuth.promptAsync();
+        // Sucesso é tratado dentro do hook (signInWithGoogleIdToken)
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erro ao entrar com Google';
       if (!msg.includes('popup-closed-by-user') && !msg.includes('cancelled')) {

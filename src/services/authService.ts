@@ -3,6 +3,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithCredential,
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged as firebaseOnAuthStateChanged,
@@ -50,15 +51,33 @@ export const signIn = async (email: string, password: string) => {
   return cred.user;
 };
 
+/**
+ * Login com Google.
+ * - Web: signInWithPopup do Firebase
+ * - Native: redireciona pra signInWithGoogleNative() que usa expo-auth-session.
+ *   O hook que chama deve passar o idToken obtido. (Implementação no
+ *   hook useGoogleAuth — separa porque expo-auth-session é hook-based.)
+ */
 export const signInWithGoogle = async (): Promise<FirebaseUser> => {
   if (Platform.OS !== 'web') {
     throw new Error(
-      'Login com Google ainda não está disponível no app mobile. Use email e senha.',
+      'Login Google no mobile usa o hook useGoogleAuth() (não esta função).',
     );
   }
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   const cred = await signInWithPopup(auth, provider);
+  await ensureUserDocument(cred.user);
+  return cred.user;
+};
+
+/**
+ * Para mobile: completa o login no Firebase usando o idToken obtido
+ * via expo-auth-session (Google OAuth).
+ */
+export const signInWithGoogleIdToken = async (idToken: string): Promise<FirebaseUser> => {
+  const credential = GoogleAuthProvider.credential(idToken);
+  const cred = await signInWithCredential(auth, credential);
   await ensureUserDocument(cred.user);
   return cred.user;
 };

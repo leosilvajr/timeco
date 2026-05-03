@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Animated, Easing, Image } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Animated, Easing, Image, Platform } from 'react-native';
 import {
   Screen,
   Input,
@@ -12,6 +12,7 @@ import {
 import { radius } from '../../constants/theme';
 import { maskDecimal, parseDecimal } from '../../utils/masks';
 import { signUp, signInWithGoogle } from '../../services/authService';
+import { useGoogleAuth } from '../../hooks/useGoogleAuth';
 import { colors, spacing } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
@@ -35,6 +36,7 @@ export const SignUpScreen: React.FC = () => {
 
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
+  const googleAuth = useGoogleAuth();
 
   useEffect(() => {
     Animated.parallel([
@@ -57,7 +59,11 @@ export const SignUpScreen: React.FC = () => {
     setError(null);
     setGoogleLoading(true);
     try {
-      await signInWithGoogle();
+      if (Platform.OS === 'web') {
+        await signInWithGoogle();
+      } else {
+        await googleAuth.promptAsync();
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Erro ao criar conta com Google';
       if (!msg.includes('popup-closed-by-user') && !msg.includes('cancelled')) {
