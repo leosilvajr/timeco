@@ -13,6 +13,7 @@ import {
 } from '../../services/eventService';
 import { getUsersByIds } from '../../services/userService';
 import { drawTeams } from '../../services/teamDrawService';
+import { formatError } from '../../utils/errorMessages';
 import { Event, User } from '../../types';
 import type { EventsStackParamList } from '../../navigation/types';
 
@@ -70,7 +71,7 @@ export const RatePlayersScreen: React.FC = () => {
     setError(null);
     if (!event) return;
     if (players.length < event.teamsCount) {
-      setError(`Precisa de pelo menos ${event.teamsCount} jogadores`);
+      setError(`Precisamos de pelo menos ${event.teamsCount} jogadores pra montar os times.`);
       return;
     }
     setDrawing(true);
@@ -85,7 +86,7 @@ export const RatePlayersScreen: React.FC = () => {
       await saveDrawnTeams(event.id, teams);
       nav.replace('DrawResult', { eventId: event.id });
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao sortear');
+      setError(formatError(e, 'Não conseguimos sortear os times agora. Tente de novo.'));
     } finally {
       setDrawing(false);
     }

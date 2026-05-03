@@ -17,6 +17,17 @@ import { colors, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
 import { getSport } from '../constants/sports';
 import { SportId, User } from '../types';
+import {
+  isFutureDateTime,
+  isValidTeamsCount,
+  isValidPlayersPerTeam,
+  TEAMS_COUNT_MIN,
+  TEAMS_COUNT_MAX,
+  PLAYERS_PER_TEAM_MIN,
+  PLAYERS_PER_TEAM_MAX,
+  MAX_TITLE_LEN,
+  MAX_NOTES_LEN,
+} from '../utils/validators';
 
 const pad = (n: number): string => String(n).padStart(2, '0');
 
@@ -131,11 +142,31 @@ export const EventForm: React.FC<Props> = ({
 
   const handleSubmit = async () => {
     setValidationError(null);
-    if (!title.trim()) return setValidationError('Informe um título');
-    if (!location || !location.name.trim()) return setValidationError('Informe o local');
-    if (!dateStr || !timeStr) return setValidationError('Informe data e horário');
+    if (!title.trim()) return setValidationError('Informe um título pro evento.');
+    if (title.trim().length > MAX_TITLE_LEN)
+      return setValidationError(`O título pode ter no máximo ${MAX_TITLE_LEN} caracteres.`);
+    if (!location || !location.name.trim()) return setValidationError('Informe o local do evento.');
+    if (!dateStr || !timeStr) return setValidationError('Informe a data e o horário.');
     const scheduledAt = new Date(`${dateStr}T${timeStr}:00`);
-    if (Number.isNaN(scheduledAt.getTime())) return setValidationError('Data/horário inválidos');
+    if (Number.isNaN(scheduledAt.getTime()))
+      return setValidationError('Data ou horário em formato inválido. Confira os campos.');
+    if (!isFutureDateTime(dateStr, timeStr))
+      return setValidationError('A data e o horário precisam ser no futuro.');
+
+    const playersPerTeamN = parseInt(playersPerTeam, 10);
+    if (!isValidPlayersPerTeam(playersPerTeamN))
+      return setValidationError(
+        `Jogadores por time deve estar entre ${PLAYERS_PER_TEAM_MIN} e ${PLAYERS_PER_TEAM_MAX}.`,
+      );
+
+    const teamsCountN = parseInt(teamsCount, 10);
+    if (!isValidTeamsCount(teamsCountN))
+      return setValidationError(
+        `Quantidade de times deve estar entre ${TEAMS_COUNT_MIN} e ${TEAMS_COUNT_MAX}.`,
+      );
+
+    if (notes.trim().length > MAX_NOTES_LEN)
+      return setValidationError(`Observações pode ter no máximo ${MAX_NOTES_LEN} caracteres.`);
 
     await onSubmit({
       title: title.trim(),
@@ -143,8 +174,8 @@ export const EventForm: React.FC<Props> = ({
       location,
       dateStr,
       timeStr,
-      playersPerTeam: parseInt(playersPerTeam, 10) || 5,
-      teamsCount: parseInt(teamsCount, 10) || 2,
+      playersPerTeam: playersPerTeamN,
+      teamsCount: teamsCountN,
       balanceByAge,
       balanceByHeight,
       balanceByWeight,

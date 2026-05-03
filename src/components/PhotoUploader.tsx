@@ -4,6 +4,7 @@ import { colors, spacing, radius } from '../constants/theme';
 import { useThemedColors } from '../store';
 import { Avatar } from './Avatar';
 import { pickImage } from '../utils/imagePicker';
+import { formatError } from '../utils/errorMessages';
 
 interface Props {
   /** URL atual da foto (se houver) */
@@ -68,7 +69,7 @@ export const PhotoUploader: React.FC<Props> = ({
       setBusy(true);
       await onPick(file);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao enviar foto');
+      setError(formatError(err, 'Não conseguimos enviar a foto. Tente de novo em instantes.'));
     } finally {
       setBusy(false);
     }
@@ -81,7 +82,7 @@ export const PhotoUploader: React.FC<Props> = ({
     try {
       await onRemove();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Erro ao remover');
+      setError(formatError(err, 'Não conseguimos remover a foto agora. Tente de novo.'));
     } finally {
       setBusy(false);
     }

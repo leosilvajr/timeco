@@ -6,6 +6,7 @@ import { PhotoLightbox } from './PhotoLightbox';
 import { pickImage } from '../utils/imagePicker';
 import { ProfilePhoto } from '../types';
 import { PROFILE_PHOTOS_LIMIT } from '../services/profileGalleryService';
+import { formatError } from '../utils/errorMessages';
 
 interface Props {
   photos: ProfilePhoto[];
@@ -37,7 +38,7 @@ export const ProfileGallery: React.FC<Props> = ({ photos, editable, onAdd, onRem
       setBusy(true);
       await onAdd(file);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao adicionar foto');
+      setError(formatError(e, 'Não conseguimos enviar a foto. Tente de novo em instantes.'));
     } finally {
       setBusy(false);
     }
@@ -53,7 +54,7 @@ export const ProfileGallery: React.FC<Props> = ({ photos, editable, onAdd, onRem
     try {
       await onRemove(photo);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao remover');
+      setError(formatError(e, 'Não conseguimos remover a foto agora. Tente de novo.'));
     } finally {
       setBusy(false);
     }

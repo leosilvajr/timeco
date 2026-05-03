@@ -32,9 +32,43 @@ export interface CreateEventInput {
   notes?: string;
 }
 
+/**
+ * Constrói o mapa inicial de confirmações pra um evento novo —
+ * todos os convidados começam como 'pending'.
+ */
+export const buildInitialConfirmations = (
+  invitedUserIds: string[],
+): Record<string, 'pending'> => {
+  const out: Record<string, 'pending'> = {};
+  for (const uid of invitedUserIds) out[uid] = 'pending';
+  return out;
+};
+
+/**
+ * Reconcilia o mapa de confirmações ao editar um evento:
+ * - mantém status existente pra users que continuam convidados
+ * - adiciona 'pending' pra novos convidados
+ * - remove confirmações de users que foram desconvidados (exceto o organizador)
+ */
+export const reconcileConfirmations = (
+  existing: Record<string, 'pending' | 'confirmed' | 'declined'>,
+  newInvitedUserIds: string[],
+  organizerId: string,
+): Record<string, 'pending' | 'confirmed' | 'declined'> => {
+  const out = { ...existing };
+  for (const id of newInvitedUserIds) {
+    if (!(id in out)) out[id] = 'pending';
+  }
+  for (const id of Object.keys(out)) {
+    if (id !== organizerId && !newInvitedUserIds.includes(id)) {
+      delete out[id];
+    }
+  }
+  return out;
+};
+
 export const createEvent = async (input: CreateEventInput): Promise<string> => {
-  const confirmations: Record<string, 'pending'> = {};
-  for (const uid of input.invitedUserIds) confirmations[uid] = 'pending';
+  const confirmations = buildInitialConfirmations(input.invitedUserIds);
 
   const ref = await addDoc(collection(db, 'events'), {
     organizerId: input.organizer.id,

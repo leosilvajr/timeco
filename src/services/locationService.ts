@@ -54,7 +54,7 @@ const mapboxSearch = async (
 
   const url = `${MAPBOX_GEOCODING}/${encodeURIComponent(query)}.json?${params.toString()}`;
   const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`Mapbox geocoding error (${res.status})`);
+  if (!res.ok) throw new Error(`Erro ao buscar endereço (${res.status})`);
   const data = (await res.json()) as { features?: MapboxFeature[] };
 
   return (data.features ?? []).map((f) => {

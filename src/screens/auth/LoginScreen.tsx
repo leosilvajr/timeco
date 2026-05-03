@@ -3,6 +3,8 @@ import { View, Text, Image, StyleSheet, Pressable, Animated, Easing, Platform } 
 import { Screen, Input, Button, GoogleSignInButton, SportsBackdrop } from '../../components';
 import { signIn, signInWithGoogle } from '../../services/authService';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import { formatError } from '../../utils/errorMessages';
+import { isValidEmail } from '../../utils/validators';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
@@ -67,15 +69,18 @@ export const LoginScreen: React.FC = () => {
   const onSubmit = async () => {
     setError(null);
     if (!email || !password) {
-      setError('Preencha email e senha');
+      setError('Preencha email e senha.');
+      return;
+    }
+    if (!isValidEmail(email)) {
+      setError('Email em formato inválido. Confira se digitou corretamente.');
       return;
     }
     setLoading(true);
     try {
       await signIn(email.trim().toLowerCase(), password);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erro ao entrar';
-      setError(msg.includes('invalid-credential') ? 'Email ou senha inválidos' : msg);
+      setError(formatError(e, 'Não conseguimos entrar agora. Tente de novo em alguns instantes.'));
     } finally {
       setLoading(false);
     }
@@ -92,10 +97,12 @@ export const LoginScreen: React.FC = () => {
         // Sucesso é tratado dentro do hook (signInWithGoogleIdToken)
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erro ao entrar com Google';
-      if (!msg.includes('popup-closed-by-user') && !msg.includes('cancelled')) {
-        setError(msg);
-      }
+      // formatError retorna '' pra cancelamentos silenciosos (popup fechado etc)
+      const msg = formatError(
+        e,
+        'Não conseguimos fazer login com Google agora. Tente de novo.',
+      );
+      if (msg) setError(msg);
     } finally {
       setGoogleLoading(false);
     }

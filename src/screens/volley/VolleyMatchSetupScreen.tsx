@@ -6,6 +6,8 @@ import { Screen, Header, Input, Button, Card, DateInput } from '../../components
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { createVolleyMatch } from '../../services/volleyScoutService';
+import { formatError } from '../../utils/errorMessages';
+import { isValidJerseyNumber } from '../../utils/validators';
 import { VolleyFormat, VolleyPlayer, VolleyPosition, VolleyRotationSystem } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
 
@@ -44,9 +46,11 @@ export const VolleyMatchSetupScreen: React.FC = () => {
     setError(null);
     const name = pName.trim();
     const num = parseInt(pNumber, 10);
-    if (!name) return setError('Digite o nome do jogador');
-    if (!num || num < 1 || num > 99) return setError('Número precisa ser entre 1 e 99');
-    if (players.some((p) => p.number === num)) return setError(`Já existe um jogador com o número ${num}`);
+    if (!name) return setError('Digite o nome do jogador.');
+    if (!isValidJerseyNumber(num))
+      return setError('O número precisa ser inteiro entre 1 e 99.');
+    if (players.some((p) => p.number === num))
+      return setError(`Já existe um jogador com o número ${num}.`);
     setPlayers((prev) => [...prev, { name, number: num, position: pPosition }]);
     setPName('');
     setPNumber('');
@@ -57,9 +61,10 @@ export const VolleyMatchSetupScreen: React.FC = () => {
   const onCreate = async () => {
     setError(null);
     if (!user) return;
-    if (!teamAName.trim() || !teamBName.trim()) return setError('Informe o nome das duas equipes');
-    if (!location.trim()) return setError('Informe o local');
-    if (players.length === 0) return setError('Cadastre pelo menos 1 jogador');
+    if (!teamAName.trim() || !teamBName.trim())
+      return setError('Informe o nome das duas equipes.');
+    if (!location.trim()) return setError('Informe o local da partida.');
+    if (players.length === 0) return setError('Cadastre pelo menos 1 jogador antes de iniciar.');
     setCreating(true);
     try {
       const id = await createVolleyMatch({
@@ -74,7 +79,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
       });
       nav.replace('VolleyScout', { matchId: id });
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao criar partida');
+      setError(formatError(e, 'Não conseguimos criar a partida agora. Tente de novo.'));
     } finally {
       setCreating(false);
     }

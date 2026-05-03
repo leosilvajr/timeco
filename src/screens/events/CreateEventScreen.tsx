@@ -4,6 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, EventForm, EventFormValues } from '../../components';
 import { listFriends } from '../../services/friendsService';
 import { createEvent } from '../../services/eventService';
+import { formatError } from '../../utils/errorMessages';
 import { useAuthStore, useThemedColors } from '../../store';
 import { User } from '../../types';
 import type { EventsStackParamList } from '../../navigation/types';
@@ -27,7 +28,7 @@ export const CreateEventScreen: React.FC = () => {
   const handleSubmit = async (values: EventFormValues) => {
     if (!user) return;
     if (values.invitedUserIds.length < 1) {
-      setError('Convide pelo menos 1 jogador');
+      setError('Convide pelo menos 1 jogador.');
       return;
     }
     setError(null);
@@ -57,7 +58,7 @@ export const CreateEventScreen: React.FC = () => {
       });
       nav.replace('EventDetail', { eventId });
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao criar evento');
+      setError(formatError(e, 'Não conseguimos criar o evento agora. Tente de novo.'));
     } finally {
       setLoading(false);
     }

@@ -3,8 +3,9 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, EventForm, EventFormValues, EventFormInitial } from '../../components';
 import { listFriends } from '../../services/friendsService';
-import { getEventById, updateEvent } from '../../services/eventService';
+import { getEventById, updateEvent, reconcileConfirmations } from '../../services/eventService';
 import { notifySafe } from '../../services/notificationService';
+import { formatError } from '../../utils/errorMessages';
 import { useAuthStore, useThemedColors } from '../../store';
 import { Event, User } from '../../types';
 import { Timestamp } from 'firebase/firestore';
@@ -73,20 +74,20 @@ export const EditEventScreen: React.FC = () => {
   const handleSubmit = async (values: EventFormValues) => {
     if (!event || !user) return;
     if (event.organizerId !== user.id) {
-      setError('Apenas o organizador pode editar');
+      setError('Apenas o organizador pode editar este evento.');
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      const newInvitedIds = values.invitedUserIds.filter((id) => !event.invitedUserIds.includes(id));
-      const newConfirmations = { ...(event.confirmations ?? {}) };
-      for (const id of newInvitedIds) newConfirmations[id] = 'pending';
-      for (const id of Object.keys(newConfirmations)) {
-        if (id !== event.organizerId && !values.invitedUserIds.includes(id)) {
-          delete newConfirmations[id];
-        }
-      }
+      const newInvitedIds = values.invitedUserIds.filter(
+        (id) => !event.invitedUserIds.includes(id),
+      );
+      const newConfirmations = reconcileConfirmations(
+        event.confirmations ?? {},
+        values.invitedUserIds,
+        event.organizerId,
+      );
 
       const scheduledAt = new Date(`${values.dateStr}T${values.timeStr}:00`);
 
@@ -139,7 +140,7 @@ export const EditEventScreen: React.FC = () => {
 
       nav.goBack();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao salvar');
+      setError(formatError(e, 'Não conseguimos salvar as alterações agora. Tente de novo.'));
     } finally {
       setLoading(false);
     }

@@ -8,6 +8,7 @@ import { useThemedColors } from '../../store';
 import { drawQuickTeams, QuickDrawnTeam, QuickPlayer } from '../../services/teamDrawService';
 import { shareText } from '../../services/shareService';
 import { formatQuickTeams } from '../../utils/teamShareText';
+import { formatError } from '../../utils/errorMessages';
 import { getSport } from '../../constants/sports';
 import { SportId } from '../../types';
 import type { EventsStackParamList } from '../../navigation/types';
@@ -37,7 +38,7 @@ export const QuickDrawScreen: React.FC = () => {
   const addPlayer = () => {
     setError(null);
     const name = pendingName.trim();
-    if (!name) return setError('Digita um nome antes de adicionar');
+    if (!name) return setError('Digite um nome antes de adicionar.');
     setPlayers((prev) => [...prev, { id: tempId(), name, stars: pendingStars }]);
     setPendingName('');
     setPendingStars(3);
@@ -55,14 +56,14 @@ export const QuickDrawScreen: React.FC = () => {
 
   const onDraw = () => {
     setError(null);
-    if (teamsCount < 2) return setError('Mínimo 2 times');
+    if (teamsCount < 2) return setError('Você precisa de pelo menos 2 times.');
     if (players.length < teamsCount) {
-      return setError(`Adicione pelo menos ${teamsCount} jogadores`);
+      return setError(`Adicione pelo menos ${teamsCount} jogadores pra montar os times.`);
     }
     try {
       setResult(drawQuickTeams(players, teamsCount));
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao sortear');
+      setError(formatError(e, 'Não conseguimos sortear os times agora. Tente de novo.'));
     }
   };
 

@@ -44,7 +44,7 @@ describe('computeUserStats', () => {
   it('separa organizador vs jogador', () => {
     const events = makeEvents([
       { organizerId: ME, sport: 'soccer' },
-      { organizerId: ME, sport: 'volley' },
+      { organizerId: ME, sport: 'volleyball' },
       { organizerId: 'outra', sport: 'soccer' },
       { organizerId: 'outra', sport: 'soccer' },
     ]);
@@ -59,7 +59,7 @@ describe('computeUserStats', () => {
       { organizerId: ME, sport: 'soccer' },
       { organizerId: ME, sport: 'soccer' },
       { organizerId: 'x', sport: 'soccer' },
-      { organizerId: ME, sport: 'volley' },
+      { organizerId: ME, sport: 'volleyball' },
     ]);
     const stats = computeUserStats(events, ME);
     expect(stats.topSport).toEqual({ id: 'soccer', count: 3 });
@@ -68,7 +68,7 @@ describe('computeUserStats', () => {
   it('conta esportes únicos (não duplicado)', () => {
     const events = makeEvents([
       { organizerId: ME, sport: 'soccer' },
-      { organizerId: ME, sport: 'volley' },
+      { organizerId: ME, sport: 'volleyball' },
       { organizerId: ME, sport: 'basketball' },
       { organizerId: ME, sport: 'soccer' },
     ]);
@@ -113,7 +113,7 @@ describe('computeUserStats', () => {
   it('badge "Multimodal" desbloqueia com 3 esportes diferentes', () => {
     const events = makeEvents([
       { organizerId: ME, sport: 'soccer' },
-      { organizerId: ME, sport: 'volley' },
+      { organizerId: ME, sport: 'volleyball' },
       { organizerId: ME, sport: 'basketball' },
     ]);
     const stats = computeUserStats(events, ME);

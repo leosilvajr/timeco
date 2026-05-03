@@ -6,6 +6,7 @@ import { Screen, Header, Input, Button, Card, Avatar } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { searchUsersByEmail, searchUsersByName } from '../../services/userService';
 import { sendFriendRequest, listFriendships, listOutgoingRequests } from '../../services/friendsService';
+import { formatError } from '../../utils/errorMessages';
 import { useAuthStore, useThemedColors } from '../../store';
 import { User } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
@@ -54,14 +55,15 @@ export const AddFriendScreen: React.FC = () => {
 
   const onInvite = async (target: User) => {
     if (!user) return;
+    if (sending.has(target.id)) return; // Bloqueia double-click no mesmo target
     setSending((s) => new Set(s).add(target.id));
     setMessage(null);
     try {
       await sendFriendRequest(user, target.id);
       setPendingIds((s) => new Set(s).add(target.id));
-      setMessage(`Convite enviado para ${target.name}`);
+      setMessage(`Convite enviado para ${target.name}.`);
     } catch (e: unknown) {
-      setMessage(e instanceof Error ? e.message : 'Erro');
+      setMessage(formatError(e, 'Não conseguimos enviar o convite agora. Tente de novo.'));
     } finally {
       setSending((s) => {
         const n = new Set(s);

@@ -13,6 +13,8 @@ import { radius } from '../../constants/theme';
 import { maskDecimal, parseDecimal } from '../../utils/masks';
 import { signUp, signInWithGoogle } from '../../services/authService';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import { formatError } from '../../utils/errorMessages';
+import { isValidEmail, isValidBirthDate } from '../../utils/validators';
 import { colors, spacing } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import { useNavigation } from '@react-navigation/native';
@@ -65,10 +67,11 @@ export const SignUpScreen: React.FC = () => {
         await googleAuth.promptAsync();
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erro ao criar conta com Google';
-      if (!msg.includes('popup-closed-by-user') && !msg.includes('cancelled')) {
-        setError(msg);
-      }
+      const msg = formatError(
+        e,
+        'Não conseguimos criar a conta com Google agora. Tente de novo.',
+      );
+      if (msg) setError(msg);
     } finally {
       setGoogleLoading(false);
     }
@@ -76,9 +79,13 @@ export const SignUpScreen: React.FC = () => {
 
   const onSubmit = async () => {
     setError(null);
-    if (!name || !email || !password) return setError('Preencha nome, email e senha');
-    if (password.length < 6) return setError('A senha deve ter ao menos 6 caracteres');
-    if (password !== confirm) return setError('As senhas não conferem');
+    if (!name || !email || !password) return setError('Preencha nome, email e senha.');
+    if (!isValidEmail(email))
+      return setError('Email em formato inválido. Confira se digitou corretamente.');
+    if (password.length < 6) return setError('A senha deve ter ao menos 6 caracteres.');
+    if (password !== confirm) return setError('As senhas não conferem.');
+    if (birthDate.trim() && !isValidBirthDate(birthDate.trim()))
+      return setError('Data de nascimento inválida. Use o formato AAAA-MM-DD.');
 
     setLoading(true);
     try {
@@ -90,9 +97,9 @@ export const SignUpScreen: React.FC = () => {
         heightCm: parseDecimal(height) ?? undefined,
       });
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Erro ao cadastrar';
-      if (msg.includes('email-already-in-use')) setError('Este email já está em uso');
-      else setError(msg);
+      setError(
+        formatError(e, 'Não conseguimos criar sua conta agora. Tente de novo em alguns instantes.'),
+      );
     } finally {
       setLoading(false);
     }

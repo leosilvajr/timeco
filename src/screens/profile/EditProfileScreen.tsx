@@ -8,6 +8,18 @@ import { uploadAvatar } from '../../services/photoService';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { updateUserProfile } from '../../services/authService';
+import { formatError } from '../../utils/errorMessages';
+import {
+  isValidHeight,
+  isValidWeight,
+  isValidBirthDate,
+  HEIGHT_MIN_CM,
+  HEIGHT_MAX_CM,
+  WEIGHT_MIN_KG,
+  WEIGHT_MAX_KG,
+  MAX_NAME_LEN,
+  MAX_BIO_LEN,
+} from '../../utils/validators';
 import { SPORTS } from '../../constants/sports';
 import { SportId } from '../../types';
 import type { ProfileStackParamList } from '../../navigation/types';
@@ -39,14 +51,27 @@ export const EditProfileScreen: React.FC = () => {
   const onSave = async () => {
     if (!user) return;
     setError(null);
-    if (!name.trim()) return setError('Nome é obrigatório');
+    if (!name.trim()) return setError('O nome é obrigatório.');
+    if (name.trim().length > MAX_NAME_LEN)
+      return setError(`O nome pode ter no máximo ${MAX_NAME_LEN} caracteres.`);
+    if (bio.trim().length > MAX_BIO_LEN)
+      return setError(`A bio pode ter no máximo ${MAX_BIO_LEN} caracteres.`);
+    if (birthDate.trim() && !isValidBirthDate(birthDate.trim()))
+      return setError('Data de nascimento inválida. Confira o formato (AAAA-MM-DD) e se não é uma data futura.');
+    const heightVal = parseDecimal(heightCm);
+    if (heightCm.trim() && (heightVal == null || !isValidHeight(heightVal)))
+      return setError(`A altura deve estar entre ${HEIGHT_MIN_CM} e ${HEIGHT_MAX_CM} cm.`);
+    const weightVal = parseDecimal(weightKg);
+    if (weightKg.trim() && (weightVal == null || !isValidWeight(weightVal)))
+      return setError(`O peso deve estar entre ${WEIGHT_MIN_KG} e ${WEIGHT_MAX_KG} kg.`);
+
     setLoading(true);
     try {
       const patch = {
         name: name.trim(),
         birthDate: birthDate.trim() || undefined,
-        heightCm: parseDecimal(heightCm) ?? undefined,
-        weightKg: parseDecimal(weightKg) ?? undefined,
+        heightCm: heightVal ?? undefined,
+        weightKg: weightVal ?? undefined,
         phone: phone.trim() ? unmaskPhone(phone) : undefined,
         bio: bio.trim() || undefined,
         favoriteSports: favoriteSports.length ? favoriteSports : undefined,
@@ -55,7 +80,7 @@ export const EditProfileScreen: React.FC = () => {
       patchUser(patch);
       nav.goBack();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro');
+      setError(formatError(e, 'Não conseguimos salvar seu perfil agora. Tente de novo.'));
     } finally {
       setLoading(false);
     }

@@ -1,16 +1,17 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { storage } from './firebase';
 
-const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
-const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10MB
-const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
+export const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
+export const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10MB
+export const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
 
 export interface UploadResult {
   url: string;
   path: string;
 }
 
-const validateFile = (file: Blob | File, maxBytes: number): void => {
+/** Valida que o arquivo é imagem e não excede o limite. Lança Error em pt-BR. */
+export const validateFile = (file: Blob | File, maxBytes: number): void => {
   if (file.size > maxBytes) {
     throw new Error(`Arquivo grande demais. Máximo ${Math.round(maxBytes / 1024 / 1024)}MB.`);
   }

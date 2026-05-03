@@ -6,6 +6,7 @@ import { Screen, Header, Card, Button, ToggleSwitch } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { updateUserProfile } from '../../services/authService';
+import { formatError } from '../../utils/errorMessages';
 import type { ProfileStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'PrivacySettings'>;
@@ -31,7 +32,9 @@ export const PrivacySettingsScreen: React.FC = () => {
       patchUser({ isProfilePublic, isGalleryPublic });
       nav.goBack();
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Erro ao salvar');
+      setError(
+        formatError(e, 'Não conseguimos salvar suas preferências de privacidade agora.'),
+      );
     } finally {
       setSaving(false);
     }
