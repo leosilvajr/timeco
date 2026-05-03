@@ -16,6 +16,7 @@
     "docker:seed": "node scripts/seed-emulators.js",
     "docker:reset": "docker compose down -v && docker compose up -d",
     "deploy:rules": "shx cp firestore.rules.production firestore.rules && firebase --project timeco-e908e deploy --only firestore:rules,firestore:indexes,storage && shx cp firestore.rules.dev firestore.rules",
+    "deploy:functions": "firebase --project timeco-e908e deploy --only functions",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
