@@ -37,7 +37,8 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.POST_NOTIFICATIONS",
-        "android.permission.VIBRATE"
+        "android.permission.VIBRATE",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
@@ -70,7 +71,15 @@
         {
           "locationWhenInUsePermission": "O Timeco usa sua localização atual apenas quando você toca em \"Usar minha localização\" ao definir o local de um evento. Não rastreamos sua posição em background."
         }
-      ]
-    ]
+      ],
+      "expo-font",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "a022b433-8bfd-4ead-b74d-42d627ec2a3d"
+      }
+    },
+    "owner": "incrivia"
   }
 }
