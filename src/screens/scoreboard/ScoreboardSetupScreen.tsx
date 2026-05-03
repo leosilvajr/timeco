@@ -55,6 +55,13 @@ const PRESETS: Preset[] = [
     desc: 'Melhor de 3 sets · 21 pts (15 no decisivo) · vantagem 2',
     config: { pointsToWin: 21, winByTwo: true, bestOfSets: 3, finalSetPointsToWin: 15 },
   },
+  {
+    id: 'truco',
+    emoji: '🃏',
+    label: 'Truco',
+    desc: '1 partida · 12 pontos · sem vantagem',
+    config: { pointsToWin: 12, winByTwo: false, bestOfSets: 1 },
+  },
 ];
 
 export const ScoreboardSetupScreen: React.FC = () => {
@@ -81,6 +88,8 @@ export const ScoreboardSetupScreen: React.FC = () => {
   };
 
   const onStart = () => {
+    const selectedPreset = PRESETS.find((p) => p.id === presetId);
+    const modalityLabel = isCustom ? 'Personalizado' : selectedPreset?.label;
     const config: ScoreboardConfig = {
       teamAName: teamAName.trim() || 'Time 1',
       teamBName: teamBName.trim() || 'Time 2',
@@ -90,6 +99,7 @@ export const ScoreboardSetupScreen: React.FC = () => {
       finalSetPointsToWin: finalSetPointsToWin
         ? parseInt(finalSetPointsToWin, 10)
         : undefined,
+      modalityLabel,
     };
     init(config);
     nav.replace('ScoreboardLive');
@@ -239,8 +249,9 @@ export const ScoreboardSetupScreen: React.FC = () => {
         </Card>
       ) : null}
 
-      <View style={{ marginTop: spacing.xl, marginBottom: spacing.xxl }}>
+      <View style={{ marginTop: spacing.xl, marginBottom: spacing.xxl, gap: spacing.sm }}>
         <Button title="🏁  Iniciar partida" onPress={onStart} />
+        <Button title="Cancelar" variant="ghost" onPress={() => nav.goBack()} />
       </View>
     </Screen>
   );

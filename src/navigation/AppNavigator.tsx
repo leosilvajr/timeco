@@ -19,6 +19,7 @@ import { EditEventScreen } from '../screens/events/EditEventScreen';
 import { EventDetailScreen } from '../screens/events/EventDetailScreen';
 import { RatePlayersScreen } from '../screens/events/RatePlayersScreen';
 import { DrawResultScreen } from '../screens/events/DrawResultScreen';
+import { QuickDrawScreen } from '../screens/events/QuickDrawScreen';
 
 import { FriendsListScreen } from '../screens/social/FriendsListScreen';
 import { AddFriendScreen } from '../screens/social/AddFriendScreen';
@@ -55,6 +56,7 @@ import {
   SocialStackParamList,
   VolleyStackParamList,
 } from './types';
+import { makeTabResetListeners } from './listeners';
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const AuthStack = createNativeStackNavigator<AuthStackParamList>();
@@ -80,6 +82,7 @@ const EventsNavigator = () => (
     <EventsStack.Screen name="EventDetail" component={EventDetailScreen} />
     <EventsStack.Screen name="RatePlayers" component={RatePlayersScreen} />
     <EventsStack.Screen name="DrawResult" component={DrawResultScreen} />
+    <EventsStack.Screen name="QuickDraw" component={QuickDrawScreen} />
   </EventsStack.Navigator>
 );
 
@@ -123,9 +126,22 @@ const ScoreboardNavigator = () => (
   </ScoreboardStack.Navigator>
 );
 
-const tabIcon = (emoji: string) => ({ color, focused }: { color: string; focused: boolean; size: number }) => (
-  <Text style={{ fontSize: focused ? 24 : 22, color, opacity: focused ? 1 : 0.7 }}>{emoji}</Text>
-);
+const tabIcon = (emoji: string) => ({ color, focused }: { color: string; focused: boolean; size: number }) => {
+  const size = focused ? 24 : 22;
+  return (
+    <Text
+      style={{
+        fontSize: size,
+        lineHeight: size + 4,
+        color,
+        opacity: focused ? 1 : 0.7,
+        textAlign: 'center',
+      }}
+    >
+      {emoji}
+    </Text>
+  );
+};
 
 const MainNavigator = () => {
   useThemedColors();
@@ -147,21 +163,36 @@ const MainNavigator = () => {
           : {
               backgroundColor: colors.surface,
               borderTopColor: colors.border,
-              height: 64,
-              paddingTop: 6,
-              paddingBottom: 8,
+              height: 76,
+              paddingTop: 10,
+              paddingBottom: 12,
             },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '700' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', lineHeight: 16, paddingBottom: 2 },
         tabBarBadgeStyle: { backgroundColor: colors.danger, color: colors.white },
       }}
     >
-      <Tab.Screen name="Inicio" component={HomeScreen} options={{ title: 'Início', tabBarIcon: tabIcon('🏠') }} />
-      <Tab.Screen name="Jogos" component={EventsNavigator} options={{ tabBarIcon: tabIcon('🏟️') }} />
-      <Tab.Screen name="Social" component={SocialNavigator} options={{ tabBarIcon: tabIcon('👥') }} />
+      <Tab.Screen
+        name="Inicio"
+        component={HomeScreen}
+        options={{ title: 'Início', tabBarIcon: tabIcon('🏠') }}
+      />
+      <Tab.Screen
+        name="Jogos"
+        component={EventsNavigator}
+        options={{ tabBarIcon: tabIcon('🏟️') }}
+        listeners={makeTabResetListeners('Jogos')}
+      />
+      <Tab.Screen
+        name="Social"
+        component={SocialNavigator}
+        options={{ tabBarIcon: tabIcon('👥') }}
+        listeners={makeTabResetListeners('Social')}
+      />
       <Tab.Screen
         name="Perfil"
         component={ProfileNavigator}
         options={{ tabBarIcon: tabIcon('👤'), tabBarBadge: profileBadge }}
+        listeners={makeTabResetListeners('Perfil')}
       />
     </Tab.Navigator>
   );

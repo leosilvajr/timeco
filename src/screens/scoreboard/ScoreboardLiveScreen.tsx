@@ -12,6 +12,8 @@ import {
   matchPointStatus,
   setsWonByTeams,
 } from '../../services/scoreboardLogic';
+import { shareText } from '../../services/shareService';
+import { formatScoreboardResult } from '../../utils/scoreboardShareText';
 import type { ScoreboardStackParamList } from '../../navigation/types';
 import { ScoreboardSide } from './components/ScoreboardSide';
 
@@ -40,16 +42,16 @@ export const ScoreboardLiveScreen: React.FC = () => {
   const styles = StyleSheet.create({
     layout: {
       flex: 1,
-      flexDirection: desktop ? 'row' : 'column',
-      gap: spacing.md,
+      flexDirection: 'row',
+      gap: desktop ? spacing.md : spacing.sm,
       marginBottom: spacing.md,
     },
     middleBar: {
-      flexDirection: desktop ? 'column' : 'row',
+      flexDirection: 'column',
       gap: spacing.sm,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingVertical: desktop ? spacing.lg : spacing.sm,
+      paddingVertical: desktop ? spacing.lg : 0,
       paddingHorizontal: desktop ? spacing.sm : 0,
     },
     centerInfo: {
@@ -153,7 +155,14 @@ export const ScoreboardLiveScreen: React.FC = () => {
     <Screen scroll={!desktop} maxWidth={1400}>
       <Header
         title={`${state.config.teamAName} × ${state.config.teamBName}`}
-        subtitle={`Set ${state.currentSetIndex + 1} · Melhor de ${state.config.bestOfSets}`}
+        subtitle={
+          (state.config.modalityLabel ? `${state.config.modalityLabel} · ` : '') +
+          (state.config.bestOfSets > 1
+            ? `Set ${state.currentSetIndex + 1}/${state.config.bestOfSets} · `
+            : '') +
+          `Até ${state.config.pointsToWin} pts` +
+          (state.config.winByTwo ? ' (vantagem 2)' : '')
+        }
         onBack={onConfirmExit}
       />
 
@@ -172,12 +181,14 @@ export const ScoreboardLiveScreen: React.FC = () => {
           isWinner={isFinished && state.winner === 'A'}
         />
 
-        <View style={styles.middleBar}>
-          <View style={styles.centerInfo}>
-            <Text style={styles.setLabel}>SET</Text>
-            <Text style={styles.setNumber}>{state.currentSetIndex + 1}</Text>
+        {desktop ? (
+          <View style={styles.middleBar}>
+            <View style={styles.centerInfo}>
+              <Text style={styles.setLabel}>SET</Text>
+              <Text style={styles.setNumber}>{state.currentSetIndex + 1}</Text>
+            </View>
           </View>
-        </View>
+        ) : null}
 
         <ScoreboardSide
           name={state.config.teamBName}
@@ -200,6 +211,17 @@ export const ScoreboardLiveScreen: React.FC = () => {
         </Pressable>
         <Pressable style={styles.actionBtn} onPress={swap}>
           <Text style={styles.actionTxt}>⇄  Trocar lados</Text>
+        </Pressable>
+        <Pressable
+          style={styles.actionBtn}
+          onPress={() =>
+            shareText(
+              formatScoreboardResult(state),
+              isFinished ? 'Resultado da partida · Timeco' : 'Placar atual · Timeco',
+            )
+          }
+        >
+          <Text style={styles.actionTxt}>📲  Compartilhar</Text>
         </Pressable>
         <Pressable style={[styles.actionBtn, styles.actionDangerBtn]} onPress={onConfirmReset}>
           <Text style={[styles.actionTxt, styles.actionDangerTxt]}>↻  Zerar partida</Text>

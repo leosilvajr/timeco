@@ -73,6 +73,7 @@ export const CreateEventScreen: React.FC = () => {
         submitting={loading}
         error={error}
         onSubmit={handleSubmit}
+        onCancel={() => nav.popToTop()}
       />
     </Screen>
   );

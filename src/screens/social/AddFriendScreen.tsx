@@ -117,6 +117,10 @@ export const AddFriendScreen: React.FC = () => {
       <Button title="Buscar" onPress={onSearch} loading={loading} />
       {message ? <Text style={styles.msg}>{message}</Text> : null}
 
+      <View style={{ marginTop: spacing.sm }}>
+        <Button title="Cancelar" variant="ghost" onPress={() => nav.popToTop()} />
+      </View>
+
       <View style={{ marginTop: spacing.lg }}>
         {results.map((u) => {
           const isFriend = alreadyFriendsIds.has(u.id);

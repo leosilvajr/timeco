@@ -260,8 +260,14 @@ export const VolleyMatchSetupScreen: React.FC = () => {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <View style={{ marginTop: spacing.lg, marginBottom: spacing.xxl }}>
+      <View style={{ marginTop: spacing.lg, marginBottom: spacing.xxl, gap: spacing.sm }}>
         <Button title="🏐  Iniciar partida" onPress={onCreate} loading={creating} />
+        <Button
+          title="Cancelar"
+          variant="ghost"
+          onPress={() => nav.goBack()}
+          disabled={creating}
+        />
       </View>
     </Screen>
   );

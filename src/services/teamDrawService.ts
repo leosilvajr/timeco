@@ -6,6 +6,19 @@ export interface PlayerWithRating {
   stars: number;
 }
 
+export interface QuickPlayer {
+  id: string;
+  name: string;
+  stars: number;
+}
+
+export interface QuickDrawnTeam {
+  name: string;
+  color: string;
+  players: QuickPlayer[];
+  totalStars: number;
+}
+
 export interface DrawOptions {
   players: PlayerWithRating[];
   teamsCount: number;
@@ -107,4 +120,27 @@ export const drawTeams = (opts: DrawOptions): DrawnTeam[] => {
   }
 
   return teams;
+};
+
+/**
+ * Sorteia times para o modo "Sorteio Rápido" — recebe nomes temporários
+ * + estrelas (sem User do banco, sem critérios extras) e devolve os times
+ * com os QuickPlayer inline. Reusa o algoritmo principal via adapter.
+ */
+export const drawQuickTeams = (
+  players: QuickPlayer[],
+  teamsCount: number,
+): QuickDrawnTeam[] => {
+  const adapted: PlayerWithRating[] = players.map((p) => ({
+    user: { id: p.id, name: p.name } as User,
+    stars: p.stars,
+  }));
+  const drawn = drawTeams({ players: adapted, teamsCount });
+  const byId = new Map(players.map((p) => [p.id, p]));
+  return drawn.map((t) => ({
+    name: t.name,
+    color: t.color,
+    players: t.playerIds.map((id) => byId.get(id)!).filter(Boolean),
+    totalStars: t.totalStars,
+  }));
 };

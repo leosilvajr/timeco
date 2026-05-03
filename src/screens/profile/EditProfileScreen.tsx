@@ -188,6 +188,9 @@ export const EditProfileScreen: React.FC = () => {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Button title="Salvar" onPress={onSave} loading={loading} />
+      <View style={{ marginTop: spacing.sm }}>
+        <Button title="Cancelar" variant="ghost" onPress={() => nav.goBack()} disabled={loading} />
+      </View>
     </Screen>
   );
 };

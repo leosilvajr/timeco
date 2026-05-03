@@ -69,6 +69,8 @@ interface Props {
   submitting?: boolean;
   error?: string | null;
   onSubmit: (values: EventFormValues) => void | Promise<void>;
+  /** Quando passado, renderiza um botão "Cancelar" abaixo do submit. */
+  onCancel?: () => void;
   /** Conteúdo opcional renderizado entre os campos e o botão de submit. */
   extraFooter?: React.ReactNode;
 }
@@ -85,6 +87,7 @@ export const EventForm: React.FC<Props> = ({
   submitting = false,
   error,
   onSubmit,
+  onCancel,
   extraFooter,
 }) => {
   useThemedColors();
@@ -210,6 +213,11 @@ export const EventForm: React.FC<Props> = ({
       {extraFooter}
 
       <Button title={submitLabel} onPress={handleSubmit} loading={submitting} />
+      {onCancel ? (
+        <View style={{ marginTop: spacing.sm }}>
+          <Button title="Cancelar" variant="ghost" onPress={onCancel} disabled={submitting} />
+        </View>
+      ) : null}
       <View style={{ height: spacing.xxl }} />
     </>
   );

@@ -160,8 +160,14 @@ export const RatePlayersScreen: React.FC = () => {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
-      <View style={{ marginTop: spacing.lg }}>
+      <View style={{ marginTop: spacing.lg, gap: spacing.sm }}>
         <Button title="🎲 Sortear times" onPress={onDraw} loading={drawing} />
+        <Button
+          title="Cancelar"
+          variant="ghost"
+          onPress={() => nav.popToTop()}
+          disabled={drawing}
+        />
       </View>
       <View style={{ height: spacing.xxl }} />
     </Screen>

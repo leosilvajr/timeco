@@ -107,8 +107,11 @@ service cloud.firestore {
 
     // ====== PLAYER RATINGS (estrelas por evento) ======
     // doc id = `${eventId}_${playerUserId}`
+    // Privacidade: só o organizador do evento lê/escreve. Participantes
+    // NUNCA veem as estrelas que o organizador deu (nem as deles próprios).
     match /playerRatings/{id} {
-      allow read: if isAuth();
+      allow read: if isAuth() &&
+        request.auth.uid == get(/databases/$(database)/documents/events/$(resource.data.eventId)).data.organizerId;
       allow write: if isAuth() &&
         request.auth.uid == get(/databases/$(database)/documents/events/$(request.resource.data.eventId)).data.organizerId;
     }

@@ -12,6 +12,7 @@ export type EventsStackParamList = {
   EventDetail: { eventId: string };
   RatePlayers: { eventId: string };
   DrawResult: { eventId: string };
+  QuickDraw: undefined;
 };
 
 export type SocialStackParamList = {

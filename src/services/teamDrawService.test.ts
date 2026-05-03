@@ -1,4 +1,4 @@
-import { drawTeams, PlayerWithRating } from './teamDrawService';
+import { drawTeams, drawQuickTeams, PlayerWithRating, QuickPlayer } from './teamDrawService';
 import { User } from '../types';
 
 const makeUser = (id: string, partial: Partial<User> = {}): User => ({
@@ -193,5 +193,97 @@ describe('drawTeams', () => {
         expect(t.totalStars).toBe(6);
       });
     });
+  });
+});
+
+const quickPlayers = (specs: Array<[string, number]>): QuickPlayer[] =>
+  specs.map(([name, stars], i) => ({ id: `q${i}`, name, stars }));
+
+describe('drawQuickTeams', () => {
+  it('cria a quantidade certa de times', () => {
+    const result = drawQuickTeams(
+      quickPlayers([
+        ['A', 5],
+        ['B', 4],
+        ['C', 3],
+        ['D', 2],
+      ]),
+      2,
+    );
+    expect(result).toHaveLength(2);
+  });
+
+  it('distribui todos os jogadores sem perder ninguém', () => {
+    const ps = quickPlayers([
+      ['Maria', 5],
+      ['João', 4],
+      ['Pedro', 3],
+      ['Ana', 2],
+      ['Carlos', 1],
+    ]);
+    const result = drawQuickTeams(ps, 2);
+    const names = result.flatMap((t) => t.players.map((p) => p.name)).sort();
+    expect(names).toEqual(['Ana', 'Carlos', 'João', 'Maria', 'Pedro']);
+  });
+
+  it('preserva nome e estrelas dos jogadores no resultado', () => {
+    const ps = quickPlayers([
+      ['Maria', 5],
+      ['João', 3],
+    ]);
+    const result = drawQuickTeams(ps, 2);
+    const all = result.flatMap((t) => t.players);
+    expect(all.find((p) => p.name === 'Maria')?.stars).toBe(5);
+    expect(all.find((p) => p.name === 'João')?.stars).toBe(3);
+  });
+
+  it('balanceia times — diff de estrelas pequena com inputs simétricos', () => {
+    const ps = quickPlayers([
+      ['A', 5],
+      ['B', 5],
+      ['C', 4],
+      ['D', 4],
+      ['E', 3],
+      ['F', 3],
+    ]);
+    const result = drawQuickTeams(ps, 2);
+    const diff = Math.abs(result[0].totalStars - result[1].totalStars);
+    expect(diff).toBeLessThanOrEqual(1);
+  });
+
+  it('falha quando há menos jogadores que times', () => {
+    expect(() => drawQuickTeams(quickPlayers([['Solo', 3]]), 2)).toThrow();
+  });
+
+  it('falha quando teamsCount < 2', () => {
+    expect(() =>
+      drawQuickTeams(quickPlayers([['A', 3], ['B', 3]]), 1),
+    ).toThrow(/2 times/);
+  });
+
+  it('totalStars de cada time bate com a soma das estrelas dos seus jogadores', () => {
+    const ps = quickPlayers([
+      ['A', 5],
+      ['B', 4],
+      ['C', 3],
+      ['D', 2],
+    ]);
+    const result = drawQuickTeams(ps, 2);
+    for (const team of result) {
+      const sum = team.players.reduce((acc, p) => acc + p.stars, 0);
+      expect(team.totalStars).toBeCloseTo(sum, 1);
+    }
+  });
+
+  it('não persiste nada externo — função é pura', () => {
+    const ps = quickPlayers([
+      ['A', 5],
+      ['B', 4],
+      ['C', 3],
+      ['D', 2],
+    ]);
+    const before = JSON.stringify(ps);
+    drawQuickTeams(ps, 2);
+    expect(JSON.stringify(ps)).toBe(before);
   });
 });

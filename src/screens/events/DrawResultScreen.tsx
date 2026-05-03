@@ -6,6 +6,8 @@ import { Screen, Header, Card, Avatar, Button, StarRating } from '../../componen
 import { colors, spacing } from '../../constants/theme';
 import { getEventById, listEventRatings } from '../../services/eventService';
 import { getUsersByIds } from '../../services/userService';
+import { shareText } from '../../services/shareService';
+import { formatEventTeams } from '../../utils/teamShareText';
 import { useAuthStore, useThemedColors } from '../../store';
 import { DrawnTeam, Event, User } from '../../types';
 import type { EventsStackParamList } from '../../navigation/types';
@@ -17,7 +19,8 @@ const TeamCard: React.FC<{
   team: DrawnTeam;
   users: Record<string, User>;
   ratings: Record<string, number>;
-}> = ({ team, users, ratings }) => {
+  showStars: boolean;
+}> = ({ team, users, ratings, showStars }) => {
   useThemedColors();
   const styles = StyleSheet.create({
     card: {
@@ -60,7 +63,13 @@ const TeamCard: React.FC<{
     <Card style={[styles.card, { borderColor: team.color }]}>
       <View style={[styles.headerStrip, { backgroundColor: team.color }]}>
         <Text style={styles.headerTxt}>{team.name}</Text>
-        <Text style={styles.headerStars}>⭐ {team.totalStars.toFixed(1)} • média {avg.toFixed(1)}</Text>
+        {showStars ? (
+          <Text style={styles.headerStars}>
+            ⭐ {team.totalStars.toFixed(1)} • média {avg.toFixed(1)}
+          </Text>
+        ) : (
+          <Text style={styles.headerStars}>{team.playerIds.length} jogadores</Text>
+        )}
       </View>
       <View style={{ paddingTop: spacing.sm }}>
         {team.playerIds.map((id) => {
@@ -71,7 +80,9 @@ const TeamCard: React.FC<{
               <Avatar name={u.name} photoURL={u.photoURL} size={36} />
               <View style={{ flex: 1 }}>
                 <Text style={styles.name}>{u.name}</Text>
-                <StarRating value={ratings[id] ?? 0} size={14} />
+                {showStars ? (
+                  <StarRating value={ratings[id] ?? 0} size={14} />
+                ) : null}
               </View>
             </View>
           );
@@ -99,12 +110,15 @@ export const DrawResultScreen: React.FC = () => {
       const map: Record<string, User> = {};
       for (const u of us) map[u.id] = u;
       setUsers(map);
-      const r = await listEventRatings(e.id);
-      const rmap: Record<string, number> = {};
-      for (const x of r) rmap[x.playerUserId] = x.stars;
-      setRatings(rmap);
+      // Privacidade: só o organizador busca os ratings (rules bloqueiam pra outros).
+      if (e.organizerId === user?.id) {
+        const r = await listEventRatings(e.id);
+        const rmap: Record<string, number> = {};
+        for (const x of r) rmap[x.playerUserId] = x.stars;
+        setRatings(rmap);
+      }
     }
-  }, [route.params.eventId]);
+  }, [route.params.eventId, user?.id]);
 
   useEffect(() => {
     load();
@@ -125,14 +139,24 @@ export const DrawResultScreen: React.FC = () => {
       <Header title="Times sorteados" onBack={() => nav.goBack()} subtitle={event.title} />
 
       {event.teams.map((t, idx) => (
-        <TeamCard key={idx} team={t} users={users} ratings={ratings} />
+        <TeamCard key={idx} team={t} users={users} ratings={ratings} showStars={isOrganizer} />
       ))}
 
-      {isOrganizer ? (
-        <View style={{ marginTop: spacing.lg }}>
-          <Button title="🎲 Sortear novamente" onPress={() => nav.navigate('RatePlayers', { eventId: event.id })} />
-        </View>
-      ) : null}
+      <View style={{ marginTop: spacing.lg, gap: spacing.sm }}>
+        <Button
+          title="📲 Compartilhar times"
+          variant="secondary"
+          onPress={() =>
+            shareText(formatEventTeams(event, users, isOrganizer), event.title)
+          }
+        />
+        {isOrganizer ? (
+          <Button
+            title="🎲 Sortear novamente"
+            onPress={() => nav.navigate('RatePlayers', { eventId: event.id })}
+          />
+        ) : null}
+      </View>
       <View style={{ height: spacing.xxl }} />
     </Screen>
   );

@@ -21,6 +21,8 @@ export interface ScoreboardConfig {
   bestOfSets: number;
   /** Pontuação alvo no set decisivo (último). Default = pointsToWin. */
   finalSetPointsToWin?: number;
+  /** Nome amigável da modalidade pra exibição (ex: "Vôlei amador", "Truco"). */
+  modalityLabel?: string;
 }
 
 export interface SetScore {

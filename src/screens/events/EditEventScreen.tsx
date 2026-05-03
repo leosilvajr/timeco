@@ -163,6 +163,7 @@ export const EditEventScreen: React.FC = () => {
         submitting={loading}
         error={error}
         onSubmit={handleSubmit}
+        onCancel={() => nav.goBack()}
       />
     </Screen>
   );

@@ -126,6 +126,7 @@ export const EventsListScreen: React.FC = () => {
   );
 
   const styles = StyleSheet.create({
+    headerBtns: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
     addBtn: {
       width: 40,
       height: 40,
@@ -139,6 +140,23 @@ export const EventsListScreen: React.FC = () => {
       color: colors.white,
       lineHeight: 30,
       marginTop: -2,
+    },
+    quickBtn: {
+      paddingHorizontal: 12,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: colors.surfaceVariant,
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 6,
+    },
+    quickBtnTxt: {
+      fontSize: 13,
+      fontWeight: '800',
+      color: colors.primary,
     },
     card: {
       marginBottom: spacing.md,
@@ -194,13 +212,22 @@ export const EventsListScreen: React.FC = () => {
         title="Jogos"
         subtitle="Eventos seus e dos seus amigos"
         right={
-          <Pressable
-            onPress={() => nav.navigate('CreateEvent')}
-            style={styles.addBtn}
-            hitSlop={8}
-          >
-            <Text style={styles.addBtnTxt}>+</Text>
-          </Pressable>
+          <View style={styles.headerBtns}>
+            <Pressable
+              onPress={() => nav.navigate('QuickDraw')}
+              style={styles.quickBtn}
+              hitSlop={8}
+            >
+              <Text style={styles.quickBtnTxt}>🎲 Sorteio rápido</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => nav.navigate('CreateEvent')}
+              style={styles.addBtn}
+              hitSlop={8}
+            >
+              <Text style={styles.addBtnTxt}>+</Text>
+            </Pressable>
+          </View>
         }
       />
       <FilterChips<Filter>
