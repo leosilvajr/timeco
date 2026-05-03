@@ -19,6 +19,17 @@ service firebase.storage {
       allow delete: if request.auth != null;
     }
 
+    // Galeria pessoal de fotos: userPhotos/<user_id>/<file>
+    // Só o dono escreve/deleta; qualquer autenticado lê.
+    match /userPhotos/{userId}/{allPaths=**} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+
     // Compatibilidade legada — se algo usava esses paths antigos
     match /profile_photos/{userId} {
       allow read: if request.auth != null;

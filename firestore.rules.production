@@ -21,7 +21,10 @@ service cloud.firestore {
 
     // ====== USERS ======
     match /users/{userId} {
-      allow read: if isAuth();
+      // Leitura: autenticado sempre; ou anônimo SE o perfil é público
+      // (default true — só bloqueia quem expressamente marcou privado).
+      // Habilita a página pública /u/{userId} no landing.
+      allow read: if isAuth() || resource.data.isProfilePublic != false;
       allow create: if isOwner(userId);
       allow update: if isOwner(userId) || isSuperadmin();
       allow delete: if isSuperadmin();
@@ -29,6 +32,19 @@ service cloud.firestore {
       // Push tokens — só o próprio user gerencia os seus
       match /pushTokens/{tokenId} {
         allow read, write: if isOwner(userId);
+      }
+
+      // Galeria pessoal de fotos — leitura aberta a autenticados
+      // (privacidade aplicada no client via canViewGallery). Anônimos
+      // só leem se a galeria do owner é pública (página /u/{userId}).
+      // Escrita só pelo dono.
+      match /profilePhotos/{photoId} {
+        allow read: if isAuth() ||
+          get(/databases/$(database)/documents/users/$(userId)).data.isGalleryPublic != false;
+        allow create: if isOwner(userId)
+          && request.resource.data.ownerId == userId;
+        allow delete: if isOwner(userId);
+        allow update: if false;
       }
     }
 

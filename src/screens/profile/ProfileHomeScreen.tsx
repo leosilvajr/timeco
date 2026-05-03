@@ -2,13 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card, Avatar, Button, PhotoLightbox } from '../../components';
+import { Screen, Header, Card, Avatar, Button, PhotoLightbox, ProfileGallery, StatsCard } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors, useUnreadCount } from '../../store';
 import { computeProfileCompletion } from '../../hooks/useProfileCompletion';
 import { logout } from '../../services/authService';
 import { listPhotosByUser } from '../../services/eventGalleryService';
-import { EventPhoto } from '../../types';
+import { listEventsForUser } from '../../services/eventService';
+import {
+  addProfilePhoto,
+  listProfilePhotos,
+  removeProfilePhoto,
+} from '../../services/profileGalleryService';
+import { computeUserStats, UserStats } from '../../services/userStatsService';
+import { shareText } from '../../services/shareService';
+import { formatProfileShare } from '../../utils/profileShareText';
+import { EventPhoto, ProfilePhoto } from '../../types';
 import type { ProfileStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<ProfileStackParamList, 'ProfileHome'>;
@@ -21,12 +30,30 @@ export const ProfileHomeScreen: React.FC = () => {
   const nav = useNavigation<Nav>();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
+  const [profilePhotos, setProfilePhotos] = useState<ProfilePhoto[]>([]);
   const [galleryPhoto, setGalleryPhoto] = useState<EventPhoto | null>(null);
+  const [stats, setStats] = useState<UserStats | null>(null);
 
   useEffect(() => {
     if (!user) return;
     listPhotosByUser(user.id).then(setPhotos).catch(() => undefined);
+    listProfilePhotos(user.id).then(setProfilePhotos).catch(() => undefined);
+    listEventsForUser(user.id)
+      .then((events) => setStats(computeUserStats(events, user.id)))
+      .catch(() => undefined);
   }, [user]);
+
+  const onAddProfilePhoto = async (file: Blob) => {
+    if (!user) return;
+    const created = await addProfilePhoto(user.id, file);
+    setProfilePhotos((prev) => [created, ...prev]);
+  };
+
+  const onRemoveProfilePhoto = async (photo: ProfilePhoto) => {
+    if (!user) return;
+    await removeProfilePhoto(user.id, photo.id, photo.storagePath);
+    setProfilePhotos((prev) => prev.filter((p) => p.id !== photo.id));
+  };
 
   if (!user) return null;
 
@@ -199,6 +226,12 @@ export const ProfileHomeScreen: React.FC = () => {
         </View>
       </Card>
 
+      {stats ? (
+        <Card style={{ marginTop: spacing.md }}>
+          <StatsCard stats={stats} />
+        </Card>
+      ) : null}
+
       <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
         <MenuItem
           label="🔔  Notificações"
@@ -213,15 +246,29 @@ export const ProfileHomeScreen: React.FC = () => {
         ) : null}
       </View>
 
-      <View style={{ marginTop: spacing.xl }}>
+      <View style={{ marginTop: spacing.xl, gap: spacing.sm }}>
+        <Button
+          title="📲  Compartilhar meu perfil"
+          variant="secondary"
+          onPress={() => shareText(formatProfileShare(user, true), `Perfil de ${user.name}`)}
+        />
         <Button title="Sair" variant="outline" onPress={() => logout()} />
       </View>
 
       <Card style={{ marginTop: spacing.lg }}>
-        <Text style={styles.galleryTitle}>📸 Sua galeria ({photos.length})</Text>
+        <ProfileGallery
+          photos={profilePhotos}
+          editable
+          onAdd={onAddProfilePhoto}
+          onRemove={onRemoveProfilePhoto}
+        />
+      </Card>
+
+      <Card style={{ marginTop: spacing.md }}>
+        <Text style={styles.galleryTitle}>🏟️ Em eventos ({photos.length})</Text>
         {photos.length === 0 ? (
           <Text style={styles.galleryEmpty}>
-            Suas fotos enviadas em eventos aparecem aqui.
+            Fotos que você envia em eventos aparecem aqui.
           </Text>
         ) : (
           <View style={styles.galleryGrid}>

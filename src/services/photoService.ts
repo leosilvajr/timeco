@@ -3,6 +3,7 @@ import { storage } from './firebase';
 
 const MAX_AVATAR_BYTES = 5 * 1024 * 1024; // 5MB
 const MAX_PHOTO_BYTES = 10 * 1024 * 1024; // 10MB
+const MAX_PROFILE_PHOTO_BYTES = 5 * 1024 * 1024; // 5MB
 
 export interface UploadResult {
   url: string;
@@ -38,6 +39,21 @@ export const uploadEventPhoto = async (
   const ext = (file.type.split('/')[1] || 'jpg').split('+')[0];
   const fileName = `${uploaderId}_${Date.now()}.${ext}`;
   const path = `events/${eventId}/${fileName}`;
+  const storageRef = ref(storage, path);
+  await uploadBytes(storageRef, file, { contentType: file.type || 'image/jpeg' });
+  const url = await getDownloadURL(storageRef);
+  return { url, path };
+};
+
+/** Upload de foto pessoal do perfil (galeria fora de eventos). */
+export const uploadProfilePhoto = async (
+  userId: string,
+  file: Blob | File,
+): Promise<UploadResult> => {
+  validateFile(file, MAX_PROFILE_PHOTO_BYTES);
+  const ext = (file.type.split('/')[1] || 'jpg').split('+')[0];
+  const fileName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+  const path = `userPhotos/${userId}/${fileName}`;
   const storageRef = ref(storage, path);
   await uploadBytes(storageRef, file, { contentType: file.type || 'image/jpeg' });
   const url = await getDownloadURL(storageRef);

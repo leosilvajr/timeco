@@ -12,6 +12,8 @@ export { Chip } from './Chip';
 export { GoogleSignInButton } from './GoogleSignInButton';
 export { PhotoUploader } from './PhotoUploader';
 export { PhotoLightbox } from './PhotoLightbox';
+export { ProfileGallery } from './ProfileGallery';
+export { StatsCard } from './StatsCard';
 export { LocationPicker } from './LocationPicker';
 export type { SelectedLocation } from './LocationPicker';
 export { ToggleSwitch } from './ToggleSwitch';

@@ -2,14 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card, Avatar, Button, PhotoLightbox } from '../../components';
+import { Screen, Header, Card, Avatar, Button, PhotoLightbox, ProfileGallery } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { getUserById } from '../../services/userService';
 import { removeFriend, areFriends } from '../../services/friendsService';
 import { listPhotosByUser } from '../../services/eventGalleryService';
+import { listProfilePhotos } from '../../services/profileGalleryService';
+import { shareText } from '../../services/shareService';
+import { formatProfileShare } from '../../utils/profileShareText';
 import { canViewFullProfile, canViewGallery } from '../../services/privacyLogic';
 import { useAuthStore, useThemedColors } from '../../store';
-import { EventPhoto, User } from '../../types';
+import { EventPhoto, ProfilePhoto, User } from '../../types';
 import { getSport } from '../../constants/sports';
 import type { SocialStackParamList } from '../../navigation/types';
 
@@ -33,6 +36,7 @@ export const PlayerProfileScreen: React.FC = () => {
   const [isFriend, setIsFriend] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
+  const [profilePhotos, setProfilePhotos] = useState<ProfilePhoto[]>([]);
   const [galleryPhoto, setGalleryPhoto] = useState<EventPhoto | null>(null);
 
   useEffect(() => {
@@ -41,6 +45,9 @@ export const PlayerProfileScreen: React.FC = () => {
     listPhotosByUser(route.params.userId)
       .then(setPhotos)
       .catch((e) => console.warn('listPhotosByUser', e));
+    listProfilePhotos(route.params.userId)
+      .then(setProfilePhotos)
+      .catch((e) => console.warn('listProfilePhotos', e));
   }, [route.params.userId, current]);
 
   const onRemove = async () => {
@@ -217,14 +224,27 @@ export const PlayerProfileScreen: React.FC = () => {
             }
           />
         ) : null}
+        <Button
+          title="📲  Compartilhar perfil"
+          variant="secondary"
+          onPress={() =>
+            shareText(formatProfileShare(target, isSelf), `Perfil de ${target.name}`)
+          }
+        />
         {isFriend ? (
           <Button title="Remover amizade" variant="outline" onPress={onRemove} />
         ) : null}
       </View>
 
-      {canSeeGallery && photos.length > 0 ? (
+      {canSeeGallery && profilePhotos.length > 0 ? (
         <Card style={{ marginTop: spacing.lg }}>
-          <Text style={styles.sectionTitle}>📸 Galeria ({photos.length})</Text>
+          <ProfileGallery photos={profilePhotos} editable={false} />
+        </Card>
+      ) : null}
+
+      {canSeeGallery && photos.length > 0 ? (
+        <Card style={{ marginTop: spacing.md }}>
+          <Text style={styles.sectionTitle}>🏟️ Em eventos ({photos.length})</Text>
           <View style={styles.galleryGrid}>
             {photos.map((p) => (
               <Pressable key={p.id} onPress={() => setGalleryPhoto(p)}>

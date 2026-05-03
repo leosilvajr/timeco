@@ -143,6 +143,19 @@ export interface EventPhoto {
   createdAt: Timestamp | Date | null;
 }
 
+/**
+ * Foto pessoal do perfil — adicionada diretamente pelo dono,
+ * fora do contexto de eventos. Aparece na aba "Minhas fotos".
+ */
+export interface ProfilePhoto {
+  id: string;
+  ownerId: string;
+  url: string;
+  storagePath: string;
+  caption?: string;
+  createdAt: Timestamp | Date | null;
+}
+
 export interface PlayerRating {
   id: string;
   eventId: string;
