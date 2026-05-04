@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Button, Avatar } from '../../components';
@@ -21,6 +21,30 @@ import { EventGallery } from './components/EventGallery';
 
 type Nav = NativeStackNavigationProp<EventsStackParamList, 'EventDetail'>;
 type Rt = RouteProp<EventsStackParamList, 'EventDetail'>;
+
+/** Avatar miniatura com nome abaixo — usado nos confirmados em linha. */
+const PlayerMini: React.FC<{ u?: User }> = ({ u }) => {
+  useThemedColors();
+  const styles = StyleSheet.create({
+    wrap: { alignItems: 'center', gap: 4, width: 64 },
+    name: {
+      fontSize: 11,
+      color: colors.text,
+      fontWeight: '600',
+      textAlign: 'center',
+    },
+  });
+  if (!u) return null;
+  const firstName = u.name.split(' ')[0];
+  return (
+    <View style={styles.wrap}>
+      <Avatar name={u.name} photoURL={u.photoURL} size={48} />
+      <Text style={styles.name} numberOfLines={1}>
+        {firstName}
+      </Text>
+    </View>
+  );
+};
 
 const PlayerRow: React.FC<{ u?: User }> = ({ u }) => {
   useThemedColors();
@@ -65,6 +89,47 @@ export const EventDetailScreen: React.FC = () => {
       marginTop: 4,
       lineHeight: 17,
     },
+    // Indicador compacto quando user já confirmou ou recusou
+    statusPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.surfaceVariant,
+      borderRadius: radius.pill,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 8,
+      marginBottom: spacing.lg,
+      alignSelf: 'flex-start',
+    },
+    statusTxt: { fontSize: 13, fontWeight: '700', color: colors.text },
+    statusChange: { fontSize: 12, fontWeight: '700', color: colors.primary },
+    // Confirmados horizontal em miniaturas
+    miniRow: {
+      flexDirection: 'row',
+      gap: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    miniLabel: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.textSecondary,
+      marginTop: spacing.md,
+      marginBottom: 2,
+    },
+    // Linha de ações secundárias compactas (organizador)
+    actionsLinkRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.lg,
+      paddingVertical: spacing.sm,
+      marginBottom: spacing.lg,
+    },
+    actionLink: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    actionLinkDanger: { color: colors.danger },
     section: {
       fontSize: 15,
       fontWeight: '800',
@@ -150,7 +215,24 @@ export const EventDetailScreen: React.FC = () => {
 
       <EventHero event={event} />
 
-      {event.status === 'open' || event.status === 'teams_drawn' ? (
+      {/* Confirmados em miniatura — logo abaixo do hero verde */}
+      {confirmed.length > 0 ? (
+        <>
+          <Text style={styles.miniLabel}>✅ Confirmados ({confirmed.length})</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.miniRow}
+          >
+            {confirmed.map((id) => (
+              <PlayerMini key={id} u={users[id]} />
+            ))}
+          </ScrollView>
+        </>
+      ) : null}
+
+      {/* Confirmação: card completo se pendente, pílula compacta se já decidiu */}
+      {(event.status === 'open' || event.status === 'teams_drawn') && myStatus === 'pending' ? (
         <Card style={styles.confirmCard}>
           <Text style={styles.confirmTitle}>
             {isOrganizer ? 'Você vai jogar?' : 'Você vai?'}
@@ -163,26 +245,37 @@ export const EventDetailScreen: React.FC = () => {
           <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
             <View style={{ flex: 1 }}>
               <Button
-                title={myStatus === 'confirmed' ? '✅ Confirmado' : 'Vou'}
-                variant={myStatus === 'confirmed' ? 'primary' : 'outline'}
+                title="Vou"
+                variant="outline"
                 onPress={() => setMyStatus('confirmed')}
                 loading={busy}
               />
             </View>
             <View style={{ flex: 1 }}>
               <Button
-                title={myStatus === 'declined' ? '❌ Não vou' : 'Não vou'}
-                variant={myStatus === 'declined' ? 'danger' : 'outline'}
+                title="Não vou"
+                variant="outline"
                 onPress={() => setMyStatus('declined')}
                 loading={busy}
               />
             </View>
           </View>
         </Card>
+      ) : (event.status === 'open' || event.status === 'teams_drawn') ? (
+        <Pressable
+          onPress={() => setMyStatus(myStatus === 'confirmed' ? 'declined' : 'confirmed')}
+          style={styles.statusPill}
+        >
+          <Text style={styles.statusTxt}>
+            {myStatus === 'confirmed' ? '✅ Você confirmou' : '❌ Você não vai'}
+          </Text>
+          <Text style={styles.statusChange}>· trocar</Text>
+        </Pressable>
       ) : null}
 
+      {/* Botão primário do organizador: sortear / refazer sorteio */}
       {isOrganizer && event.status !== 'cancelled' ? (
-        <Card style={{ marginBottom: spacing.lg, gap: spacing.sm }}>
+        <View style={{ gap: spacing.sm, marginBottom: spacing.sm }}>
           <Button
             title={
               event.status === 'teams_drawn'
@@ -198,14 +291,22 @@ export const EventDetailScreen: React.FC = () => {
               onPress={() => nav.navigate('DrawResult', { eventId: event.id })}
             />
           ) : null}
-          <Button
-            title="✏️ Editar evento"
-            variant="outline"
-            onPress={() => nav.navigate('EditEvent', { eventId: event.id })}
-          />
-          <Button title="Cancelar evento" variant="outline" onPress={onCancel} />
-          <Button title="Excluir evento" variant="ghost" onPress={onDelete} />
-        </Card>
+        </View>
+      ) : null}
+
+      {/* Ações secundárias do organizador como linha de links discretos */}
+      {isOrganizer && event.status !== 'cancelled' ? (
+        <View style={styles.actionsLinkRow}>
+          <Pressable onPress={() => nav.navigate('EditEvent', { eventId: event.id })} hitSlop={6}>
+            <Text style={styles.actionLink}>✏️ Editar</Text>
+          </Pressable>
+          <Pressable onPress={onCancel} hitSlop={6}>
+            <Text style={styles.actionLink}>⛔ Cancelar evento</Text>
+          </Pressable>
+          <Pressable onPress={onDelete} hitSlop={6}>
+            <Text style={[styles.actionLink, styles.actionLinkDanger]}>🗑️ Excluir</Text>
+          </Pressable>
+        </View>
       ) : null}
 
       {!isOrganizer && event.status === 'teams_drawn' ? (
@@ -216,13 +317,6 @@ export const EventDetailScreen: React.FC = () => {
           />
         </View>
       ) : null}
-
-      <Text style={styles.section}>✅ Confirmados ({confirmed.length})</Text>
-      {confirmed.length === 0 ? (
-        <Text style={styles.emptyTxt}>Ninguém confirmou ainda.</Text>
-      ) : (
-        confirmed.map((id) => <PlayerRow key={id} u={users[id]} />)
-      )}
 
       <Text style={styles.section}>⏳ Pendentes ({pending.length})</Text>
       {pending.length === 0 ? (

@@ -1,6 +1,21 @@
 import { Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
+export interface PickImageOptions {
+  /**
+   * Permite cropar a foto após selecionar.
+   *
+   * Default: `false`. A UI de crop nativa do Android tem bugs de
+   * edge-to-edge em alguns aparelhos (ex: Motorola Android 15 esconde
+   * o botão "Cortar"), bloqueando o usuário. O crop visual de avatar
+   * já é feito por CSS no componente Avatar (estilo circular), então
+   * desabilitar não impacta a UX.
+   */
+  allowsEditing?: boolean;
+  /** Aspect ratio quando allowsEditing=true. Default [1,1]. */
+  aspect?: [number, number];
+}
+
 /**
  * Seleciona uma imagem de forma cross-platform e retorna como Blob/File
  * pronto pra upload no Firebase Storage.
@@ -10,7 +25,7 @@ import * as ImagePicker from 'expo-image-picker';
  *
  * Retorna null se o usuário cancelar ou negar permissão.
  */
-export const pickImage = async (): Promise<Blob | null> => {
+export const pickImage = async (options?: PickImageOptions): Promise<Blob | null> => {
   if (Platform.OS === 'web') {
     return new Promise((resolve) => {
       const input = document.createElement('input');
@@ -36,8 +51,8 @@ export const pickImage = async (): Promise<Blob | null> => {
 
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: true,
-    aspect: [1, 1],
+    allowsEditing: options?.allowsEditing ?? false,
+    aspect: options?.aspect ?? [1, 1],
     quality: 0.85,
   });
 

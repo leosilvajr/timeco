@@ -158,7 +158,16 @@ export const NotificationsScreen: React.FC = () => {
           description="Você verá aqui convites, mensagens, atualizações de eventos e mais."
         />
       ) : (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }}>
+        // No mobile (cols=1) usamos coluna simples — sem flex container, cada
+        // item ocupa largura natural e empilha por marginBottom de styles.item.
+        // No desktop (cols>1) usamos row+wrap com 48% pra renderizar 2 colunas.
+        <View
+          style={
+            cols > 1
+              ? { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md }
+              : undefined
+          }
+        >
           {notifications.map((n) => (
             <Pressable
               key={n.id}

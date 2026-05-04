@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { Screen, SectionTitle } from '../../components';
+import { Screen, SectionTitle, NotificationBell } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors, useUnreadCount } from '../../store';
 import { useResponsive } from '../../hooks/useResponsive';
@@ -96,7 +96,14 @@ export const HomeScreen: React.FC = () => {
   ];
 
   const styles = StyleSheet.create({
-    hero: { marginBottom: spacing.lg },
+    hero: {
+      marginBottom: spacing.lg,
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      gap: spacing.md,
+    },
+    heroText: { flex: 1 },
     greeting: { fontSize: 14, color: colors.textSecondary, fontWeight: '600' },
     title: {
       fontSize: desktop ? 32 : 26,
@@ -132,8 +139,11 @@ export const HomeScreen: React.FC = () => {
   return (
     <Screen>
       <View style={styles.hero}>
-        <Text style={styles.greeting}>Olá, {firstName} 👋</Text>
-        <Text style={styles.title}>Bora jogar?</Text>
+        <View style={styles.heroText}>
+          <Text style={styles.greeting}>Olá, {firstName} 👋</Text>
+          <Text style={styles.title}>Bora jogar?</Text>
+        </View>
+        <NotificationBell />
       </View>
 
       {!completion.isComplete ? (

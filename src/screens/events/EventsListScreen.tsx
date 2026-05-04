@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, RefreshControl, FlatList, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, EmptyState, Button, Card, FilterChips, FilterOption } from '../../components';
+import { Screen, Header, EmptyState, Button, Card, FilterChips, FilterOption, NotificationBell } from '../../components';
 import { listEventsForUser } from '../../services/eventService';
 import { useAuthStore, useThemedColors } from '../../store';
 import { Event } from '../../types';
@@ -227,6 +227,7 @@ export const EventsListScreen: React.FC = () => {
             >
               <Text style={styles.addBtnTxt}>+</Text>
             </Pressable>
+            <NotificationBell />
           </View>
         }
       />

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card, Avatar, Button, PhotoLightbox, ProfileGallery, StatsCard } from '../../components';
+import { Screen, Header, Card, Avatar, Button, PhotoLightbox, ProfileGallery, StatsCard, NotificationBell } from '../../components';
 import { colors, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors, useUnreadCount } from '../../store';
 import { computeProfileCompletion } from '../../hooks/useProfileCompletion';
@@ -203,7 +203,7 @@ export const ProfileHomeScreen: React.FC = () => {
 
   return (
     <Screen maxWidth={600}>
-      <Header title="Perfil" />
+      <Header title="Perfil" right={<NotificationBell />} />
 
       <Card style={styles.hero}>
         <Pressable
