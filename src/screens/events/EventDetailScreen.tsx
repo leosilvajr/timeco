@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Button, Avatar } from '../../components';
@@ -103,9 +103,12 @@ export const EventDetailScreen: React.FC = () => {
     },
     statusTxt: { fontSize: 13, fontWeight: '700', color: colors.text },
     statusChange: { fontSize: 12, fontWeight: '700', color: colors.primary },
-    // Confirmados horizontal em miniaturas
+    // Confirmados em miniaturas — flex-wrap em vez de horizontal scroll
+    // (ScrollView horizontal dentro de ScrollView vertical crasha o Chrome
+    // no react-native-web em alguns casos).
     miniRow: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: spacing.md,
       paddingVertical: spacing.sm,
     },
@@ -219,15 +222,11 @@ export const EventDetailScreen: React.FC = () => {
       {confirmed.length > 0 ? (
         <>
           <Text style={styles.miniLabel}>✅ Confirmados ({confirmed.length})</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.miniRow}
-          >
+          <View style={styles.miniRow}>
             {confirmed.map((id) => (
               <PlayerMini key={id} u={users[id]} />
             ))}
-          </ScrollView>
+          </View>
         </>
       ) : null}
 
