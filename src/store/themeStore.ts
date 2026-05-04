@@ -12,6 +12,15 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 
 const STORAGE_KEY = '@timeco/themeMode';
 
+/**
+ * Default DEFAULT_MODE = 'light' (não segue sistema).
+ *
+ * Decisão de produto: a primeira impressão do app deve ser tema claro
+ * (mais neutro, menos agressivo). Se o user quiser dark, escolhe em
+ * Configurações → Tema. Modo "system" continua disponível como opção.
+ */
+const DEFAULT_MODE: ThemeMode = 'light';
+
 const resolveColors = (mode: ThemeMode): ColorPalette => {
   if (mode === 'light') return lightColors;
   if (mode === 'dark') return darkColors;
@@ -28,9 +37,9 @@ interface ThemeState {
 }
 
 export const useThemeStore = create<ThemeState>((set, get) => ({
-  mode: 'system',
-  isDark: resolveColors('system') === darkColors,
-  colors: resolveColors('system'),
+  mode: DEFAULT_MODE,
+  isDark: resolveColors(DEFAULT_MODE) === darkColors,
+  colors: resolveColors(DEFAULT_MODE),
 
   setMode: async (mode) => {
     const palette = resolveColors(mode);
@@ -46,7 +55,8 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
   hydrate: async () => {
     try {
       const saved = (await AsyncStorage.getItem(STORAGE_KEY)) as ThemeMode | null;
-      const mode: ThemeMode = saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system';
+      const mode: ThemeMode =
+        saved === 'light' || saved === 'dark' || saved === 'system' ? saved : DEFAULT_MODE;
       const palette = resolveColors(mode);
       setActivePalette(palette);
       set({ mode, colors: palette, isDark: palette === darkColors });
@@ -66,4 +76,4 @@ export const useThemeStore = create<ThemeState>((set, get) => ({
 }));
 
 // Garante que a paleta inicial está sincronizada com o Proxy do theme.ts
-setActivePalette(resolveColors('system'));
+setActivePalette(resolveColors(DEFAULT_MODE));

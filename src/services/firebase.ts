@@ -1,7 +1,23 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator, Auth } from 'firebase/auth';
+import {
+  getAuth,
+  initializeAuth,
+  connectAuthEmulator,
+  Auth,
+  // @ts-expect-error — getReactNativePersistence existe em runtime mas não no .d.ts oficial
+  getReactNativePersistence,
+} from 'firebase/auth';
 import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+/**
+ * Detecta plataforma sem importar 'react-native' (que quebra jest no node env).
+ * - Web: tem `document` global.
+ * - React Native: não tem `document` (mas tem global.HermesInternal ou navigator.product).
+ * - Jest node: não tem `document` — cai pra "native" mas o try/catch protege.
+ */
+const isWeb = typeof document !== 'undefined' && typeof window !== 'undefined';
 
 const DB_MODE = process.env.EXPO_PUBLIC_DB_MODE || 'emulator';
 
@@ -18,7 +34,28 @@ const firebaseConfig = {
 };
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
-const auth: Auth = getAuth(app);
+
+/**
+ * No web, getAuth() persiste em localStorage por padrão.
+ * No native (iOS/Android), precisamos inicializar Auth com o adapter
+ * de AsyncStorage explicitamente — caso contrário a sessão fica em
+ * memória e o user precisa logar de novo a cada abertura do app.
+ */
+const initAuth = (): Auth => {
+  if (isWeb) return getAuth(app);
+  try {
+    return initializeAuth(app, {
+      persistence: getReactNativePersistence(AsyncStorage),
+    });
+  } catch {
+    // initializeAuth falha se já foi inicializado (HMR no dev) ou em
+    // ambiente de teste (jest node). Cai pro getAuth.
+    return getAuth(app);
+  }
+};
+
+const auth: Auth = initAuth();
+
 const db: Firestore = getFirestore(app);
 const storage: FirebaseStorage = getStorage(app);
 

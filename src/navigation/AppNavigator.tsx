@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuthStore, useThemedColors, useUnreadCount } from '../store';
 import { colors } from '../constants/theme';
@@ -149,6 +150,10 @@ const MainNavigator = () => {
   const desktop = responsive.isDesktop;
   const unread = useUnreadCount();
   const profileBadge = unread > 0 ? (unread > 99 ? '99+' : String(unread)) : undefined;
+  const insets = useSafeAreaInsets();
+  // Some Samsungs com edge-to-edge + gesture nav cobrem a tab bar.
+  // Soma o inset.bottom à altura/padding pra empurrar o conteúdo pra cima.
+  const tabBottomInset = insets.bottom;
 
   return (
     <Tab.Navigator
@@ -163,9 +168,9 @@ const MainNavigator = () => {
           : {
               backgroundColor: colors.surface,
               borderTopColor: colors.border,
-              height: 76,
+              height: 76 + tabBottomInset,
               paddingTop: 10,
-              paddingBottom: 12,
+              paddingBottom: 12 + tabBottomInset,
             },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700', lineHeight: 16, paddingBottom: 2 },
         tabBarBadgeStyle: { backgroundColor: colors.danger, color: colors.white },

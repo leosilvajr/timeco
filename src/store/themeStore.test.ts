@@ -69,10 +69,11 @@ describe('useThemeStore', () => {
     expect(useThemeStore.getState().isDark).toBe(true);
   });
 
-  it('hydrate cai em "system" quando storage está vazio', async () => {
+  it('hydrate cai em "light" (default) quando storage está vazio', async () => {
     await AsyncStorage.removeItem('@timeco/themeMode');
     await useThemeStore.getState().hydrate();
-    expect(useThemeStore.getState().mode).toBe('system');
+    // Default trocado pra 'light' — primeira impressão neutra ao instalar.
+    expect(useThemeStore.getState().mode).toBe('light');
   });
 
   it('Proxy colors reflete a paleta ativa após setMode', async () => {
