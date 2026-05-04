@@ -12,6 +12,20 @@ const IOS_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 const WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
 /**
+ * Constrói o redirectUri "reverso" que o Google espera pra Android Client.
+ * Formato: com.googleusercontent.apps.<reversed_client_id>:/oauth2redirect
+ * Sem isso, expo-auth-session pode auto-gerar URI diferente do declarado
+ * no AndroidManifest e o callback nunca chega no app.
+ */
+const buildAndroidRedirectUri = (clientId: string | undefined): string | undefined => {
+  if (!clientId || clientId === 'not-configured') return undefined;
+  // O Client ID já vem no formato "<id>.apps.googleusercontent.com"
+  // Reverso: "com.googleusercontent.apps.<id>"
+  const reversed = clientId.replace(/\.apps\.googleusercontent\.com$/, '');
+  return `com.googleusercontent.apps.${reversed}:/oauth2redirect`;
+};
+
+/**
  * Verifica se a plataforma atual tem Client ID OAuth configurado.
  * No web, sempre retorna true porque o login usa Firebase popup direto
  * (não passa por esse hook).
@@ -57,6 +71,11 @@ export const useGoogleAuth = (): UseGoogleAuthResult => {
     iosClientId: IOS_CLIENT_ID || 'not-configured',
     androidClientId: ANDROID_CLIENT_ID || 'not-configured',
     webClientId: WEB_CLIENT_ID || 'not-configured',
+    // Força redirectUri explícito no Android pra garantir que casa com o
+    // intent-filter declarado em app.json. Sem isso, alguma versões do
+    // expo-auth-session auto-geram URI diferente e o callback nunca volta.
+    redirectUri:
+      Platform.OS === 'android' ? buildAndroidRedirectUri(ANDROID_CLIENT_ID) : undefined,
   });
 
   useEffect(() => {

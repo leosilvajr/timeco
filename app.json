@@ -43,10 +43,13 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "category": ["BROWSABLE", "DEFAULT"],
-          "data": {
-            "scheme": "com.googleusercontent.apps.1015687067416-su2vci2q471lvaqo86p199h07m5ieopo"
-          }
+          "autoVerify": false,
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            {
+              "scheme": "com.googleusercontent.apps.1015687067416-su2vci2q471lvaqo86p199h07m5ieopo"
+            }
+          ]
         }
       ]
     },
