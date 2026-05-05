@@ -6,6 +6,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppNavigator } from './src/navigation';
+import { DebugOverlay } from './src/components/DebugOverlay';
 import { onAuthStateChanged, ensureUserDocument } from './src/services/authService';
 import { subscribeNotifications } from './src/services/notificationService';
 import { requestWebNotificationPermission, showWebNotification } from './src/services/webPush';
@@ -148,6 +149,8 @@ export default function App() {
         <NavigationContainer theme={navTheme}>
           <AppNavigator />
           <StatusBar style={isDark ? 'light' : 'dark'} />
+          {/* Debug overlay — capturar logs/erros em mobile-web. Comentar pra remover. */}
+          {Platform.OS === 'web' ? <DebugOverlay /> : null}
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
