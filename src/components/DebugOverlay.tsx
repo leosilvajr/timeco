@@ -19,6 +19,7 @@ interface LogEntry {
 }
 
 const MAX_LOGS = 30;
+const STORAGE_KEY = '@timeco/debug-logs';
 
 const state = {
   logs: [] as LogEntry[],
@@ -30,10 +31,33 @@ const notify = () => {
   state.subscribers.forEach((cb) => cb());
 };
 
+/** Persiste logs no localStorage pra sobreviver crashes do Chrome. */
+const persist = () => {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.logs));
+  } catch {
+    // ignore — quota cheia
+  }
+};
+
+/** Carrega logs persistidos da última sessão (antes do crash). */
+const loadPersisted = (): LogEntry[] => {
+  if (typeof localStorage === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as LogEntry[];
+  } catch {
+    return [];
+  }
+};
+
 const push = (type: LogEntry['type'], message: string) => {
   state.logs.push({ type, message, timestamp: Date.now() });
   if (state.logs.length > MAX_LOGS) state.logs.shift();
   notify();
+  persist();
 };
 
 const safeStringify = (v: unknown): string => {
@@ -51,6 +75,22 @@ const safeStringify = (v: unknown): string => {
 const capture = () => {
   if (state.captured) return;
   state.captured = true;
+
+  // Carrega logs do localStorage da sessão anterior (sobreviveu o crash)
+  const persisted = loadPersisted();
+  if (persisted.length > 0) {
+    state.logs.push({
+      type: 'warn',
+      message: `🔥 ${persisted.length} logs da sessão anterior (pré-crash) abaixo:`,
+      timestamp: Date.now(),
+    });
+    state.logs.push(...persisted);
+    state.logs.push({
+      type: 'warn',
+      message: '─── fim dos logs persistidos ───',
+      timestamp: Date.now(),
+    });
+  }
 
   const origLog = console.log;
   const origWarn = console.warn;
@@ -78,7 +118,7 @@ const capture = () => {
     });
   }
 
-  push('log', 'DebugOverlay armed — capturando logs/erros');
+  push('log', `DebugOverlay armed — viewport=${typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : 'unknown'} ua=${typeof navigator !== 'undefined' ? navigator.userAgent.slice(0, 60) : ''}`);
 };
 
 export const DebugOverlay: React.FC = () => {

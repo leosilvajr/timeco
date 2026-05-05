@@ -149,8 +149,13 @@ export default function App() {
         <NavigationContainer theme={navTheme}>
           <AppNavigator />
           <StatusBar style={isDark ? 'light' : 'dark'} />
-          {/* Debug overlay — capturar logs/erros em mobile-web. Comentar pra remover. */}
-          {Platform.OS === 'web' ? <DebugOverlay /> : null}
+          {/* Debug overlay — captura logs/erros em mobile-web.
+              Ativar via URL: ?debug=1 (ou descomentar a linha abaixo). */}
+          {Platform.OS === 'web' &&
+          typeof window !== 'undefined' &&
+          window.location?.search.includes('debug=1') ? (
+            <DebugOverlay />
+          ) : null}
         </NavigationContainer>
       </SafeAreaProvider>
     </GestureHandlerRootView>
