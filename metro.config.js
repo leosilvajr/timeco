@@ -1,19 +1,27 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const path = require('path');
 
 const config = getDefaultConfig(__dirname);
 
-// EXPERIMENTO: desabilita mangling/compress no bundle web pra testar se o
-// minifier (terser) está corrompendo bytecode (suspeita do crash
-// STATUS_ILLEGAL_INSTRUCTION em Chrome mobile no Vercel). Se essa flag
-// fizer o web parar de crashar, o problema é o minifier — daí podemos
-// ajustar opções específicas em vez de desabilitar tudo.
-if (process.env.EXPO_PUBLIC_NO_MINIFY === '1') {
-  config.transformer.minifierConfig = {
-    compress: false,
-    mangle: false,
-    keep_classnames: true,
-    keep_fnames: true,
-  };
-}
+// EXPERIMENTO: substitui react-native-reanimated por stub vazio no web.
+// Reanimated 4.x usa worklets que tem JS fallback no web, mas suspeita
+// que essa runtime crasha V8 em Chrome mobile (STATUS_ILLEGAL_INSTRUCTION).
+// @react-navigation funciona sem reanimated com transicoes nativas mais
+// simples — perda aceitavel se isso resolver o crash.
+const originalResolver = config.resolver.resolveRequest;
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+  if (
+    platform === 'web' &&
+    (moduleName === 'react-native-reanimated' ||
+      moduleName.startsWith('react-native-reanimated/'))
+  ) {
+    return {
+      type: 'sourceFile',
+      filePath: path.resolve(__dirname, 'src/stubs/reanimatedWeb.js'),
+    };
+  }
+  if (originalResolver) return originalResolver(context, moduleName, platform);
+  return context.resolveRequest(context, moduleName, platform);
+};
 
 module.exports = config;
