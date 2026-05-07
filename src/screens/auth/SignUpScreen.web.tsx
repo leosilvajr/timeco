@@ -1,7 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HtmlScreen, HtmlHeader, HtmlButton, HtmlInput } from '../../components/web';
+import {
+  HtmlScreen,
+  HtmlHeader,
+  HtmlButton,
+  HtmlInput,
+  LOGO_URL,
+  GoogleG,
+} from '../../components/web';
 import { signUp, signInWithGoogle } from '../../services/authService';
 import { formatError } from '../../utils/errorMessages';
 import { isValidEmail, isValidBirthDate } from '../../utils/validators';
@@ -83,11 +90,15 @@ export const SignUpScreen: React.FC = () => {
             boxShadow: `0 6px 16px ${c.primary}33`,
           }}
         >
-          <img
-            src="/_expo/static/media/logo.9dbee76072dcec6f1a8e0f2a44d950c1.png"
-            alt="Timeco"
-            style={{ width: 64, height: 48, objectFit: 'contain' }}
-          />
+          {LOGO_URL ? (
+            <img
+              src={LOGO_URL}
+              alt="Timeco"
+              style={{ width: 64, height: 48, objectFit: 'contain' }}
+            />
+          ) : (
+            <span style={{ fontSize: 36 }}>⚽</span>
+          )}
         </div>
         <h1 style={{ fontSize: 28, fontWeight: 900, color: c.text, margin: '8px 0 4px' }}>
           Bora começar! 🏆
@@ -129,7 +140,7 @@ export const SignUpScreen: React.FC = () => {
         >
           {googleLoading ? '...' : (
             <>
-              <span style={{ fontSize: 18 }}>G</span>
+              <GoogleG size={20} />
               Criar conta com Google
             </>
           )}

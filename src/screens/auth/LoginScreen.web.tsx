@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HtmlScreen, HtmlButton, HtmlInput } from '../../components/web';
+import { HtmlScreen, HtmlButton, HtmlInput, LOGO_URL, GoogleG } from '../../components/web';
 import { signIn, signInWithGoogle } from '../../services/authService';
 import { formatError } from '../../utils/errorMessages';
 import { isValidEmail } from '../../utils/validators';
@@ -76,11 +76,15 @@ export const LoginScreen: React.FC = () => {
             boxShadow: `0 8px 24px ${c.primary}33`,
           }}
         >
-          <img
-            src="/_expo/static/media/logo.9dbee76072dcec6f1a8e0f2a44d950c1.png"
-            alt="Timeco"
-            style={{ width: 96, height: 72, objectFit: 'contain' }}
-          />
+          {LOGO_URL ? (
+            <img
+              src={LOGO_URL}
+              alt="Timeco"
+              style={{ width: 96, height: 72, objectFit: 'contain' }}
+            />
+          ) : (
+            <span style={{ fontSize: 56 }}>⚽</span>
+          )}
         </div>
         <h1
           style={{
@@ -186,7 +190,7 @@ export const LoginScreen: React.FC = () => {
         >
           {googleLoading ? '...' : (
             <>
-              <span style={{ fontSize: 18 }}>G</span>
+              <GoogleG size={20} />
               Entrar com Google
             </>
           )}
