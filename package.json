@@ -20,7 +20,7 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
-    "build:web": "expo export --platform web",
+    "build:web": "cross-env EXPO_PUBLIC_NO_MINIFY=1 expo export --platform web",
     "eas:login": "eas login",
     "eas:build:preview": "eas build --platform android --profile preview",
     "eas:build:production": "eas build --platform android --profile production",
