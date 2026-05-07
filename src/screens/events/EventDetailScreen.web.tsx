@@ -248,6 +248,10 @@ export const EventDetailScreen: React.FC = () => {
     border: `2px solid ${c.primary}`,
   };
 
+  // Conteudo edge-to-edge: outer sem padding, padding so onde texto solto
+  // ficaria colado nas bordas. Cards e hero ocupam largura inteira.
+  const sidePad = 12;
+
   return (
     <div
       style={{
@@ -255,14 +259,19 @@ export const EventDetailScreen: React.FC = () => {
         background: c.background,
         color: c.text,
         minHeight: '100vh',
-        padding: 16,
         boxSizing: 'border-box',
-        maxWidth: 840,
-        margin: '0 auto',
+        width: '100%',
       }}
     >
       {/* Header */}
-      <div style={{ marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div
+        style={{
+          padding: `12px ${sidePad}px`,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
         <button
           onClick={() => nav.goBack()}
           style={{
@@ -276,12 +285,13 @@ export const EventDetailScreen: React.FC = () => {
             lineHeight: '28px',
             cursor: 'pointer',
             padding: 0,
+            flexShrink: 0,
           }}
         >
           ‹
         </button>
-        <div style={{ flex: 1 }}>
-          <h1 style={{ fontSize: 24, fontWeight: 800, color: c.text, margin: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: c.text, margin: 0 }}>
             {event.title}
           </h1>
           <p style={{ fontSize: 14, color: c.textSecondary, margin: '2px 0 0' }}>
@@ -289,6 +299,9 @@ export const EventDetailScreen: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {/* Body content com padding minimo lateral pra não colar nas bordas */}
+      <div style={{ padding: `0 ${sidePad}px`, paddingBottom: 24 }}>
 
       {/* EventHero */}
       <div style={{ ...card, background: c.primary, borderColor: c.primary, color: c.white }}>
@@ -707,6 +720,8 @@ export const EventDetailScreen: React.FC = () => {
           </button>
         ) : null}
       </div>
+
+      </div>{/* fim do body com padding lateral */}
 
       {/* Lightbox */}
       {lightbox ? (
