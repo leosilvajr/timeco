@@ -175,7 +175,16 @@ export const EventDetailScreen: React.FC = () => {
   };
 
   const onCancel = async () => {
+    if (!window.confirm('Cancelar este evento? Avisa todos que nao vai mais acontecer.'))
+      return;
     await setEventStatus(event.id, 'cancelled');
+    await load();
+  };
+
+  const onClose = async () => {
+    if (!window.confirm('Encerrar este evento? Vai pro Historico e some das listas.'))
+      return;
+    await setEventStatus(event.id, 'finished');
     await load();
   };
 
@@ -473,8 +482,34 @@ export const EventDetailScreen: React.FC = () => {
         </button>
       ) : null}
 
-      {/* Botão primário do organizador */}
-      {isOrganizer && event.status !== 'cancelled' ? (
+      {/* Selo de status quando finalizado/cancelado (terminal) */}
+      {event.status === 'finished' || event.status === 'cancelled' ? (
+        <div
+          style={{
+            background: event.status === 'finished' ? c.surfaceVariant : `${c.danger}22`,
+            border: `1px solid ${event.status === 'finished' ? c.border : c.danger}`,
+            borderRadius: 10,
+            padding: 12,
+            marginBottom: 16,
+            textAlign: 'center',
+          }}
+        >
+          <span
+            style={{
+              fontSize: 13,
+              fontWeight: 800,
+              color: event.status === 'finished' ? c.text : c.danger,
+            }}
+          >
+            {event.status === 'finished'
+              ? '🏁 Evento encerrado · arquivado no histórico'
+              : '⛔ Evento cancelado'}
+          </span>
+        </div>
+      ) : null}
+
+      {/* Botão primário do organizador (só aberto/sorteado) */}
+      {isOrganizer && (event.status === 'open' || event.status === 'teams_drawn') ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 8 }}>
           <button
             onClick={() => nav.navigate('RatePlayers', { eventId: event.id })}
@@ -506,34 +541,52 @@ export const EventDetailScreen: React.FC = () => {
             marginBottom: 16,
           }}
         >
-          <button
-            onClick={() => nav.navigate('EditEvent', { eventId: event.id })}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: c.primary,
-              fontSize: 13,
-              fontWeight: 700,
-              padding: 0,
-            }}
-          >
-            ✏️ Editar
-          </button>
-          <button
-            onClick={onCancel}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              color: c.primary,
-              fontSize: 13,
-              fontWeight: 700,
-              padding: 0,
-            }}
-          >
-            ⛔ Cancelar evento
-          </button>
+          {event.status !== 'finished' ? (
+            <>
+              <button
+                onClick={() => nav.navigate('EditEvent', { eventId: event.id })}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: c.primary,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: 0,
+                }}
+              >
+                ✏️ Editar
+              </button>
+              <button
+                onClick={onClose}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: c.primary,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: 0,
+                }}
+              >
+                🏁 Encerrar evento
+              </button>
+              <button
+                onClick={onCancel}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: c.primary,
+                  fontSize: 13,
+                  fontWeight: 700,
+                  padding: 0,
+                }}
+              >
+                ⛔ Cancelar evento
+              </button>
+            </>
+          ) : null}
           <button
             onClick={onDelete}
             style={{

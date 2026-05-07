@@ -208,7 +208,22 @@ export const EventDetailScreen: React.FC = () => {
   };
 
   const onCancel = async () => {
+    const proceed =
+      typeof window !== 'undefined'
+        ? window.confirm('Cancelar este evento? Avisa todos que nao vai mais acontecer.')
+        : true;
+    if (!proceed) return;
     await setEventStatus(event.id, 'cancelled');
+    await load();
+  };
+
+  const onClose = async () => {
+    const proceed =
+      typeof window !== 'undefined'
+        ? window.confirm('Encerrar este evento? Vai pro Historico e some das listas.')
+        : true;
+    if (!proceed) return;
+    await setEventStatus(event.id, 'finished');
     await load();
   };
 
@@ -276,8 +291,36 @@ export const EventDetailScreen: React.FC = () => {
         </Pressable>
       ) : null}
 
+      {/* Selo de status quando finalizado/cancelado */}
+      {event.status === 'finished' || event.status === 'cancelled' ? (
+        <View
+          style={{
+            backgroundColor:
+              event.status === 'finished' ? c.surfaceVariant : c.danger + '22',
+            borderWidth: 1,
+            borderColor: event.status === 'finished' ? c.border : c.danger,
+            borderRadius: radius.md,
+            padding: spacing.md,
+            marginBottom: spacing.lg,
+            alignItems: 'center',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 13,
+              fontWeight: '800',
+              color: event.status === 'finished' ? c.text : c.danger,
+            }}
+          >
+            {event.status === 'finished'
+              ? '🏁 Evento encerrado · arquivado no histórico'
+              : '⛔ Evento cancelado'}
+          </Text>
+        </View>
+      ) : null}
+
       {/* Botão primário do organizador: sortear / refazer sorteio */}
-      {isOrganizer && event.status !== 'cancelled' ? (
+      {isOrganizer && (event.status === 'open' || event.status === 'teams_drawn') ? (
         <View style={{ gap: spacing.sm, marginBottom: spacing.sm }}>
           <Button
             title={
@@ -300,12 +343,22 @@ export const EventDetailScreen: React.FC = () => {
       {/* Ações secundárias do organizador como linha de links discretos */}
       {isOrganizer && event.status !== 'cancelled' ? (
         <View style={styles.actionsLinkRow}>
-          <Pressable onPress={() => nav.navigate('EditEvent', { eventId: event.id })} hitSlop={6}>
-            <Text style={styles.actionLink}>✏️ Editar</Text>
-          </Pressable>
-          <Pressable onPress={onCancel} hitSlop={6}>
-            <Text style={styles.actionLink}>⛔ Cancelar evento</Text>
-          </Pressable>
+          {event.status !== 'finished' ? (
+            <>
+              <Pressable
+                onPress={() => nav.navigate('EditEvent', { eventId: event.id })}
+                hitSlop={6}
+              >
+                <Text style={styles.actionLink}>✏️ Editar</Text>
+              </Pressable>
+              <Pressable onPress={onClose} hitSlop={6}>
+                <Text style={styles.actionLink}>🏁 Encerrar evento</Text>
+              </Pressable>
+              <Pressable onPress={onCancel} hitSlop={6}>
+                <Text style={styles.actionLink}>⛔ Cancelar evento</Text>
+              </Pressable>
+            </>
+          ) : null}
           <Pressable onPress={onDelete} hitSlop={6}>
             <Text style={[styles.actionLink, styles.actionLinkDanger]}>🗑️ Excluir</Text>
           </Pressable>
