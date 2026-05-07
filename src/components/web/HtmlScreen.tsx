@@ -28,15 +28,21 @@ export const HtmlScreen: React.FC<Props> = ({
   style,
 }) => {
   const c = useThemedColors();
+  // Expo coloca `body { overflow: hidden }` no CSS reset, entao precisamos
+  // fazer scroll internamente neste container. Usa height: 100% (preenche
+  // #root que tem height: 100%) + overflowY: auto pra rolagem interna,
+  // -webkit-overflow-scrolling: touch pra inercia em iOS.
   return (
     <div
       style={{
         fontFamily: FONT_FAMILY,
         background: c.background,
         color: c.text,
-        minHeight: '100vh',
-        boxSizing: 'border-box',
+        height: '100%',
         width: '100%',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        boxSizing: 'border-box',
         ...style,
       }}
     >

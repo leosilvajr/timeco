@@ -136,7 +136,8 @@ export const EventDetailScreen: React.FC = () => {
             '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
           color: c.text,
           background: c.background,
-          minHeight: '100vh',
+          height: '100%',
+          overflowY: 'auto',
         }}
       >
         <p>Carregando...</p>
@@ -258,9 +259,11 @@ export const EventDetailScreen: React.FC = () => {
         fontFamily,
         background: c.background,
         color: c.text,
-        minHeight: '100vh',
-        boxSizing: 'border-box',
+        height: '100%',
         width: '100%',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        boxSizing: 'border-box',
       }}
     >
       {/* Header */}
