@@ -6,3 +6,5 @@ export { HtmlAvatar } from './HtmlAvatar';
 export { HtmlInput } from './HtmlInput';
 export { HtmlEmpty } from './HtmlEmpty';
 export { HtmlNotificationBell } from './HtmlNotificationBell';
+export { HtmlEventForm } from './HtmlEventForm';
+export type { HtmlEventFormValues, HtmlEventFormInitial } from './HtmlEventForm';
