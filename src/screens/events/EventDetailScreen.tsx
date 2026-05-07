@@ -1,9 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Card, Button, Avatar } from '../../components';
-import { colors, spacing, radius } from '../../constants/theme';
+import { ColorPalette, spacing, radius } from '../../constants/theme';
 import { getSport } from '../../constants/sports';
 import { Event, User, ConfirmationStatus } from '../../types';
 import {
@@ -22,18 +22,21 @@ import { EventGallery } from './components/EventGallery';
 type Nav = NativeStackNavigationProp<EventsStackParamList, 'EventDetail'>;
 type Rt = RouteProp<EventsStackParamList, 'EventDetail'>;
 
-/** Avatar miniatura com nome abaixo — usado nos confirmados em linha. */
-const PlayerMini: React.FC<{ u?: User }> = ({ u }) => {
-  useThemedColors();
-  const styles = StyleSheet.create({
+const makeMiniStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     wrap: { alignItems: 'center', gap: 4, width: 64 },
     name: {
       fontSize: 11,
-      color: colors.text,
+      color: c.text,
       fontWeight: '600',
       textAlign: 'center',
     },
   });
+
+/** Avatar miniatura com nome abaixo — usado nos confirmados em linha. */
+const PlayerMini: React.FC<{ u?: User }> = ({ u }) => {
+  const c = useThemedColors();
+  const styles = useMemo(() => makeMiniStyles(c), [c]);
   if (!u) return null;
   const firstName = u.name.split(' ')[0];
   return (
@@ -46,22 +49,25 @@ const PlayerMini: React.FC<{ u?: User }> = ({ u }) => {
   );
 };
 
-const PlayerRow: React.FC<{ u?: User }> = ({ u }) => {
-  useThemedColors();
-  const styles = StyleSheet.create({
+const makeRowStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     row: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.md,
-      backgroundColor: colors.surface,
+      backgroundColor: c.surface,
       borderRadius: radius.md,
       padding: spacing.md,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: c.border,
       marginBottom: 6,
     },
-    name: { fontSize: 15, color: colors.text, fontWeight: '600' },
+    name: { fontSize: 15, color: c.text, fontWeight: '600' },
   });
+
+const PlayerRow: React.FC<{ u?: User }> = ({ u }) => {
+  const c = useThemedColors();
+  const styles = useMemo(() => makeRowStyles(c), [c]);
   if (!u) return null;
   return (
     <View style={styles.row}>
@@ -71,41 +77,29 @@ const PlayerRow: React.FC<{ u?: User }> = ({ u }) => {
   );
 };
 
-export const EventDetailScreen: React.FC = () => {
-  useThemedColors();
-  const route = useRoute<Rt>();
-  const nav = useNavigation<Nav>();
-  const user = useAuthStore((s) => s.user);
-  const [event, setEvent] = useState<Event | null>(null);
-  const [users, setUsers] = useState<Record<string, User>>({});
-  const [busy, setBusy] = useState(false);
-
-  const styles = StyleSheet.create({
+const makeScreenStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     confirmCard: { marginBottom: spacing.lg },
-    confirmTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
+    confirmTitle: { fontSize: 16, fontWeight: '700', color: c.text },
     confirmSub: {
       fontSize: 12,
-      color: colors.textSecondary,
+      color: c.textSecondary,
       marginTop: 4,
       lineHeight: 17,
     },
-    // Indicador compacto quando user já confirmou ou recusou
     statusPill: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.sm,
-      backgroundColor: colors.surfaceVariant,
+      backgroundColor: c.surfaceVariant,
       borderRadius: radius.pill,
       paddingHorizontal: spacing.md,
       paddingVertical: 8,
       marginBottom: spacing.lg,
       alignSelf: 'flex-start',
     },
-    statusTxt: { fontSize: 13, fontWeight: '700', color: colors.text },
-    statusChange: { fontSize: 12, fontWeight: '700', color: colors.primary },
-    // Confirmados em miniaturas — flex-wrap em vez de horizontal scroll
-    // (ScrollView horizontal dentro de ScrollView vertical crasha o Chrome
-    // no react-native-web em alguns casos).
+    statusTxt: { fontSize: 13, fontWeight: '700', color: c.text },
+    statusChange: { fontSize: 12, fontWeight: '700', color: c.primary },
     miniRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -115,11 +109,10 @@ export const EventDetailScreen: React.FC = () => {
     miniLabel: {
       fontSize: 13,
       fontWeight: '700',
-      color: colors.textSecondary,
+      color: c.textSecondary,
       marginTop: spacing.md,
       marginBottom: 2,
     },
-    // Linha de ações secundárias compactas (organizador)
     actionsLinkRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
@@ -130,22 +123,33 @@ export const EventDetailScreen: React.FC = () => {
     actionLink: {
       fontSize: 13,
       fontWeight: '700',
-      color: colors.primary,
+      color: c.primary,
     },
-    actionLinkDanger: { color: colors.danger },
+    actionLinkDanger: { color: c.danger },
     section: {
       fontSize: 15,
       fontWeight: '800',
-      color: colors.text,
+      color: c.text,
       marginTop: spacing.lg,
       marginBottom: spacing.sm,
     },
     emptyTxt: {
-      color: colors.textSecondary,
+      color: c.textSecondary,
       fontSize: 13,
       paddingVertical: 4,
     },
   });
+
+export const EventDetailScreen: React.FC = () => {
+  const c = useThemedColors();
+  const route = useRoute<Rt>();
+  const nav = useNavigation<Nav>();
+  const user = useAuthStore((s) => s.user);
+  const [event, setEvent] = useState<Event | null>(null);
+  const [users, setUsers] = useState<Record<string, User>>({});
+  const [busy, setBusy] = useState(false);
+
+  const styles = useMemo(() => makeScreenStyles(c), [c]);
 
   const load = useCallback(async () => {
     const e = await getEventById(route.params.eventId);

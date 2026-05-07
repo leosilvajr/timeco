@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
-import { colors, spacing } from '../constants/theme';
+import { ColorPalette, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
 
 interface Props {
@@ -10,9 +10,8 @@ interface Props {
   right?: React.ReactNode;
 }
 
-export const Header: React.FC<Props> = ({ title, subtitle, onBack, right }) => {
-  useThemedColors();
-  const styles = StyleSheet.create({
+const makeStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     wrap: {
       marginBottom: spacing.lg,
     },
@@ -27,25 +26,29 @@ export const Header: React.FC<Props> = ({ title, subtitle, onBack, right }) => {
       borderRadius: 16,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: colors.surfaceVariant,
+      backgroundColor: c.surfaceVariant,
     },
     backTxt: {
       fontSize: 28,
-      color: colors.text,
+      color: c.text,
       lineHeight: 28,
       marginTop: -2,
     },
     title: {
       fontSize: 24,
       fontWeight: '800',
-      color: colors.text,
+      color: c.text,
     },
     subtitle: {
       fontSize: 14,
-      color: colors.textSecondary,
+      color: c.textSecondary,
       marginTop: 2,
     },
   });
+
+export const Header: React.FC<Props> = ({ title, subtitle, onBack, right }) => {
+  const c = useThemedColors();
+  const styles = useMemo(() => makeStyles(c), [c]);
   return (
     <View style={styles.wrap}>
       <View style={styles.row}>

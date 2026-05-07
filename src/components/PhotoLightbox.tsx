@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Modal, Text, Pressable, StyleSheet, Image, Dimensions } from 'react-native';
-import { colors, spacing } from '../constants/theme';
+import { ColorPalette, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
 
 interface Props {
@@ -10,15 +10,8 @@ interface Props {
   caption?: string;
 }
 
-/**
- * Modal de visualização de foto em tela cheia (lightbox).
- * Toque em qualquer lugar fecha. Mantém aspect ratio.
- */
-export const PhotoLightbox: React.FC<Props> = ({ visible, url, onClose, caption }) => {
-  useThemedColors();
-  const { width, height } = Dimensions.get('window');
-
-  const styles = StyleSheet.create({
+const makeStyles = (c: ColorPalette, width: number, height: number) =>
+  StyleSheet.create({
     overlay: {
       flex: 1,
       backgroundColor: 'rgba(0,0,0,0.92)',
@@ -36,7 +29,7 @@ export const PhotoLightbox: React.FC<Props> = ({ visible, url, onClose, caption 
       alignItems: 'center',
       justifyContent: 'center',
     },
-    closeTxt: { color: colors.white, fontSize: 22, fontWeight: '900' },
+    closeTxt: { color: c.white, fontSize: 22, fontWeight: '900' },
     image: {
       width: width * 0.95,
       height: height * 0.85,
@@ -46,11 +39,20 @@ export const PhotoLightbox: React.FC<Props> = ({ visible, url, onClose, caption 
       bottom: spacing.xl,
       left: spacing.lg,
       right: spacing.lg,
-      color: colors.white,
+      color: c.white,
       fontSize: 14,
       textAlign: 'center',
     },
   });
+
+/**
+ * Modal de visualização de foto em tela cheia (lightbox).
+ * Toque em qualquer lugar fecha. Mantém aspect ratio.
+ */
+export const PhotoLightbox: React.FC<Props> = ({ visible, url, onClose, caption }) => {
+  const c = useThemedColors();
+  const { width, height } = Dimensions.get('window');
+  const styles = useMemo(() => makeStyles(c, width, height), [c, width, height]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>

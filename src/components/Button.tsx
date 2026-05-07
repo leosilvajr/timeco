@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, Text, StyleSheet, ActivityIndicator, ViewStyle, TextStyle } from 'react-native';
-import { colors, radius, spacing } from '../constants/theme';
+import { ColorPalette, radius, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -17,6 +17,47 @@ interface Props {
   fullWidth?: boolean;
 }
 
+const makeStyles = (c: ColorPalette, variant: Variant) => {
+  const bg = {
+    primary: c.primary,
+    secondary: c.secondary,
+    outline: 'transparent',
+    ghost: 'transparent',
+    danger: c.danger,
+  }[variant];
+  const txt = {
+    primary: c.white,
+    secondary: c.black,
+    outline: c.primary,
+    ghost: c.primary,
+    danger: c.white,
+  }[variant];
+  const border = variant === 'outline' ? c.primary : 'transparent';
+  return {
+    txt,
+    sheet: StyleSheet.create({
+      base: {
+        minHeight: 50,
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.lg,
+        paddingVertical: spacing.md,
+        backgroundColor: bg,
+        borderWidth: variant === 'outline' ? 2 : 0,
+        borderColor: border,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+      },
+      text: {
+        color: txt,
+        fontSize: 16,
+        fontWeight: '700',
+      },
+    }),
+  };
+};
+
 export const Button: React.FC<Props> = ({
   title,
   onPress,
@@ -28,43 +69,9 @@ export const Button: React.FC<Props> = ({
   textStyle,
   fullWidth = true,
 }) => {
-  useThemedColors();
+  const c = useThemedColors();
   const isDisabled = disabled || loading;
-  const bg = {
-    primary: colors.primary,
-    secondary: colors.secondary,
-    outline: 'transparent',
-    ghost: 'transparent',
-    danger: colors.danger,
-  }[variant];
-  const txt = {
-    primary: colors.white,
-    secondary: colors.black,
-    outline: colors.primary,
-    ghost: colors.primary,
-    danger: colors.white,
-  }[variant];
-  const border = variant === 'outline' ? colors.primary : 'transparent';
-  const styles = StyleSheet.create({
-    base: {
-      minHeight: 50,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.lg,
-      paddingVertical: spacing.md,
-      backgroundColor: bg,
-      borderWidth: variant === 'outline' ? 2 : 0,
-      borderColor: border,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-    },
-    text: {
-      color: txt,
-      fontSize: 16,
-      fontWeight: '700',
-    },
-  });
+  const { txt, sheet: styles } = useMemo(() => makeStyles(c, variant), [c, variant]);
   return (
     <Pressable
       onPress={onPress}

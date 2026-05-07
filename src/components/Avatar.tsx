@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, Image, StyleSheet } from 'react-native';
-import { colors } from '../constants/theme';
+import { ColorPalette } from '../constants/theme';
 import { useThemedColors } from '../store';
 
 interface Props {
@@ -16,22 +16,25 @@ const initials = (name?: string) => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-export const Avatar: React.FC<Props> = ({ name, photoURL, size = 44 }) => {
-  useThemedColors();
-  const styles = StyleSheet.create({
+const makeStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     img: {
-      backgroundColor: colors.surfaceVariant,
+      backgroundColor: c.surfaceVariant,
     },
     placeholder: {
-      backgroundColor: colors.primary,
+      backgroundColor: c.primary,
       alignItems: 'center',
       justifyContent: 'center',
     },
     text: {
-      color: colors.white,
+      color: c.white,
       fontWeight: '800',
     },
   });
+
+export const Avatar: React.FC<Props> = ({ name, photoURL, size = 44 }) => {
+  const c = useThemedColors();
+  const styles = useMemo(() => makeStyles(c), [c]);
   const style = { width: size, height: size, borderRadius: size / 2 };
   if (photoURL) {
     return <Image source={{ uri: photoURL }} style={[style, styles.img]} />;

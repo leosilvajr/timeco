@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet, StyleProp, ViewStyle, Pressable } from 'react-native';
-import { colors, radius, spacing } from '../constants/theme';
+import { ColorPalette, radius, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
 
 interface Props {
@@ -9,22 +9,25 @@ interface Props {
   onPress?: () => void;
 }
 
-export const Card: React.FC<Props> = ({ children, style, onPress }) => {
-  useThemedColors();
-  const styles = StyleSheet.create({
+const makeStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     card: {
-      backgroundColor: colors.surface,
+      backgroundColor: c.surface,
       borderRadius: radius.lg,
       padding: spacing.lg,
       borderWidth: 1,
-      borderColor: colors.border,
-      shadowColor: colors.black,
+      borderColor: c.border,
+      shadowColor: c.black,
       shadowOpacity: 0.04,
       shadowRadius: 8,
       shadowOffset: { width: 0, height: 2 },
       elevation: 1,
     },
   });
+
+export const Card: React.FC<Props> = ({ children, style, onPress }) => {
+  const c = useThemedColors();
+  const styles = useMemo(() => makeStyles(c), [c]);
   if (onPress) {
     return (
       <Pressable

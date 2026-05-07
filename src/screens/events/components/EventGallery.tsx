@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { PhotoLightbox } from '../../../components';
-import { colors, spacing, radius } from '../../../constants/theme';
+import { ColorPalette, spacing, radius } from '../../../constants/theme';
 import { useThemedColors } from '../../../store';
 import { EventPhoto, Event, User } from '../../../types';
 import {
@@ -27,23 +27,12 @@ const canParticipate = (event: Event, user: User): boolean =>
  * lightbox ao tocar, permite upload pra participantes e remoção pelo
  * uploader ou pelo organizador.
  */
-export const EventGallery: React.FC<Props> = ({ event, user, isOrganizer }) => {
-  useThemedColors();
-  const [photos, setPhotos] = useState<EventPhoto[]>([]);
-  const [lightboxPhoto, setLightboxPhoto] = useState<EventPhoto | null>(null);
-  const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    listEventPhotos(event.id)
-      .then(setPhotos)
-      .catch((e) => console.warn('listEventPhotos', e));
-  }, [event.id]);
-
-  const styles = StyleSheet.create({
+const makeStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     section: {
       fontSize: 15,
       fontWeight: '800',
-      color: colors.text,
+      color: c.text,
       marginTop: spacing.lg,
       marginBottom: spacing.sm,
     },
@@ -58,7 +47,7 @@ export const EventGallery: React.FC<Props> = ({ event, user, isOrganizer }) => {
       width: 92,
       height: 92,
       borderRadius: radius.md,
-      backgroundColor: colors.surfaceVariant,
+      backgroundColor: c.surfaceVariant,
     },
     remove: {
       position: 'absolute',
@@ -71,23 +60,36 @@ export const EventGallery: React.FC<Props> = ({ event, user, isOrganizer }) => {
       alignItems: 'center',
       justifyContent: 'center',
     },
-    removeTxt: { color: colors.white, fontSize: 14, fontWeight: '900' },
+    removeTxt: { color: c.white, fontSize: 14, fontWeight: '900' },
     addBtn: {
       width: 92,
       height: 92,
       borderRadius: radius.md,
-      backgroundColor: colors.surfaceVariant,
+      backgroundColor: c.surfaceVariant,
       borderWidth: 2,
       borderStyle: 'dashed',
-      borderColor: colors.primary,
+      borderColor: c.primary,
       alignItems: 'center',
       justifyContent: 'center',
       gap: 4,
     },
-    addTxt: { fontSize: 26, color: colors.primary, fontWeight: '900', lineHeight: 28 },
-    addLabel: { fontSize: 10, fontWeight: '700', color: colors.primary },
-    empty: { color: colors.textSecondary, fontSize: 13, paddingVertical: 4 },
+    addTxt: { fontSize: 26, color: c.primary, fontWeight: '900', lineHeight: 28 },
+    addLabel: { fontSize: 10, fontWeight: '700', color: c.primary },
+    empty: { color: c.textSecondary, fontSize: 13, paddingVertical: 4 },
   });
+
+export const EventGallery: React.FC<Props> = ({ event, user, isOrganizer }) => {
+  const c = useThemedColors();
+  const styles = useMemo(() => makeStyles(c), [c]);
+  const [photos, setPhotos] = useState<EventPhoto[]>([]);
+  const [lightboxPhoto, setLightboxPhoto] = useState<EventPhoto | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    listEventPhotos(event.id)
+      .then(setPhotos)
+      .catch((e) => console.warn('listEventPhotos', e));
+  }, [event.id]);
 
   const handlePick = async () => {
     if (!user) return;

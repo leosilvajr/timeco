@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, ScrollView, StyleSheet, ViewStyle, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing } from '../constants/theme';
+import { ColorPalette, spacing } from '../constants/theme';
 import { useThemedColors } from '../store';
 import { useResponsive, maxContentWidth } from '../hooks/useResponsive';
 
@@ -29,25 +29,29 @@ export const Screen: React.FC<Props> = ({
   keyboardAvoiding = true,
   maxWidth,
 }) => {
-  useThemedColors();
+  const c = useThemedColors();
   const responsive = useResponsive();
   const desktop = responsive.isDesktop;
   const effectiveMaxWidth = maxWidth ?? maxContentWidth;
 
-  const styles = StyleSheet.create({
-    safe: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
-    padded: {
-      padding: desktop ? spacing.xl : spacing.lg,
-    },
-    desktopCenter: {
-      width: '100%',
-      maxWidth: effectiveMaxWidth,
-      alignSelf: 'center',
-    },
-  });
+  const styles = useMemo(
+    () =>
+      StyleSheet.create({
+        safe: {
+          flex: 1,
+          backgroundColor: c.background,
+        },
+        padded: {
+          padding: desktop ? spacing.xl : spacing.lg,
+        },
+        desktopCenter: {
+          width: '100%',
+          maxWidth: effectiveMaxWidth,
+          alignSelf: 'center',
+        },
+      }),
+    [c, desktop, effectiveMaxWidth],
+  );
 
   const innerStyle: ViewStyle = desktop ? styles.desktopCenter : {};
 

@@ -1,7 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, Pressable, Linking } from 'react-native';
+import React, { useMemo } from 'react';
+import { Text, StyleSheet, Pressable, Linking } from 'react-native';
 import { Card } from '../../../components';
-import { colors, spacing, radius } from '../../../constants/theme';
+import { ColorPalette, spacing, radius } from '../../../constants/theme';
 import { useThemedColors } from '../../../store';
 import { Event } from '../../../types';
 import { googleMapsUrl } from '../../../services/locationService';
@@ -24,28 +24,22 @@ const formatDate = (date: Date | Timestamp | null): string => {
   });
 };
 
-/**
- * Card hero do evento com data, local (com link Google Maps), organizador
- * e notas. Cores fixas (primary background) por design.
- */
-export const EventHero: React.FC<Props> = ({ event }) => {
-  useThemedColors();
-
-  const styles = StyleSheet.create({
+const makeStyles = (c: ColorPalette) =>
+  StyleSheet.create({
     card: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
+      backgroundColor: c.primary,
+      borderColor: c.primary,
       marginBottom: spacing.lg,
     },
     dateBig: {
       fontSize: 18,
       fontWeight: '800',
-      color: colors.white,
+      color: c.white,
       textTransform: 'capitalize',
     },
-    location: { fontSize: 15, color: colors.white, marginTop: 6 },
-    organizer: { fontSize: 13, color: colors.white, opacity: 0.9, marginTop: 8 },
-    notes: { fontSize: 13, color: colors.white, opacity: 0.9, marginTop: 6 },
+    location: { fontSize: 15, color: c.white, marginTop: 6 },
+    organizer: { fontSize: 13, color: c.white, opacity: 0.9, marginTop: 8 },
+    notes: { fontSize: 13, color: c.white, opacity: 0.9, marginTop: 6 },
     mapsBtn: {
       alignSelf: 'flex-start',
       marginTop: 8,
@@ -54,8 +48,16 @@ export const EventHero: React.FC<Props> = ({ event }) => {
       backgroundColor: 'rgba(255,255,255,0.18)',
       borderRadius: radius.md,
     },
-    mapsTxt: { color: colors.white, fontSize: 13, fontWeight: '700' },
+    mapsTxt: { color: c.white, fontSize: 13, fontWeight: '700' },
   });
+
+/**
+ * Card hero do evento com data, local (com link Google Maps), organizador
+ * e notas. Cores fixas (primary background) por design.
+ */
+export const EventHero: React.FC<Props> = ({ event }) => {
+  const c = useThemedColors();
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   return (
     <Card style={styles.card}>
