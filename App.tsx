@@ -7,6 +7,9 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { AppNavigator } from './src/navigation';
 import { DebugOverlay } from './src/components/DebugOverlay';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
+import { ToastContainer } from './src/components/ToastContainer';
+import { HtmlToastContainer } from './src/components/web';
 import { onAuthStateChanged, ensureUserDocument } from './src/services/authService';
 import { subscribeNotifications } from './src/services/notificationService';
 import { requestWebNotificationPermission, showWebNotification } from './src/services/webPush';
@@ -146,17 +149,21 @@ export default function App() {
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <NavigationContainer theme={navTheme}>
-          <AppNavigator />
-          <StatusBar style={isDark ? 'light' : 'dark'} />
-          {/* Debug overlay — captura logs/erros em mobile-web.
-              Ativar via URL: ?debug=1 (ou descomentar a linha abaixo). */}
-          {Platform.OS === 'web' &&
-          typeof window !== 'undefined' &&
-          window.location?.search.includes('debug=1') ? (
-            <DebugOverlay />
-          ) : null}
-        </NavigationContainer>
+        <ErrorBoundary>
+          <NavigationContainer theme={navTheme}>
+            <AppNavigator />
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+            {/* Toast container — escolhe versao web ou nativa. */}
+            {Platform.OS === 'web' ? <HtmlToastContainer /> : <ToastContainer />}
+            {/* Debug overlay — captura logs/erros em mobile-web.
+                Ativar via URL: ?debug=1 (ou descomentar a linha abaixo). */}
+            {Platform.OS === 'web' &&
+            typeof window !== 'undefined' &&
+            window.location?.search.includes('debug=1') ? (
+              <DebugOverlay />
+            ) : null}
+          </NavigationContainer>
+        </ErrorBoundary>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

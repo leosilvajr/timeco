@@ -26,3 +26,7 @@ export { FriendPicker } from './FriendPicker';
 export { EventForm } from './EventForm';
 export type { EventFormValues, EventFormInitial } from './EventForm';
 export { SportsBackdrop } from './SportsBackdrop';
+export { Badge } from './Badge';
+export { StreakBadge } from './StreakBadge';
+export { ErrorBoundary } from './ErrorBoundary';
+export { ToastContainer } from './ToastContainer';

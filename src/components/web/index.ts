@@ -9,3 +9,6 @@ export { HtmlNotificationBell } from './HtmlNotificationBell';
 export { HtmlEventForm } from './HtmlEventForm';
 export type { HtmlEventFormValues, HtmlEventFormInitial } from './HtmlEventForm';
 export { LOGO_URL, GoogleG } from './HtmlAssets';
+export { HtmlBadge } from './HtmlBadge';
+export { HtmlStreakBadge } from './HtmlStreakBadge';
+export { HtmlToastContainer } from './HtmlToastContainer';
