@@ -17,10 +17,12 @@ export const NotificationBell: React.FC = () => {
   const nav = useNavigation();
 
   const goToNotifications = () => {
-    // Cross-tab: vai pra aba Perfil → Notifications via root navigator
+    // Cross-tab: vai pra aba Perfil → Notifications via root navigator.
+    // initial: false pra empilhar em cima do ProfileHome (em vez de resetar
+    // a stack do Perfil pra ter so Notifications).
     (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate(
       'Perfil',
-      { screen: 'Notifications' },
+      { screen: 'Notifications', initial: false },
     );
   };
 

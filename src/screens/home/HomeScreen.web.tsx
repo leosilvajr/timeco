@@ -83,14 +83,27 @@ export const HomeScreen: React.FC = () => {
     }, [user?.id]),
   );
 
-  const goEditProfile = () => nav.navigate('Perfil', { screen: 'EditProfile' } as never);
-  const goCreate = () => nav.navigate('Jogos', { screen: 'CreateEvent' } as never);
+  // initial: false faz o React Navigation EMPILHAR a tela em cima da raiz
+  // do stack (em vez de resetar). Resolve o bug de "voltar pra Jogos
+  // mostra EventDetail em vez da lista" — agora a stack sempre tem
+  // [EventsList, ...] como raiz.
+  const goEditProfile = () =>
+    nav.navigate('Perfil', { screen: 'EditProfile', initial: false } as never);
+  const goCreate = () =>
+    nav.navigate('Jogos', { screen: 'CreateEvent', initial: false } as never);
   const goEvents = () => nav.navigate('Jogos', { screen: 'EventsList' } as never);
   const goEventDetail = (eventId: string) =>
-    nav.navigate('Jogos', { screen: 'EventDetail', params: { eventId } } as never);
-  const goAddFriend = () => nav.navigate('Social', { screen: 'AddFriend' } as never);
-  const goRequests = () => nav.navigate('Social', { screen: 'FriendRequests' } as never);
-  const goNotifications = () => nav.navigate('Perfil', { screen: 'Notifications' } as never);
+    nav.navigate('Jogos', {
+      screen: 'EventDetail',
+      params: { eventId },
+      initial: false,
+    } as never);
+  const goAddFriend = () =>
+    nav.navigate('Social', { screen: 'AddFriend', initial: false } as never);
+  const goRequests = () =>
+    nav.navigate('Social', { screen: 'FriendRequests', initial: false } as never);
+  const goNotifications = () =>
+    nav.navigate('Perfil', { screen: 'Notifications', initial: false } as never);
   const goVolley = () =>
     (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate('Volley', {
       screen: 'VolleyHome',

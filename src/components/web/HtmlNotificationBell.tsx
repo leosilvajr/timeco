@@ -9,8 +9,11 @@ export const HtmlNotificationBell: React.FC = () => {
   const nav = useNavigation();
 
   const goToNotifications = () => {
+    // initial: false pra empilhar Notifications em cima do ProfileHome
+    // (em vez de resetar a stack do Perfil pra ter so Notifications).
     (nav as unknown as { navigate: (n: string, p?: unknown) => void }).navigate('Perfil', {
       screen: 'Notifications',
+      initial: false,
     });
   };
 
