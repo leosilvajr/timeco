@@ -129,18 +129,21 @@ export const ProfileHomeScreen: React.FC = () => {
       <HtmlHeader title="Perfil" right={<HtmlNotificationBell />} />
 
       <HtmlCard style={{ textAlign: 'center' }}>
-        <button
-          onClick={() => user.photoURL && setLightbox({ url: user.photoURL, caption: user.name })}
-          disabled={!user.photoURL}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            cursor: user.photoURL ? 'pointer' : 'default',
-            padding: 0,
-          }}
-        >
-          <HtmlAvatar name={user.name} photoURL={user.photoURL} size={88} />
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <button
+            onClick={() => user.photoURL && setLightbox({ url: user.photoURL, caption: user.name })}
+            disabled={!user.photoURL}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              cursor: user.photoURL ? 'pointer' : 'default',
+              padding: 0,
+              display: 'inline-flex',
+            }}
+          >
+            <HtmlAvatar name={user.name} photoURL={user.photoURL} size={88} />
+          </button>
+        </div>
         <div style={{ fontSize: 22, fontWeight: 800, color: c.text, marginTop: 6 }}>
           {user.name}
         </div>
