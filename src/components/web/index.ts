@@ -12,3 +12,5 @@ export { LOGO_URL, GoogleG } from './HtmlAssets';
 export { HtmlBadge } from './HtmlBadge';
 export { HtmlStreakBadge } from './HtmlStreakBadge';
 export { HtmlToastContainer } from './HtmlToastContainer';
+export { webConfirm } from './HtmlConfirm';
+export type { ConfirmOptions } from './HtmlConfirm';

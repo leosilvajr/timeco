@@ -1,4 +1,5 @@
 import React from 'react';
+import { Avatar as MantineAvatar } from '@mantine/core';
 import { useThemedColors } from '../../store';
 
 interface Props {
@@ -14,40 +15,25 @@ const initials = (name?: string): string => {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 };
 
-/** Avatar web. Renderiza img se tem photoURL, senao iniciais em circle. */
+/** Avatar web baseado em Mantine Avatar. Mostra iniciais coloridas se sem foto. */
 export const HtmlAvatar: React.FC<Props> = ({ name, photoURL, size = 44 }) => {
   const c = useThemedColors();
-  const baseStyle: React.CSSProperties = {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    flexShrink: 0,
-    objectFit: 'cover',
-    display: 'block',
-  };
-  if (photoURL) {
-    return (
-      <img
-        src={photoURL}
-        alt={name ?? ''}
-        style={{ ...baseStyle, background: c.surfaceVariant }}
-      />
-    );
-  }
   return (
-    <div
+    <MantineAvatar
+      src={photoURL}
+      alt={name ?? ''}
+      size={size}
+      radius={size / 2}
+      color="timeco"
       style={{
-        ...baseStyle,
-        background: c.primary,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        background: photoURL ? c.surfaceVariant : c.primary,
         color: c.white,
         fontWeight: 800,
         fontSize: size * 0.4,
+        flexShrink: 0,
       }}
     >
       {initials(name)}
-    </div>
+    </MantineAvatar>
   );
 };

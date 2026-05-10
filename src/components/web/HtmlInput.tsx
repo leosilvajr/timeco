@@ -1,4 +1,5 @@
 import React from 'react';
+import { TextInput, Textarea, PasswordInput } from '@mantine/core';
 import { useThemedColors } from '../../store';
 
 interface Props {
@@ -15,7 +16,7 @@ interface Props {
   style?: React.CSSProperties;
 }
 
-/** Input web. Substitui Input do RN em arquivos .web.tsx. */
+/** Input web baseado em Mantine TextInput / Textarea / PasswordInput. */
 export const HtmlInput: React.FC<Props> = ({
   label,
   value,
@@ -29,63 +30,28 @@ export const HtmlInput: React.FC<Props> = ({
   error,
   style,
 }) => {
-  const c = useThemedColors();
-  const inputStyle: React.CSSProperties = {
-    width: '100%',
-    padding: '12px 14px',
-    borderRadius: 10,
-    border: `1px solid ${error ? c.danger : c.border}`,
-    background: c.surface,
-    color: c.text,
-    fontSize: 15,
-    fontFamily: 'inherit',
-    outline: 'none',
-    boxSizing: 'border-box',
-    minHeight: multiline ? rows * 24 : 44,
-    resize: multiline ? ('vertical' as const) : ('none' as const),
-    opacity: disabled ? 0.6 : 1,
-    ...style,
+  useThemedColors();
+  const commonProps = {
+    label,
+    placeholder,
+    value,
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      onChange(e.currentTarget.value),
+    disabled,
+    autoComplete,
+    error,
+    radius: 'md' as const,
+    size: 'md' as const,
+    style: { marginBottom: 12, ...style },
   };
 
-  return (
-    <div style={{ marginBottom: 12 }}>
-      {label ? (
-        <label
-          style={{
-            display: 'block',
-            fontSize: 13,
-            fontWeight: 700,
-            color: c.textSecondary,
-            marginBottom: 6,
-          }}
-        >
-          {label}
-        </label>
-      ) : null}
-      {multiline ? (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          rows={rows}
-          disabled={disabled}
-          autoComplete={autoComplete}
-          style={inputStyle}
-        />
-      ) : (
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          autoComplete={autoComplete}
-          style={inputStyle}
-        />
-      )}
-      {error ? (
-        <p style={{ color: c.danger, fontSize: 12, margin: '4px 0 0' }}>{error}</p>
-      ) : null}
-    </div>
-  );
+  if (multiline) {
+    return <Textarea {...commonProps} rows={rows} autosize minRows={rows} maxRows={rows + 4} />;
+  }
+
+  if (type === 'password') {
+    return <PasswordInput {...commonProps} />;
+  }
+
+  return <TextInput {...commonProps} type={type} />;
 };

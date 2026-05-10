@@ -1,4 +1,5 @@
 import React from 'react';
+import { Card as MantineCard } from '@mantine/core';
 import { useThemedColors } from '../../store';
 
 interface Props {
@@ -7,35 +8,44 @@ interface Props {
   style?: React.CSSProperties;
 }
 
-/** Card web — substitui Card do RN em arquivos .web.tsx. */
+/** Card web baseado em Mantine Card (shadow + border + radius). */
 export const HtmlCard: React.FC<Props> = ({ children, onClick, style }) => {
   const c = useThemedColors();
   const baseStyle: React.CSSProperties = {
     background: c.surface,
-    borderRadius: 16,
-    padding: 16,
-    border: `1px solid ${c.border}`,
+    color: c.text,
     marginBottom: 16,
-    boxSizing: 'border-box',
     ...style,
   };
+
   if (onClick) {
     return (
-      <button
+      <MantineCard
+        shadow="xs"
+        padding="lg"
+        radius="md"
+        withBorder
         onClick={onClick}
         style={{
           ...baseStyle,
           cursor: 'pointer',
-          textAlign: 'left',
-          font: 'inherit',
-          color: 'inherit',
-          width: '100%',
-          display: 'block',
+          transition: 'transform 80ms ease, box-shadow 120ms ease',
+        }}
+        onMouseEnter={(e) => {
+          (e.currentTarget as HTMLElement).style.transform = 'translateY(-1px)';
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
         }}
       >
         {children}
-      </button>
+      </MantineCard>
     );
   }
-  return <div style={baseStyle}>{children}</div>;
+
+  return (
+    <MantineCard shadow="xs" padding="lg" radius="md" withBorder style={baseStyle}>
+      {children}
+    </MantineCard>
+  );
 };

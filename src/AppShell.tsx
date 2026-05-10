@@ -1,0 +1,176 @@
+import React, { useEffect } from 'react';
+import { StyleSheet, Platform } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+import { AppNavigator } from './navigation';
+import { DebugOverlay } from './components/DebugOverlay';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { ToastContainer } from './components/ToastContainer';
+import { HtmlToastContainer } from './components/web';
+import { onAuthStateChanged, ensureUserDocument } from './services/authService';
+import { subscribeNotifications } from './services/notificationService';
+import { requestWebNotificationPermission, showWebNotification } from './services/webPush';
+import {
+  useAuthStore,
+  useThemeStore,
+  useThemedColors,
+  useNotificationStore,
+} from './store';
+import { User } from './types';
+
+/**
+ * AppShell — toda a logica do app (Navigation, providers, listeners).
+ * Plataformas:
+ * - Native: App.tsx renderiza isto direto.
+ * - Web: App.web.tsx renderiza isto envolto em MantineProvider + Modals + Notifications.
+ */
+export const AppShell: React.FC = () => {
+  const user = useAuthStore((s) => s.user);
+  const setUser = useAuthStore((s) => s.setUser);
+  const setLoading = useAuthStore((s) => s.setLoading);
+  const hydrateTheme = useThemeStore((s) => s.hydrate);
+  const isDark = useThemeStore((s) => s.isDark);
+  const colors = useThemedColors();
+  const setNotifications = useNotificationStore((s) => s.setNotifications);
+  const markSeen = useNotificationStore((s) => s.markSeen);
+  const resetNotifications = useNotificationStore((s) => s.reset);
+
+  useEffect(() => {
+    hydrateTheme();
+  }, [hydrateTheme]);
+
+  // Re-injeta o CSS de autofill toda vez que o tema mudar (cores acompanham
+  // light/dark dinamicamente).
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      const id = 'timeco-autofill-fix';
+      let style = document.getElementById(id) as HTMLStyleElement | null;
+      if (!style) {
+        style = document.createElement('style');
+        style.id = id;
+        document.head.appendChild(style);
+      }
+      style.textContent = `
+        html, body { background-color: ${colors.background}; }
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus,
+        input:-webkit-autofill:active {
+          -webkit-box-shadow: 0 0 0 30px ${colors.surface} inset !important;
+          -webkit-text-fill-color: ${colors.text} !important;
+          caret-color: ${colors.primary} !important;
+        }
+        * { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      `;
+    }
+  }, [colors]);
+
+  useEffect(() => {
+    const unsub = onAuthStateChanged(async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDoc = await ensureUserDocument(firebaseUser);
+          setUser(userDoc as User);
+        } catch (e) {
+          console.error('load user', e);
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+        resetNotifications();
+      }
+      setLoading(false);
+    });
+    return () => unsub();
+  }, [setUser, setLoading, resetNotifications]);
+
+  // Registro de push token nativo (Android/iOS) — best-effort.
+  // No web nem importamos nativePush (evita warnings de expo-notifications
+  // que executa side-effects no module load mesmo sem usar).
+  useEffect(() => {
+    if (!user) return;
+    if (Platform.OS === 'web') return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { registerForPushNotifications, savePushTokenForUser } = await import(
+          './services/nativePush'
+        );
+        const token = await registerForPushNotifications();
+        if (!cancelled && token) {
+          await savePushTokenForUser(user.id, token);
+        }
+      } catch (e) {
+        console.warn('Falha ao registrar push token:', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  // Subscription global de notificações + permissão de web push.
+  useEffect(() => {
+    if (!user) return;
+    requestWebNotificationPermission();
+
+    let firstBatch = true;
+    const unsub = subscribeNotifications(user.id, (list) => {
+      const seen = useNotificationStore.getState().seenIds;
+      if (firstBatch) {
+        firstBatch = false;
+        markSeen(list.map((n) => n.id));
+      } else {
+        for (const n of list) {
+          if (!seen.has(n.id) && !n.read) {
+            showWebNotification(n);
+          }
+        }
+        markSeen(list.map((n) => n.id));
+      }
+      setNotifications(list);
+    });
+    return () => unsub();
+  }, [user, setNotifications, markSeen]);
+
+  const navTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: colors.primary,
+      background: colors.background,
+      card: colors.surface,
+      text: colors.text,
+      border: colors.border,
+      notification: colors.secondary,
+    },
+  };
+
+  return (
+    <GestureHandlerRootView style={styles.root}>
+      <SafeAreaProvider>
+        <ErrorBoundary>
+          <NavigationContainer theme={navTheme}>
+            <AppNavigator />
+            <StatusBar style={isDark ? 'light' : 'dark'} />
+            {/* Toast container — escolhe versao web ou nativa. */}
+            {Platform.OS === 'web' ? <HtmlToastContainer /> : <ToastContainer />}
+            {/* Debug overlay — captura logs/erros em mobile-web. */}
+            {Platform.OS === 'web' &&
+            typeof window !== 'undefined' &&
+            window.location?.search.includes('debug=1') ? (
+              <DebugOverlay />
+            ) : null}
+          </NavigationContainer>
+        </ErrorBoundary>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  );
+};
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+});

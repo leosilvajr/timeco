@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button as MantineButton } from '@mantine/core';
 import { useThemedColors } from '../../store';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
@@ -14,7 +15,18 @@ interface Props {
   style?: React.CSSProperties;
 }
 
-/** Botao web. Substitui Button do RN em arquivos .web.tsx. */
+const VARIANT_MAP: Record<
+  Variant,
+  { variant: 'filled' | 'outline' | 'subtle'; color?: string }
+> = {
+  primary: { variant: 'filled', color: 'timeco' },
+  secondary: { variant: 'filled', color: 'yellow' },
+  outline: { variant: 'outline', color: 'timeco' },
+  ghost: { variant: 'subtle', color: 'gray' },
+  danger: { variant: 'filled', color: 'red' },
+};
+
+/** Botao web baseado em Mantine. Substitui Button do RN em arquivos .web.tsx. */
 export const HtmlButton: React.FC<Props> = ({
   title,
   onClick,
@@ -25,55 +37,25 @@ export const HtmlButton: React.FC<Props> = ({
   fullWidth = true,
   style,
 }) => {
-  const c = useThemedColors();
-  const isDisabled = disabled || loading;
-
-  const bg =
-    variant === 'primary'
-      ? c.primary
-      : variant === 'secondary'
-      ? c.secondary
-      : variant === 'danger'
-      ? c.danger
-      : 'transparent';
-  const txt =
-    variant === 'primary' || variant === 'danger'
-      ? c.white
-      : variant === 'secondary'
-      ? c.black
-      : c.primary;
-  const border = variant === 'outline' ? `2px solid ${c.primary}` : 'none';
-
+  useThemedColors();
+  const cfg = VARIANT_MAP[variant];
   return (
-    <button
-      onClick={isDisabled ? undefined : onClick}
-      disabled={isDisabled}
+    <MantineButton
+      variant={cfg.variant}
+      color={cfg.color}
+      onClick={onClick}
+      loading={loading}
+      disabled={disabled}
+      leftSection={icon}
+      fullWidth={fullWidth}
+      size="md"
+      radius="md"
       style={{
-        minHeight: 50,
-        borderRadius: 10,
-        padding: '12px 16px',
-        background: bg,
-        color: txt,
-        border,
-        fontSize: 16,
         fontWeight: 700,
-        cursor: isDisabled ? 'not-allowed' : 'pointer',
-        opacity: isDisabled ? 0.5 : 1,
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 8,
-        width: fullWidth ? '100%' : undefined,
-        boxSizing: 'border-box',
         ...style,
       }}
     >
-      {loading ? '...' : (
-        <>
-          {icon}
-          {title}
-        </>
-      )}
-    </button>
+      {title}
+    </MantineButton>
   );
 };
