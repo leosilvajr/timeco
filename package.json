@@ -41,6 +41,7 @@
     "@tabler/icons-react": "^3.44.0",
     "date-fns": "^4.1.0",
     "expo": "~54.0.34",
+    "expo-apple-authentication": "~8.0.8",
     "expo-auth-session": "~7.0.11",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",

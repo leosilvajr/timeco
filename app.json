@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.timeco.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "O Timeco precisa acessar suas fotos para você poder enviar fotos de perfil e da galeria de eventos.",
         "NSCameraUsageDescription": "O Timeco precisa acessar sua câmera para tirar fotos para o perfil e para a galeria de eventos.",
@@ -85,7 +86,8 @@
         }
       ],
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-apple-authentication"
     ],
     "extra": {
       "eas": {

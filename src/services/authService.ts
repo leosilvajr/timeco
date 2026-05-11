@@ -5,6 +5,7 @@ import {
   signInWithPopup,
   signInWithCredential,
   GoogleAuthProvider,
+  OAuthProvider,
   signOut,
   onAuthStateChanged as firebaseOnAuthStateChanged,
   User as FirebaseUser,
@@ -78,6 +79,53 @@ export const signInWithGoogle = async (): Promise<FirebaseUser> => {
 export const signInWithGoogleIdToken = async (idToken: string): Promise<FirebaseUser> => {
   const credential = GoogleAuthProvider.credential(idToken);
   const cred = await signInWithCredential(auth, credential);
+  await ensureUserDocument(cred.user);
+  return cred.user;
+};
+
+/**
+ * Para iOS: completa o login no Firebase usando o identityToken (JWT) obtido
+ * via expo-apple-authentication. O `rawNonce` precisa ser o MESMO usado pra
+ * gerar o `nonce` (SHA-256) passado pro AppleAuthentication.signInAsync.
+ *
+ * Obrigatorio pra Apple aprovar app na App Store quando ja existe outro
+ * login social (Google). Veja docs/APPLE_STORE_GUIDE.md.
+ *
+ * @param identityToken JWT retornado por AppleAuthentication.signInAsync
+ * @param rawNonce String aleatoria gerada antes do signIn (NAO o SHA-256)
+ * @param fullName Nome completo retornado por Apple — so vem na PRIMEIRA
+ *   autenticacao do user; depois vem null. Por isso salvamos no Firestore
+ *   logo de cara.
+ */
+export const signInWithAppleIdToken = async (
+  identityToken: string,
+  rawNonce: string,
+  fullName?: { givenName?: string | null; familyName?: string | null } | null,
+): Promise<FirebaseUser> => {
+  const provider = new OAuthProvider('apple.com');
+  const credential = provider.credential({
+    idToken: identityToken,
+    rawNonce,
+  });
+  const cred = await signInWithCredential(auth, credential);
+
+  // Apple so retorna fullName na PRIMEIRA autenticacao. Se for o caso,
+  // monta displayName e salva no Firebase Auth + Firestore antes do
+  // ensureUserDocument criar com fallback.
+  if (fullName && (fullName.givenName || fullName.familyName)) {
+    const composedName = [fullName.givenName, fullName.familyName]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    if (composedName && !cred.user.displayName) {
+      try {
+        await updateProfile(cred.user, { displayName: composedName });
+      } catch (e) {
+        console.warn('updateProfile (Apple) falhou:', e);
+      }
+    }
+  }
+
   await ensureUserDocument(cred.user);
   return cred.user;
 };

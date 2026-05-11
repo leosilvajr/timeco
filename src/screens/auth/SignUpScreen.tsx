@@ -6,6 +6,7 @@ import {
   Button,
   Header,
   GoogleSignInButton,
+  AppleSignInButton,
   DateInput,
   SportsBackdrop,
 } from '../../components';
@@ -13,6 +14,7 @@ import { radius } from '../../constants/theme';
 import { maskDecimal, parseDecimal } from '../../utils/masks';
 import { signUp, signInWithGoogle } from '../../services/authService';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import { useAppleAuth } from '../../hooks/useAppleAuth';
 import { formatError } from '../../utils/errorMessages';
 import { isValidEmail, isValidBirthDate } from '../../utils/validators';
 import { colors, spacing } from '../../constants/theme';
@@ -39,6 +41,7 @@ export const SignUpScreen: React.FC = () => {
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
   const googleAuth = useGoogleAuth();
+  const appleAuth = useAppleAuth();
 
   useEffect(() => {
     Animated.parallel([
@@ -74,6 +77,16 @@ export const SignUpScreen: React.FC = () => {
       if (msg) setError(msg);
     } finally {
       setGoogleLoading(false);
+    }
+  };
+
+  const onApple = async () => {
+    setError(null);
+    try {
+      await appleAuth.signIn();
+    } catch (e: unknown) {
+      const msg = formatError(e, 'Nao conseguimos criar a conta com Apple agora. Tente de novo.');
+      if (msg) setError(msg);
     }
   };
 
@@ -183,13 +196,21 @@ export const SignUpScreen: React.FC = () => {
       </Animated.View>
 
       <Animated.View style={[styles.formCard, { opacity }]}>
-        {googleAuth.available ? (
+        {googleAuth.available || appleAuth.available ? (
           <>
-            <GoogleSignInButton
-              onPress={onGoogle}
-              loading={googleLoading}
-              label="Criar conta com Google"
-            />
+            {googleAuth.available ? (
+              <GoogleSignInButton
+                onPress={onGoogle}
+                loading={googleLoading}
+                label="Criar conta com Google"
+              />
+            ) : null}
+
+            {appleAuth.available ? (
+              <View style={{ marginTop: googleAuth.available ? 8 : 0 }}>
+                <AppleSignInButton onPress={onApple} label="SIGN_UP" style="BLACK" />
+              </View>
+            ) : null}
 
             <View style={styles.divider}>
               <View style={styles.dividerLine} />

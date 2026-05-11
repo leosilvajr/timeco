@@ -1,8 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, Image, StyleSheet, Pressable, Animated, Easing, Platform } from 'react-native';
-import { Screen, Input, Button, GoogleSignInButton, SportsBackdrop } from '../../components';
+import {
+  Screen,
+  Input,
+  Button,
+  GoogleSignInButton,
+  AppleSignInButton,
+  SportsBackdrop,
+} from '../../components';
 import { signIn, signInWithGoogle } from '../../services/authService';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import { useAppleAuth } from '../../hooks/useAppleAuth';
 import { formatError } from '../../utils/errorMessages';
 import { isValidEmail } from '../../utils/validators';
 import { colors, spacing, radius } from '../../constants/theme';
@@ -65,6 +73,7 @@ export const LoginScreen: React.FC = () => {
 
   const { opacity, translateY, logoScale } = useAnimatedEntry();
   const googleAuth = useGoogleAuth();
+  const appleAuth = useAppleAuth();
 
   const onSubmit = async () => {
     setError(null);
@@ -105,6 +114,17 @@ export const LoginScreen: React.FC = () => {
       if (msg) setError(msg);
     } finally {
       setGoogleLoading(false);
+    }
+  };
+
+  const onApple = async () => {
+    setError(null);
+    try {
+      await appleAuth.signIn();
+      // Sucesso e tratado dentro do hook (signInWithAppleIdToken)
+    } catch (e: unknown) {
+      const msg = formatError(e, 'Nao conseguimos entrar com Apple agora. Tente de novo.');
+      if (msg) setError(msg);
     }
   };
 
@@ -236,7 +256,7 @@ export const LoginScreen: React.FC = () => {
 
         <Button title="Entrar" onPress={onSubmit} loading={loading} />
 
-        {googleAuth.available ? (
+        {googleAuth.available || appleAuth.available ? (
           <>
             <View style={styles.divider}>
               <View style={styles.dividerLine} />
@@ -244,7 +264,15 @@ export const LoginScreen: React.FC = () => {
               <View style={styles.dividerLine} />
             </View>
 
-            <GoogleSignInButton onPress={onGoogle} loading={googleLoading} />
+            {googleAuth.available ? (
+              <GoogleSignInButton onPress={onGoogle} loading={googleLoading} />
+            ) : null}
+
+            {appleAuth.available ? (
+              <View style={{ marginTop: googleAuth.available ? 8 : 0 }}>
+                <AppleSignInButton onPress={onApple} label="SIGN_IN" style="BLACK" />
+              </View>
+            ) : null}
           </>
         ) : null}
       </Animated.View>
