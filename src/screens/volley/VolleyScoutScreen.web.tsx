@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Card, Stack, Text, Badge } from '@mantine/core';
+import { Card, Stack, Text } from '@mantine/core';
 import { HtmlScreen, HtmlHeader, HtmlButton, webConfirm } from '../../components/web';
 import { useThemedColors } from '../../store';
 import {
@@ -222,69 +222,118 @@ export const VolleyScoutScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
-      {/* Scoreboard compacto */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-        <Card
-          withBorder
-          radius="md"
-          padding="sm"
-          style={{
-            flex: 1,
-            background: c.surfaceVariant,
-            borderColor: c.primary,
-            borderWidth: 2,
-            textAlign: 'center',
-          }}
-        >
-          <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 0.6 }}>
-            {match.teamAName}
-          </Text>
-          <Text
-            size="40px"
-            fw={900}
-            style={{ color: c.text, lineHeight: 1, marginTop: 4 }}
+      {/* Scoreboard compacto e sticky no topo do scroll */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          background: c.background,
+          marginLeft: -12,
+          marginRight: -12,
+          paddingLeft: 12,
+          paddingRight: 12,
+          paddingTop: 6,
+          paddingBottom: 6,
+          marginBottom: 8,
+        }}
+      >
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div
+            style={{
+              flex: 1,
+              background: c.surfaceVariant,
+              border: `2px solid ${c.primary}`,
+              borderRadius: 10,
+              padding: '6px 8px',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              minWidth: 0,
+            }}
           >
-            {currentSet?.scoreA ?? 0}
-          </Text>
-          <Text size="xs" c="dimmed" mt={4}>
-            Sets: {setsWonA}
-          </Text>
-          {match.serveTeam === 'A' && !currentSet?.finished ? (
-            <Badge color="timeco" variant="light" size="sm" mt={6} radius="sm">
-              🎾 SAQUE
-            </Badge>
-          ) : null}
-        </Card>
-        <Card
-          withBorder
-          radius="md"
-          padding="sm"
-          style={{
-            flex: 1,
-            background: c.surface,
-            borderWidth: 2,
-            textAlign: 'center',
-          }}
-        >
-          <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 0.6 }}>
-            {match.teamBName}
-          </Text>
-          <Text
-            size="40px"
-            fw={900}
-            style={{ color: c.text, lineHeight: 1, marginTop: 4 }}
+            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: c.textSecondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {match.teamAName}
+              </div>
+              <div style={{ fontSize: 10, color: c.textMuted, marginTop: 1 }}>
+                Sets {setsWonA}
+                {match.serveTeam === 'A' && !currentSet?.finished ? ' · 🎾' : ''}
+              </div>
+            </div>
+            <div
+              style={{
+                fontSize: 24,
+                fontWeight: 900,
+                color: c.text,
+                lineHeight: 1,
+                minWidth: 30,
+                textAlign: 'right',
+              }}
+            >
+              {currentSet?.scoreA ?? 0}
+            </div>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              background: c.surface,
+              border: `2px solid ${c.border}`,
+              borderRadius: 10,
+              padding: '6px 8px',
+              textAlign: 'center',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              minWidth: 0,
+            }}
           >
-            {currentSet?.scoreB ?? 0}
-          </Text>
-          <Text size="xs" c="dimmed" mt={4}>
-            Sets: {setsWonB}
-          </Text>
-          {match.serveTeam === 'B' && !currentSet?.finished ? (
-            <Badge color="timeco" variant="light" size="sm" mt={6} radius="sm">
-              🎾 SAQUE
-            </Badge>
-          ) : null}
-        </Card>
+            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
+              <div
+                style={{
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: c.textSecondary,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {match.teamBName}
+              </div>
+              <div style={{ fontSize: 10, color: c.textMuted, marginTop: 1 }}>
+                Sets {setsWonB}
+                {match.serveTeam === 'B' && !currentSet?.finished ? ' · 🎾' : ''}
+              </div>
+            </div>
+            <div
+              style={{
+                fontSize: 24,
+                fontWeight: 900,
+                color: c.text,
+                lineHeight: 1,
+                minWidth: 30,
+                textAlign: 'right',
+              }}
+            >
+              {currentSet?.scoreB ?? 0}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Player tabs — pill flat */}

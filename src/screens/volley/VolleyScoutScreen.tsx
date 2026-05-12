@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Button, Badge } from '../../components';
+import { Screen, Header, Button } from '../../components';
 import { ColorPalette, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import {
@@ -92,26 +92,30 @@ const CARDS: CardConfig[] = [
 
 const makeStyles = (c: ColorPalette) =>
   StyleSheet.create({
-    // Scoreboard
-    scoreboard: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
+    // Scoreboard compacto (pela metade)
+    scoreboard: { flexDirection: 'row', gap: 8, marginBottom: 8 },
     teamBox: {
       flex: 1,
-      padding: spacing.sm,
-      borderRadius: radius.md,
+      paddingVertical: 6,
+      paddingHorizontal: 8,
+      borderRadius: 10,
+      flexDirection: 'row',
       alignItems: 'center',
       borderWidth: 2,
+      gap: 10,
     },
     teamBoxA: { borderColor: c.primary, backgroundColor: c.surfaceVariant },
     teamBoxB: { borderColor: c.border, backgroundColor: c.surface },
+    teamInfo: { flex: 1, minWidth: 0 },
     teamName: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: '800',
       color: c.textSecondary,
       textTransform: 'uppercase',
-      letterSpacing: 0.6,
+      letterSpacing: 0.5,
     },
-    teamScore: { fontSize: 40, fontWeight: '900', color: c.text, lineHeight: 44, marginTop: 4 },
-    teamSets: { fontSize: 11, color: c.textMuted, marginTop: 2 },
+    teamScore: { fontSize: 24, fontWeight: '900', color: c.text, lineHeight: 26, minWidth: 30, textAlign: 'right' },
+    teamSets: { fontSize: 10, color: c.textMuted, marginTop: 1 },
 
     sectionLabel: {
       fontSize: 11,
@@ -388,27 +392,31 @@ export const VolleyScoutScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
-      {/* Scoreboard */}
+      {/* Scoreboard compacto */}
       <View style={styles.scoreboard}>
         <View style={[styles.teamBox, styles.teamBoxA]}>
-          <Text style={styles.teamName}>{match.teamAName}</Text>
+          <View style={styles.teamInfo}>
+            <Text style={styles.teamName} numberOfLines={1}>
+              {match.teamAName}
+            </Text>
+            <Text style={styles.teamSets}>
+              Sets {setsWonA}
+              {match.serveTeam === 'A' && !currentSet?.finished ? ' · 🎾' : ''}
+            </Text>
+          </View>
           <Text style={styles.teamScore}>{currentSet?.scoreA ?? 0}</Text>
-          <Text style={styles.teamSets}>Sets: {setsWonA}</Text>
-          {match.serveTeam === 'A' && !currentSet?.finished ? (
-            <View style={{ marginTop: 6 }}>
-              <Badge label="🎾 SAQUE" variant="primary" size="sm" />
-            </View>
-          ) : null}
         </View>
         <View style={[styles.teamBox, styles.teamBoxB]}>
-          <Text style={styles.teamName}>{match.teamBName}</Text>
+          <View style={styles.teamInfo}>
+            <Text style={styles.teamName} numberOfLines={1}>
+              {match.teamBName}
+            </Text>
+            <Text style={styles.teamSets}>
+              Sets {setsWonB}
+              {match.serveTeam === 'B' && !currentSet?.finished ? ' · 🎾' : ''}
+            </Text>
+          </View>
           <Text style={styles.teamScore}>{currentSet?.scoreB ?? 0}</Text>
-          <Text style={styles.teamSets}>Sets: {setsWonB}</Text>
-          {match.serveTeam === 'B' && !currentSet?.finished ? (
-            <View style={{ marginTop: 6 }}>
-              <Badge label="🎾 SAQUE" variant="primary" size="sm" />
-            </View>
-          ) : null}
         </View>
       </View>
 
