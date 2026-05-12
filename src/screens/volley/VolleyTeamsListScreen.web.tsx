@@ -30,7 +30,8 @@ export const VolleyTeamsListScreen: React.FC = () => {
       const list = await listUserVolleyTeams(user.id);
       setTeams(list);
     } catch (e) {
-      console.warn('listUserVolleyTeams', e);
+      console.error('listUserVolleyTeams', e);
+      toast.error('Erro ao carregar times. Tente recarregar a página.');
     } finally {
       setLoading(false);
     }
