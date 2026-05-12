@@ -89,6 +89,34 @@ const makeStyles = (c: ColorPalette) =>
       backgroundColor: c.primary,
     },
     error: { color: c.danger, marginVertical: spacing.sm, textAlign: 'center' },
+
+    // Painel Como funciona o Scout?
+    helpToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
+      borderRadius: 10,
+      backgroundColor: c.surfaceVariant,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderStyle: 'dashed',
+      marginBottom: 8,
+    },
+    helpToggleTxt: { fontSize: 13, fontWeight: '700', color: c.text },
+    helpPanel: {
+      backgroundColor: c.surface,
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: c.border,
+      padding: 14,
+      marginBottom: 12,
+    },
+    helpIntro: { fontSize: 13, color: c.text, lineHeight: 19 },
+    helpHeading: { fontSize: 14, fontWeight: '800', color: c.text, marginTop: 10, marginBottom: 4 },
+    helpBody: { fontSize: 13, color: c.textSecondary, lineHeight: 19 },
+    helpBold: { fontWeight: '800', color: c.text },
   });
 
 /**
@@ -111,6 +139,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
   const [teamBName, setTeamBName] = useState('');
   const [format, setFormat] = useState<VolleyFormat>(3);
   const [rotationSystem, setRotationSystem] = useState<VolleyRotationSystem>('5x1');
+  const [showHelp, setShowHelp] = useState(false);
 
   const [myTeams, setMyTeams] = useState<VolleyTeam[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -186,6 +215,82 @@ export const VolleyMatchSetupScreen: React.FC = () => {
   return (
     <Screen maxWidth={840}>
       <Header title="Nova partida" onBack={() => nav.goBack()} />
+
+      {/* Painel Como funciona o Scout? — colapsavel */}
+      <Pressable
+        onPress={() => setShowHelp((v) => !v)}
+        style={styles.helpToggle}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: showHelp }}
+      >
+        <Text style={styles.helpToggleTxt}>{showHelp ? '▾' : '▸'}</Text>
+        <Text style={styles.helpToggleTxt}>
+          ℹ️ Como funciona o Scout? (leia antes de começar)
+        </Text>
+      </Pressable>
+      {showHelp ? (
+        <View style={styles.helpPanel}>
+          <Text style={styles.helpIntro}>
+            <Text style={styles.helpBold}>Como usar: </Text>
+            durante o jogo, selecione o jogador no topo da tela do Scout e use{' '}
+            <Text style={styles.helpBold}>+</Text> pra registrar uma ação ou{' '}
+            <Text style={styles.helpBold}>−</Text> pra desfazer. Quando a ação
+            gera ponto, o placar e a rotação atualizam sozinhos. Cores:{' '}
+            <Text style={[styles.helpBold, { color: c.success }]}>verde</Text> =
+            gera ponto,{' '}
+            <Text style={[styles.helpBold, { color: c.danger }]}>vermelho</Text> =
+            entrega ponto,{' '}
+            <Text style={[styles.helpBold, { color: c.info }]}>azul</Text> =
+            neutro (só estatística).
+          </Text>
+
+          <Text style={styles.helpHeading}>🎾 SAQUE</Text>
+          <Text style={styles.helpBody}>
+            • <Text style={styles.helpBold}>Certo</Text>: saque dentro, adversário recebeu (sem impacto no placar).{'\n'}
+            • <Text style={styles.helpBold}>Erro</Text>: saque na rede ou fora → ponto pro adversário.{'\n'}
+            • <Text style={styles.helpBold}>Ace</Text>: saque direto, ninguém tocou ou caiu → ponto pra você.
+          </Text>
+
+          <Text style={styles.helpHeading}>⚡ ATAQUE</Text>
+          <Text style={styles.helpBody}>
+            • <Text style={styles.helpBold}>Ponto</Text>: ataque virou ponto direto → +1 pra você.{'\n'}
+            • <Text style={styles.helpBold}>Normal</Text>: ataque defendido, o rali continua.{'\n'}
+            • <Text style={styles.helpBold}>Erro</Text>: bola fora ou na rede → ponto pro adversário.
+          </Text>
+
+          <Text style={styles.helpHeading}>✋ PASSE</Text>
+          <Text style={styles.helpBody}>
+            Qualidade da recepção do saque adversário.{'\n'}
+            • <Text style={styles.helpBold}>A — Perfeito</Text>: levantador recebe no alvo, qualquer jogada possível.{'\n'}
+            • <Text style={styles.helpBold}>B — Bom</Text>: levantador trabalha confortável.{'\n'}
+            • <Text style={styles.helpBold}>C — Mediano</Text>: passe ruim, jogada limitada (geralmente bola alta).{'\n'}
+            • <Text style={styles.helpBold}>Erro</Text>: bola caiu ou foi direto pro adversário → ponto contra.
+          </Text>
+
+          <Text style={styles.helpHeading}>🛡️ BLOQUEIO</Text>
+          <Text style={styles.helpBody}>
+            • <Text style={styles.helpBold}>Sucesso</Text>: bola morta na quadra adversária → +1 pra você.{'\n'}
+            • <Text style={styles.helpBold}>Normal</Text>: tocou e voltou pra sua defesa montar a jogada.{'\n'}
+            • <Text style={styles.helpBold}>Falha</Text>: bola caiu na sua quadra ou mãos fora → ponto contra.
+          </Text>
+
+          <Text style={styles.helpHeading}>🎯 LEVANTAMENTO</Text>
+          <Text style={styles.helpBody}>
+            • <Text style={styles.helpBold}>Certo / Erro</Text>: avaliação geral do levantamento.{'\n'}
+            • <Text style={styles.helpBold}>Ponta / Saída / Meio / F.Meio / F.Saída</Text>: pra
+            qual zona da rede a bola foi distribuída.
+          </Text>
+
+          <Text style={[styles.helpIntro, { marginTop: 12 }]}>
+            <Text style={styles.helpBold}>Botões do rodapé do Scout:</Text>
+            {'\n'}• <Text style={styles.helpBold}>↶ Desfazer ponto</Text> — reverte o último ponto registrado.
+            {'\n'}• <Text style={styles.helpBold}>🏁 Encerrar set</Text> — fecha o set atual e abre o próximo.
+            {'\n'}• <Text style={styles.helpBold}>📊 Relatórios</Text> — estatísticas por jogador no set atual ou acumuladas.
+            {'\n'}• <Text style={styles.helpBold}>🔄 Rotação</Text> — visualiza/ajusta a rotação em quadra.
+            {'\n'}• <Text style={styles.helpBold}>🗑️ Zerar tudo</Text> — apaga tudo e reinicia a partida.
+          </Text>
+        </View>
+      ) : null}
 
       {/* Time do user (saved teams) */}
       <Text style={styles.sectionTitle}>🏐 Seu time</Text>

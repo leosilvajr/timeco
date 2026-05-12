@@ -34,6 +34,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
   const [teamBName, setTeamBName] = useState('');
   const [format, setFormat] = useState<VolleyFormat>(3);
   const [rotationSystem, setRotationSystem] = useState<VolleyRotationSystem>('5x1');
+  const [showHelp, setShowHelp] = useState(false);
 
   const [myTeams, setMyTeams] = useState<VolleyTeam[]>([]);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -144,6 +145,104 @@ export const VolleyMatchSetupScreen: React.FC = () => {
   return (
     <HtmlScreen maxWidth={840}>
       <HtmlHeader title="Nova partida" onBack={() => nav.goBack()} />
+
+      {/* Painel Como funciona o Scout? — colapsavel */}
+      <button
+        onClick={() => setShowHelp((v) => !v)}
+        style={{
+          width: '100%',
+          marginBottom: 8,
+          padding: '10px 14px',
+          borderRadius: 10,
+          background: c.surfaceVariant,
+          border: `1px dashed ${c.border}`,
+          color: c.text,
+          fontSize: 13,
+          fontWeight: 700,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          textAlign: 'left',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+        aria-expanded={showHelp}
+      >
+        <span>{showHelp ? '▾' : '▸'}</span>
+        <span>ℹ️ Como funciona o Scout? (leia antes de começar)</span>
+      </button>
+      {showHelp ? (
+        <div
+          style={{
+            background: c.surface,
+            border: `1px solid ${c.border}`,
+            borderRadius: 10,
+            padding: 14,
+            marginBottom: 12,
+            fontSize: 13,
+            lineHeight: 1.55,
+            color: c.text,
+          }}
+        >
+          <p style={{ margin: 0 }}>
+            <strong>Como usar:</strong> durante o jogo, selecione o jogador no
+            topo da tela do Scout e use <strong>+</strong> pra registrar uma
+            ação ou <strong>−</strong> pra desfazer. Quando a ação gera ponto, o
+            placar e a rotação atualizam sozinhos. Cores:{' '}
+            <span style={{ color: c.success, fontWeight: 700 }}>verde</span> =
+            gera ponto,{' '}
+            <span style={{ color: c.danger, fontWeight: 700 }}>vermelho</span> =
+            entrega ponto, <span style={{ color: c.info, fontWeight: 700 }}>azul</span> =
+            neutro (só estatística).
+          </p>
+
+          <p style={{ margin: '12px 0 4px', fontWeight: 800 }}>🎾 SAQUE</p>
+          <p style={{ margin: 0, color: c.textSecondary }}>
+            • <strong>Certo</strong>: saque dentro, adversário recebeu (sem impacto no placar).<br />
+            • <strong>Erro</strong>: saque na rede ou fora → ponto pro adversário.<br />
+            • <strong>Ace</strong>: saque direto, ninguém tocou ou caiu → ponto pra você.
+          </p>
+
+          <p style={{ margin: '10px 0 4px', fontWeight: 800 }}>⚡ ATAQUE</p>
+          <p style={{ margin: 0, color: c.textSecondary }}>
+            • <strong>Ponto</strong>: ataque virou ponto direto → +1 pra você.<br />
+            • <strong>Normal</strong>: ataque defendido, o rali continua.<br />
+            • <strong>Erro</strong>: bola fora ou na rede → ponto pro adversário.
+          </p>
+
+          <p style={{ margin: '10px 0 4px', fontWeight: 800 }}>✋ PASSE</p>
+          <p style={{ margin: 0, color: c.textSecondary }}>
+            Qualidade da recepção do saque adversário.<br />
+            • <strong>A — Perfeito</strong>: levantador recebe no alvo, qualquer jogada possível.<br />
+            • <strong>B — Bom</strong>: levantador trabalha confortável.<br />
+            • <strong>C — Mediano</strong>: passe ruim, jogada limitada (geralmente bola alta).<br />
+            • <strong>Erro</strong>: bola caiu ou foi direto pro adversário → ponto contra.
+          </p>
+
+          <p style={{ margin: '10px 0 4px', fontWeight: 800 }}>🛡️ BLOQUEIO</p>
+          <p style={{ margin: 0, color: c.textSecondary }}>
+            • <strong>Sucesso</strong>: bola morta na quadra adversária → +1 pra você.<br />
+            • <strong>Normal</strong>: tocou e voltou pra sua defesa montar a jogada.<br />
+            • <strong>Falha</strong>: bola caiu na sua quadra ou mãos fora → ponto contra.
+          </p>
+
+          <p style={{ margin: '10px 0 4px', fontWeight: 800 }}>🎯 LEVANTAMENTO</p>
+          <p style={{ margin: 0, color: c.textSecondary }}>
+            • <strong>Certo / Erro</strong>: avaliação geral do levantamento.<br />
+            • <strong>Ponta / Saída / Meio / F.Meio / F.Saída</strong>: pra qual zona da rede
+            a bola foi distribuída (estatística de distribuição do levantador).
+          </p>
+
+          <p style={{ margin: '12px 0 0' }}>
+            <strong>Botões do rodapé do Scout:</strong>
+            <br />• <strong>↶ Desfazer ponto</strong> — reverte o último ponto registrado (placar + rotação).
+            <br />• <strong>🏁 Encerrar set</strong> — fecha o set atual e abre o próximo.
+            <br />• <strong>📊 Relatórios</strong> — estatísticas por jogador no set atual ou acumuladas.
+            <br />• <strong>🔄 Rotação</strong> — visualiza/ajusta a rotação dos 6 jogadores em quadra.
+            <br />• <strong>🗑️ Zerar tudo</strong> — apaga tudo e reinicia a partida do zero (não dá pra desfazer).
+          </p>
+        </div>
+      ) : null}
 
       {/* Time do user */}
       <div style={sectionTitle}>🏐 Seu time</div>
