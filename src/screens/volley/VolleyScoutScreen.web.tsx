@@ -215,13 +215,15 @@ export const VolleyScoutScreen: React.FC = () => {
 
   return (
     <HtmlScreen maxWidth={1200}>
+      {/* Esconde scrollbar do strip de jogadores (Chrome/Safari) */}
+      <style>{`.volley-tabs-strip::-webkit-scrollbar { display: none; }`}</style>
       <HtmlHeader
         title={`Set ${match.currentSet}`}
         subtitle={`${match.teamAName} vs ${match.teamBName}`}
         onBack={() => nav.goBack()}
       />
 
-      {/* Scoreboard compacto e sticky no topo do scroll */}
+      {/* Scoreboard + tabs sticky no topo do scroll */}
       <div
         style={{
           position: 'sticky',
@@ -233,8 +235,9 @@ export const VolleyScoutScreen: React.FC = () => {
           paddingLeft: 12,
           paddingRight: 12,
           paddingTop: 6,
-          paddingBottom: 6,
-          marginBottom: 8,
+          paddingBottom: 8,
+          marginBottom: 12,
+          boxShadow: `0 2px 4px ${c.background === '#FFFFFF' ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.3)'}`,
         }}
       >
         <div style={{ display: 'flex', gap: 8 }}>
@@ -347,13 +350,15 @@ export const VolleyScoutScreen: React.FC = () => {
           Jogador
         </Text>
         <div
+          className="volley-tabs-strip"
           style={{
             display: 'flex',
             gap: 6,
             overflowX: 'auto',
-            paddingBottom: 4,
+            paddingBottom: 2,
             WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'thin',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           }}
         >
           {match.players.map((p) => {
