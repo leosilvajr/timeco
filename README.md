@@ -3,6 +3,8 @@
 App multi-esporte para criar eventos e sortear times equilibrados por estrelas.
 Mobile-first (Expo / React Native) + Web (react-native-web + Vercel).
 
+> 📚 **Documentação completa:** veja [`docs/README.md`](docs/README.md) — índice de build, lojas, planejamento e arquivo.
+
 ## Stack
 
 | | |
