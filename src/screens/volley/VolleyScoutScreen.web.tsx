@@ -96,6 +96,7 @@ export const VolleyScoutScreen: React.FC = () => {
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const load = useCallback(async () => {
     const m = await getVolleyMatch(route.params.matchId);
@@ -358,6 +359,114 @@ export const VolleyScoutScreen: React.FC = () => {
         </div>
       ) : null}
 
+      {/* Painel Como funciona? — colapsavel */}
+      <button
+        onClick={() => setShowHelp((v) => !v)}
+        style={{
+          marginBottom: 8,
+          padding: '8px 12px',
+          borderRadius: 10,
+          background: c.surfaceVariant,
+          border: `1px dashed ${c.border}`,
+          color: c.text,
+          fontSize: 13,
+          fontWeight: 700,
+          cursor: 'pointer',
+          fontFamily: 'inherit',
+          textAlign: 'left',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+        aria-expanded={showHelp}
+      >
+        <span>{showHelp ? '▾' : '▸'}</span>
+        <span>ℹ️ Como funciona o Scout?</span>
+      </button>
+      {showHelp ? (
+        <Card
+          withBorder
+          radius="md"
+          padding="md"
+          mb={10}
+          style={{ background: c.surface }}
+        >
+          <Text size="sm" style={{ color: c.text, lineHeight: 1.55 }}>
+            <strong>Como usar:</strong> selecione o jogador no topo e use{' '}
+            <strong>+</strong> pra registrar uma ação ou <strong>−</strong> pra
+            desfazer. Quando a ação gera ponto, o placar e a rotação atualizam
+            sozinhos. Cores: <span style={{ color: c.success, fontWeight: 700 }}>verde</span> =
+            gera ponto, <span style={{ color: c.danger, fontWeight: 700 }}>vermelho</span> =
+            entrega ponto, <span style={{ color: c.info, fontWeight: 700 }}>azul</span> =
+            neutro (só estatística).
+          </Text>
+
+          <div style={{ height: 10 }} />
+
+          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
+            🎾 SAQUE
+          </Text>
+          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
+            • <strong>Certo</strong>: saque dentro, adversário recebeu (sem impacto no placar).<br />
+            • <strong>Erro</strong>: saque na rede ou fora → ponto pro adversário.<br />
+            • <strong>Ace</strong>: saque direto, ninguém tocou ou caiu → ponto pra você.
+          </Text>
+
+          <div style={{ height: 8 }} />
+          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
+            ⚡ ATAQUE
+          </Text>
+          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
+            • <strong>Ponto</strong>: ataque virou ponto direto → +1 pra você.<br />
+            • <strong>Normal</strong>: ataque defendido, o rali continua.<br />
+            • <strong>Erro</strong>: bola fora ou na rede → ponto pro adversário.
+          </Text>
+
+          <div style={{ height: 8 }} />
+          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
+            ✋ PASSE
+          </Text>
+          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
+            Qualidade da recepção do saque adversário.<br />
+            • <strong>A — Perfeito</strong>: levantador recebe no alvo, qualquer jogada possível.<br />
+            • <strong>B — Bom</strong>: levantador trabalha confortável.<br />
+            • <strong>C — Mediano</strong>: passe ruim, jogada limitada (geralmente bola alta).<br />
+            • <strong>Erro</strong>: bola caiu ou foi direto pro adversário → ponto contra.
+          </Text>
+
+          <div style={{ height: 8 }} />
+          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
+            🛡️ BLOQUEIO
+          </Text>
+          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
+            • <strong>Sucesso</strong>: bola morta na quadra adversária → +1 pra você.<br />
+            • <strong>Normal</strong>: tocou e voltou pra sua defesa montar a jogada.<br />
+            • <strong>Falha</strong>: bola caiu na sua quadra ou mãos fora → ponto contra.
+          </Text>
+
+          <div style={{ height: 8 }} />
+          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
+            🎯 LEVANTAMENTO
+          </Text>
+          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
+            • <strong>Certo / Erro</strong>: avaliação geral do levantamento.<br />
+            • <strong>Ponta / Saída / Meio / F.Meio / F.Saída</strong>: pra qual zona da rede
+            a bola foi distribuída (estatística de distribuição do levantador).
+          </Text>
+
+          <div style={{ height: 10 }} />
+
+          <Text size="sm" style={{ color: c.text, lineHeight: 1.55 }}>
+            <strong>Botões do rodapé:</strong>
+            <br />• <strong>↶ Desfazer ponto</strong> — reverte o último ponto registrado (placar + rotação).
+            <br />• <strong>🏁 Encerrar set</strong> — fecha o set atual e abre o próximo.
+            <br />• <strong>📊 Relatórios</strong> — estatísticas por jogador no set atual ou acumuladas.
+            <br />• <strong>🔄 Rotação</strong> — visualiza/ajusta a rotação dos 6 jogadores em quadra.
+            <br />• <strong>🗑️ Zerar tudo</strong> — apaga tudo e reinicia a partida do zero (não dá pra desfazer).
+          </Text>
+        </Card>
+      ) : null}
+
       {/* Cards de ações — grid responsivo, mais compactos */}
       <div
         style={{
@@ -385,7 +494,7 @@ export const VolleyScoutScreen: React.FC = () => {
             >
               {card.emoji}  {card.title}
             </Text>
-            <Stack gap={4}>
+            <Stack gap={2}>
               {card.actions.map((a) => {
                 const count = a.read(playerStats);
                 const dot = dotColor(a.kind);
@@ -398,8 +507,8 @@ export const VolleyScoutScreen: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 8,
-                      padding: '6px 10px',
-                      borderRadius: 10,
+                      padding: '2px 10px',
+                      borderRadius: 8,
                       background: hasValue ? `${dot}12` : 'transparent',
                       transition: 'background 120ms ease',
                     }}
@@ -442,14 +551,14 @@ export const VolleyScoutScreen: React.FC = () => {
                       disabled={busy || count === 0}
                       aria-label={`Decrementar ${a.label}`}
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 8,
+                        width: 30,
+                        height: 30,
+                        borderRadius: 6,
                         background: count === 0 ? c.surfaceVariant : c.border,
                         color: count === 0 ? c.textMuted : c.text,
                         border: 'none',
                         cursor: count === 0 ? 'not-allowed' : 'pointer',
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: 900,
                         lineHeight: 1,
                         fontFamily: 'inherit',
@@ -465,14 +574,14 @@ export const VolleyScoutScreen: React.FC = () => {
                       disabled={busy}
                       aria-label={`Incrementar ${a.label}`}
                       style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: 8,
+                        width: 30,
+                        height: 30,
+                        borderRadius: 6,
                         background: kColors.bg,
                         color: kColors.fg,
                         border: 'none',
                         cursor: 'pointer',
-                        fontSize: 22,
+                        fontSize: 18,
                         fontWeight: 900,
                         lineHeight: 1,
                         fontFamily: 'inherit',
