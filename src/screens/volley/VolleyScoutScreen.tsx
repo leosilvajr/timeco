@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,6 +9,7 @@ import {
   getVolleyMatch,
   subscribeVolleyMatch,
   performScoutAction,
+  previewScoutAction,
   finishCurrentSet,
   undoLastPoint,
   resetVolleyMatch,
@@ -240,6 +241,13 @@ export const VolleyScoutScreen: React.FC = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const matchRef = useRef<VolleyMatch | null>(null);
+  const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
+
+  useEffect(() => {
+    matchRef.current = match;
+  }, [match]);
+
   const load = useCallback(async () => {
     const m = await getVolleyMatch(route.params.matchId);
     setMatch(m);
@@ -249,12 +257,20 @@ export const VolleyScoutScreen: React.FC = () => {
   }, [route.params.matchId, selectedPlayer]);
 
   useEffect(() => {
-    load();
     const unsub = subscribeVolleyMatch(route.params.matchId, (m) => {
-      if (m) setMatch(m);
+      if (m) {
+        setMatch(m);
+        matchRef.current = m;
+      }
     });
     return () => unsub();
   }, [route.params.matchId]);
+
+  useEffect(() => {
+    if (match && match.players.length > 0 && selectedPlayer === null) {
+      setSelectedPlayer(match.players[0].number);
+    }
+  }, [match, selectedPlayer]);
 
   const currentSet = match?.sets[match.currentSet - 1];
   const setsWonA = match?.sets.filter((s) => s.finished && s.scoreA > s.scoreB).length ?? 0;
@@ -265,17 +281,29 @@ export const VolleyScoutScreen: React.FC = () => {
     return currentSet.playerStats[selectedPlayer] ?? emptyPlayerStats();
   }, [currentSet, selectedPlayer]);
 
-  const handleAction = async (action: VolleyAction, delta: 1 | -1) => {
-    if (busy || !match || selectedPlayer === null) return;
-    setBusy(true);
-    try {
-      await performScoutAction(match, selectedPlayer, action, delta);
-    } catch (e) {
-      console.error('performScoutAction', e);
-      toast.error('Erro ao registrar ação.');
-    } finally {
-      setBusy(false);
-    }
+  const handleAction = (action: VolleyAction, delta: 1 | -1) => {
+    const current = matchRef.current;
+    if (!current || selectedPlayer === null) return;
+
+    // Optimistic UI
+    const next = previewScoutAction(current, selectedPlayer, action, delta);
+    if (!next) return;
+    setMatch(next);
+    matchRef.current = next;
+
+    // Persistencia serializada em background
+    writeQueueRef.current = writeQueueRef.current
+      .then(() => performScoutAction(current, selectedPlayer, action, delta))
+      .catch((e) => {
+        console.error('performScoutAction', e);
+        toast.error('Erro de rede. Sincronizando...');
+        getVolleyMatch(route.params.matchId).then((m) => {
+          if (m) {
+            setMatch(m);
+            matchRef.current = m;
+          }
+        });
+      });
   };
 
   const onUndoLastPoint = async () => {

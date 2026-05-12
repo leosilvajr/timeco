@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Card, Stack, Text } from '@mantine/core';
@@ -8,6 +8,7 @@ import {
   getVolleyMatch,
   subscribeVolleyMatch,
   performScoutAction,
+  previewScoutAction,
   finishCurrentSet,
   undoLastPoint,
   resetVolleyMatch,
@@ -97,6 +98,15 @@ export const VolleyScoutScreen: React.FC = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
 
+  // Refs pra UI otimista: state local atualizado na hora, persistencia
+  // serializada via writeQueue pra evitar race condition.
+  const matchRef = useRef<VolleyMatch | null>(null);
+  const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
+
+  useEffect(() => {
+    matchRef.current = match;
+  }, [match]);
+
   const load = useCallback(async () => {
     const m = await getVolleyMatch(route.params.matchId);
     setMatch(m);
@@ -105,13 +115,24 @@ export const VolleyScoutScreen: React.FC = () => {
     }
   }, [route.params.matchId, selectedPlayer]);
 
+  // onSnapshot ja entrega o estado inicial, entao nao precisamos do getVolleyMatch
+  // adicional no abrir da tela. Cortamos 1 read e o flash de re-render.
   useEffect(() => {
-    load();
     const unsub = subscribeVolleyMatch(route.params.matchId, (m) => {
-      if (m) setMatch(m);
+      if (m) {
+        setMatch(m);
+        matchRef.current = m;
+      }
     });
     return () => unsub();
   }, [route.params.matchId]);
+
+  // Quando o match carrega pela primeira vez, auto-seleciona o primeiro jogador.
+  useEffect(() => {
+    if (match && match.players.length > 0 && selectedPlayer === null) {
+      setSelectedPlayer(match.players[0].number);
+    }
+  }, [match, selectedPlayer]);
 
   const currentSet = match?.sets[match.currentSet - 1];
   const setsWonA = match?.sets.filter((s) => s.finished && s.scoreA > s.scoreB).length ?? 0;
@@ -122,17 +143,32 @@ export const VolleyScoutScreen: React.FC = () => {
     return currentSet.playerStats[selectedPlayer] ?? emptyPlayerStats();
   }, [currentSet, selectedPlayer]);
 
-  const handleAction = async (action: VolleyAction, delta: 1 | -1) => {
-    if (busy || !match || selectedPlayer === null) return;
-    setBusy(true);
-    try {
-      await performScoutAction(match, selectedPlayer, action, delta);
-    } catch (e) {
-      console.error('performScoutAction', e);
-      toast.error('Erro ao registrar ação. Tente de novo.');
-    } finally {
-      setBusy(false);
-    }
+  const handleAction = (action: VolleyAction, delta: 1 | -1) => {
+    const current = matchRef.current;
+    if (!current || selectedPlayer === null) return;
+
+    // 1. Optimistic: aplica a mudanca local imediatamente (UI instantanea)
+    const next = previewScoutAction(current, selectedPlayer, action, delta);
+    if (!next) return;
+    setMatch(next);
+    matchRef.current = next;
+
+    // 2. Persistencia em background, serializada via queue pra evitar race
+    //    (cliques rapidos consecutivos chegariam no Firestore em paralelo
+    //    com 'last-write-wins' e perderiam contagem)
+    writeQueueRef.current = writeQueueRef.current
+      .then(() => performScoutAction(current, selectedPlayer, action, delta))
+      .catch((e) => {
+        console.error('performScoutAction', e);
+        toast.error('Erro de rede. Sincronizando...');
+        // Forca reload pra alinhar com o que ficou no Firestore
+        getVolleyMatch(route.params.matchId).then((m) => {
+          if (m) {
+            setMatch(m);
+            matchRef.current = m;
+          }
+        });
+      });
   };
 
   const onUndoLastPoint = async () => {

@@ -167,6 +167,93 @@ export const actionScoreImpact: Record<VolleyAction, 'A' | 'B' | null> = {
 };
 
 /**
+ * Versao PURA do performScoutAction: calcula o novo estado do match sem
+ * tocar no Firestore. Usado pra renderizar UI otimista (instantanea) antes
+ * de a persistencia voltar.
+ *
+ * Retorna `null` se a acao nao puder ser aplicada (ex.: set nao encontrado).
+ */
+export const previewScoutAction = (
+  match: VolleyMatch,
+  playerNumber: number,
+  action: VolleyAction,
+  delta: 1 | -1 = 1,
+  autoRotation: boolean = true,
+): VolleyMatch | null => {
+  const sets = cloneSets(match.sets);
+  const idx = sets.findIndex((s) => s.number === match.currentSet);
+  if (idx < 0) return null;
+  const current = sets[idx];
+
+  const ps = current.playerStats[playerNumber] ?? emptyPlayerStats();
+  current.playerStats[playerNumber] = applyAction(ps, action, delta);
+
+  const scoreImpact = actionScoreImpact[action];
+  if (!scoreImpact) {
+    return { ...match, sets };
+  }
+
+  if (delta === 1) {
+    if (scoreImpact === 'A') current.scoreA += 1;
+    else current.scoreB += 1;
+    const before: VolleyPointHistoryEntry = {
+      team: scoreImpact,
+      rotationBefore: [...match.currentRotation],
+      serveBefore: match.serveTeam,
+    };
+    const result = applyPoint(
+      match.currentRotation,
+      match.serveTeam,
+      scoreImpact,
+      autoRotation,
+    );
+    return {
+      ...match,
+      sets,
+      currentRotation: result.rotation,
+      serveTeam: result.serveTeam,
+      pointsCount: match.pointsCount + 1,
+      rotationCount: result.rotated ? match.rotationCount + 1 : match.rotationCount,
+      pointHistory: [...match.pointHistory, before],
+    };
+  }
+
+  // UNDO
+  if (scoreImpact === 'A') current.scoreA = Math.max(0, current.scoreA - 1);
+  else current.scoreB = Math.max(0, current.scoreB - 1);
+
+  const history = [...match.pointHistory];
+  let restoredRotation: number[] | null = null;
+  let restoredServe: 'A' | 'B' | null = null;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].team === scoreImpact) {
+      restoredRotation = history[i].rotationBefore;
+      restoredServe = history[i].serveBefore;
+      history.splice(i, 1);
+      break;
+    }
+  }
+
+  const out: VolleyMatch = {
+    ...match,
+    sets,
+    pointsCount: Math.max(0, match.pointsCount - 1),
+    pointHistory: history,
+  };
+  if (restoredRotation) {
+    const rotated = restoredRotation.some((v, i) => v !== match.currentRotation[i]);
+    out.currentRotation = restoredRotation;
+    out.rotationCount = rotated
+      ? Math.max(0, match.rotationCount - 1)
+      : match.rotationCount;
+  }
+  if (restoredServe) {
+    out.serveTeam = restoredServe;
+  }
+  return out;
+};
+
+/**
  * Ação de scout completa: atualiza stats do jogador + placar/rotação
  * se a ação impacta o jogo, tudo num único updateDoc atomico.
  *
