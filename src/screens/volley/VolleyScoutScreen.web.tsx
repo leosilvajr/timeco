@@ -1,23 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import {
-  Card,
-  Group,
-  Stack,
-  Text,
-  Badge,
-  ActionIcon,
-  ScrollArea,
-  Tooltip,
-} from '@mantine/core';
-import {
-  HtmlScreen,
-  HtmlHeader,
-  HtmlButton,
-  HtmlCard,
-  webConfirm,
-} from '../../components/web';
+import { Card, Stack, Text, Badge } from '@mantine/core';
+import { HtmlScreen, HtmlHeader, HtmlButton, webConfirm } from '../../components/web';
 import { useThemedColors } from '../../store';
 import {
   getVolleyMatch,
@@ -101,12 +86,6 @@ const CARDS: CardConfig[] = [
     ],
   },
 ];
-
-const colorFor = (kind: ActionKind): string => {
-  if (kind === 'positive') return 'timeco';
-  if (kind === 'negative') return 'red';
-  return 'gray';
-};
 
 export const VolleyScoutScreen: React.FC = () => {
   const c = useThemedColors();
@@ -198,6 +177,18 @@ export const VolleyScoutScreen: React.FC = () => {
     (p) => p.number === selectedPlayer,
   );
 
+  // Cor pra cada kind
+  const kindColors = (kind: ActionKind) => {
+    if (kind === 'positive') return { bg: c.success, fg: c.white };
+    if (kind === 'negative') return { bg: c.danger, fg: c.white };
+    return { bg: c.info, fg: c.white };
+  };
+  const dotColor = (kind: ActionKind) => {
+    if (kind === 'positive') return c.success;
+    if (kind === 'negative') return c.danger;
+    return c.info;
+  };
+
   return (
     <HtmlScreen maxWidth={1200}>
       <HtmlHeader
@@ -206,245 +197,288 @@ export const VolleyScoutScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
-      {/* Scoreboard compacto — Mantine Card, estética igual aos outros cards do app */}
-      <Group gap="md" mb="md" grow>
+      {/* Scoreboard compacto */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
         <Card
           withBorder
           radius="md"
-          padding="md"
+          padding="sm"
           style={{
+            flex: 1,
             background: c.surfaceVariant,
             borderColor: c.primary,
             borderWidth: 2,
             textAlign: 'center',
           }}
         >
-          <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+          <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 0.6 }}>
             {match.teamAName}
           </Text>
-          <Text size="36px" fw={900} style={{ color: c.text, lineHeight: 1.1, marginTop: 4 }}>
+          <Text
+            size="40px"
+            fw={900}
+            style={{ color: c.text, lineHeight: 1, marginTop: 4 }}
+          >
             {currentSet?.scoreA ?? 0}
           </Text>
-          <Text size="xs" c="dimmed" mt={2}>
+          <Text size="xs" c="dimmed" mt={4}>
             Sets: {setsWonA}
           </Text>
           {match.serveTeam === 'A' && !currentSet?.finished ? (
-            <Badge color="timeco" variant="light" size="sm" mt={4} radius="sm">
+            <Badge color="timeco" variant="light" size="sm" mt={6} radius="sm">
               🎾 SAQUE
             </Badge>
           ) : null}
         </Card>
-
         <Card
           withBorder
           radius="md"
-          padding="md"
+          padding="sm"
           style={{
+            flex: 1,
             background: c.surface,
-            textAlign: 'center',
             borderWidth: 2,
+            textAlign: 'center',
           }}
         >
-          <Text size="xs" fw={700} c="dimmed" tt="uppercase">
+          <Text size="xs" fw={800} c="dimmed" tt="uppercase" style={{ letterSpacing: 0.6 }}>
             {match.teamBName}
           </Text>
-          <Text size="36px" fw={900} style={{ color: c.text, lineHeight: 1.1, marginTop: 4 }}>
+          <Text
+            size="40px"
+            fw={900}
+            style={{ color: c.text, lineHeight: 1, marginTop: 4 }}
+          >
             {currentSet?.scoreB ?? 0}
           </Text>
-          <Text size="xs" c="dimmed" mt={2}>
+          <Text size="xs" c="dimmed" mt={4}>
             Sets: {setsWonB}
           </Text>
           {match.serveTeam === 'B' && !currentSet?.finished ? (
-            <Badge color="timeco" variant="light" size="sm" mt={4} radius="sm">
+            <Badge color="timeco" variant="light" size="sm" mt={6} radius="sm">
               🎾 SAQUE
             </Badge>
           ) : null}
         </Card>
-      </Group>
+      </div>
 
-      {/* Player selector — pills minimalistas */}
+      {/* Player tabs — pill flat */}
       <Text
         size="xs"
         fw={800}
         c="dimmed"
         tt="uppercase"
         mb={6}
-        style={{ letterSpacing: 0.6 }}
+        style={{ letterSpacing: 0.8 }}
       >
         Jogador
       </Text>
-      <ScrollArea type="auto" offsetScrollbars={false} scrollbarSize={6} mb="sm">
-        <Group gap="xs" wrap="nowrap">
-          {match.players.map((p) => {
-            const isSel = p.number === selectedPlayer;
-            return (
-              <Badge
-                key={p.number}
-                size="lg"
-                radius="xl"
-                variant={isSel ? 'filled' : 'outline'}
-                color="timeco"
-                onClick={() => setSelectedPlayer(p.number)}
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          overflowX: 'auto',
+          paddingBottom: 8,
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'thin',
+        }}
+      >
+        {match.players.map((p) => {
+          const isSel = p.number === selectedPlayer;
+          return (
+            <button
+              key={p.number}
+              onClick={() => setSelectedPlayer(p.number)}
+              style={{
+                padding: '8px 16px',
+                height: 40,
+                borderRadius: 999,
+                background: isSel ? c.primary : c.surface,
+                border: `1.5px solid ${isSel ? c.primary : c.border}`,
+                color: isSel ? c.onPrimary : c.text,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 14,
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                flexShrink: 0,
+                transition: 'all 120ms ease',
+              }}
+            >
+              <span
                 style={{
-                  cursor: 'pointer',
-                  paddingLeft: 6,
-                  paddingRight: 14,
-                  height: 36,
-                  flexShrink: 0,
-                  textTransform: 'none',
+                  opacity: isSel ? 0.85 : 0.55,
+                  fontSize: 11,
+                  fontWeight: 900,
                 }}
-                leftSection={
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      background: isSel ? c.surface : c.primary,
-                      color: isSel ? c.primary : c.white,
-                      fontWeight: 900,
-                      fontSize: 12,
-                    }}
-                  >
-                    {p.number}
-                  </span>
-                }
               >
-                {p.name.split(' ')[0]}
-              </Badge>
-            );
-          })}
-        </Group>
-      </ScrollArea>
+                #{p.number}
+              </span>
+              <span>{p.name.split(' ')[0]}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Player heading */}
       {selectedPlayerObj ? (
-        <Group justify="space-between" align="flex-end" mb="md" mt="xs">
-          <div>
-            <Text size="lg" fw={900} style={{ color: c.text }}>
-              #{selectedPlayerObj.number} {selectedPlayerObj.name}
-            </Text>
-            <Text size="sm" c="dimmed">
-              {selectedPlayerObj.position}
-            </Text>
-          </div>
-        </Group>
+        <div style={{ marginTop: 8, marginBottom: 10 }}>
+          <Text size="lg" fw={900} style={{ color: c.text }}>
+            #{selectedPlayerObj.number} {selectedPlayerObj.name}
+          </Text>
+          <Text size="xs" c="dimmed" mt={2}>
+            {selectedPlayerObj.position}
+          </Text>
+        </div>
       ) : null}
 
-      {/* Cards de acoes — grid responsivo, estilo do app */}
+      {/* Cards de ações — grid responsivo, mais compactos */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-          gap: 12,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: 10,
         }}
       >
         {CARDS.map((card) => (
-          <HtmlCard key={card.title} style={{ marginBottom: 0 }}>
+          <Card
+            key={card.title}
+            withBorder
+            radius="md"
+            padding="sm"
+            style={{ background: c.surface }}
+          >
             <Text
               size="xs"
               fw={800}
               c="dimmed"
               tt="uppercase"
-              mb="sm"
+              mb={6}
               ta="center"
               style={{ letterSpacing: 0.8 }}
             >
               {card.emoji}  {card.title}
             </Text>
-            <Stack gap={6}>
+            <Stack gap={4}>
               {card.actions.map((a) => {
                 const count = a.read(playerStats);
-                const kindColor = colorFor(a.kind);
-                const dotColor =
-                  a.kind === 'positive'
-                    ? c.success
-                    : a.kind === 'negative'
-                    ? c.danger
-                    : c.info;
+                const dot = dotColor(a.kind);
+                const kColors = kindColors(a.kind);
+                const hasValue = count > 0;
                 return (
-                  <Group
+                  <div
                     key={a.action}
-                    justify="space-between"
-                    wrap="nowrap"
                     style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
                       padding: '6px 10px',
-                      borderRadius: 8,
-                      background: count > 0 ? `${dotColor}14` : 'transparent',
+                      borderRadius: 10,
+                      background: hasValue ? `${dot}12` : 'transparent',
                       transition: 'background 120ms ease',
                     }}
                   >
-                    <Group gap={10} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-                      <span
-                        style={{
-                          width: 10,
-                          height: 10,
-                          borderRadius: 5,
-                          background: dotColor,
-                          flexShrink: 0,
-                        }}
-                      />
-                      <Text size="sm" fw={600} c={c.text} truncate>
-                        {a.label}
-                      </Text>
-                    </Group>
-                    <Group gap={6} wrap="nowrap">
-                      <Text
-                        size="md"
-                        fw={800}
-                        ta="center"
-                        style={{
-                          color: count > 0 ? c.text : c.textMuted,
-                          minWidth: 24,
-                        }}
-                      >
-                        {count}
-                      </Text>
-                      <Tooltip label="Desfazer" position="top" withArrow openDelay={500}>
-                        <ActionIcon
-                          variant="subtle"
-                          color="gray"
-                          size="lg"
-                          radius="md"
-                          onClick={() => handleAction(a.action, -1)}
-                          disabled={busy || count === 0}
-                          aria-label={`Desfazer ${a.label}`}
-                        >
-                          −
-                        </ActionIcon>
-                      </Tooltip>
-                      <Tooltip label="Registrar" position="top" withArrow openDelay={500}>
-                        <ActionIcon
-                          variant="filled"
-                          color={kindColor}
-                          size="lg"
-                          radius="md"
-                          onClick={() => handleAction(a.action, 1)}
-                          disabled={busy}
-                          aria-label={`Registrar ${a.label}`}
-                        >
-                          +
-                        </ActionIcon>
-                      </Tooltip>
-                    </Group>
-                  </Group>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 4,
+                        background: dot,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: c.text,
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
+                      {a.label}
+                    </span>
+                    <span
+                      style={{
+                        minWidth: 28,
+                        textAlign: 'center',
+                        fontSize: 20,
+                        fontWeight: 900,
+                        color: hasValue ? c.text : c.textMuted,
+                      }}
+                    >
+                      {count}
+                    </span>
+                    <button
+                      onClick={() => handleAction(a.action, -1)}
+                      disabled={busy || count === 0}
+                      aria-label={`Decrementar ${a.label}`}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 8,
+                        background: count === 0 ? c.surfaceVariant : c.border,
+                        color: count === 0 ? c.textMuted : c.text,
+                        border: 'none',
+                        cursor: count === 0 ? 'not-allowed' : 'pointer',
+                        fontSize: 22,
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        fontFamily: 'inherit',
+                        flexShrink: 0,
+                        transition: 'all 120ms ease',
+                        opacity: busy ? 0.5 : 1,
+                      }}
+                    >
+                      −
+                    </button>
+                    <button
+                      onClick={() => handleAction(a.action, 1)}
+                      disabled={busy}
+                      aria-label={`Incrementar ${a.label}`}
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: 8,
+                        background: kColors.bg,
+                        color: kColors.fg,
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 22,
+                        fontWeight: 900,
+                        lineHeight: 1,
+                        fontFamily: 'inherit',
+                        flexShrink: 0,
+                        transition: 'all 120ms ease',
+                        opacity: busy ? 0.5 : 1,
+                      }}
+                    >
+                      +
+                    </button>
+                  </div>
                 );
               })}
             </Stack>
-          </HtmlCard>
+          </Card>
         ))}
       </div>
 
       {/* Footer actions */}
       <Stack gap={8} mt="md">
-        <Group grow gap={8}>
-          <HtmlButton title="↶ Desfazer ponto" variant="outline" onClick={onUndoLastPoint} />
+        <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <HtmlButton title="↶ Desfazer ponto" variant="outline" onClick={onUndoLastPoint} />
+          </div>
           {!currentSet?.finished ? (
-            <HtmlButton title="🏁 Encerrar set" variant="ghost" onClick={onCloseSet} />
+            <div style={{ flex: 1 }}>
+              <HtmlButton title="🏁 Encerrar set" variant="ghost" onClick={onCloseSet} />
+            </div>
           ) : null}
-        </Group>
+        </div>
         <HtmlButton
           title="📊 Relatórios"
           variant="secondary"
