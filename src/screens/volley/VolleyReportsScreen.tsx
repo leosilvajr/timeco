@@ -1,22 +1,31 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable } from 'react-native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header } from '../../components';
-import { colors, spacing, radius } from '../../constants/theme';
+import { Screen, Header, Card } from '../../components';
+import { ColorPalette, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
-import { useResponsive } from '../../hooks/useResponsive';
 import { subscribeVolleyMatch } from '../../services/volleyScoutService';
 import {
   accumulateAcrossSets,
+  attackPercentage,
+  blockPercentage,
+  directPoints,
+  efficiencyThresholds,
   emptyPlayerStats,
+  passPercentage,
+  servePercentage,
   teamSummary,
+  totalAttacks,
+  totalBlocks,
+  totalErrors,
+  totalPasses,
+  totalServes,
 } from '../../services/volleyStats';
-import { PlayerVolleyStats, VolleyMatch } from '../../types';
+import { PlayerVolleyStats, VolleyMatch, VolleyPlayer } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
 
 import { TeamSummaryCards } from './components/TeamSummaryCards';
-import { PlayerStatsTable } from './components/PlayerStatsTable';
 import { PlayerStatsCard } from './components/PlayerStatsCard';
 
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyReports'>;
@@ -24,20 +33,227 @@ type Rt = RouteProp<VolleyStackParamList, 'VolleyReports'>;
 
 type Mode = 'current' | 'all';
 
+const makeStyles = (c: ColorPalette) =>
+  StyleSheet.create({
+    modeRow: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
+    modeBtn: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: radius.md,
+      alignItems: 'center',
+      backgroundColor: c.surface,
+      borderWidth: 1.5,
+      borderColor: c.border,
+    },
+    modeBtnActive: { backgroundColor: c.primary, borderColor: c.primary },
+    modeTxt: { color: c.text, fontWeight: '700', fontSize: 13 },
+    modeTxtActive: { color: c.onPrimary },
+    setHistoryRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 6,
+      marginBottom: spacing.md,
+    },
+    setHistoryChip: {
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: radius.pill,
+      backgroundColor: c.surfaceVariant,
+    },
+    setHistoryChipActive: { backgroundColor: c.primary },
+    setHistoryTxt: { fontSize: 12, fontWeight: '700', color: c.text },
+    setHistoryTxtActive: { color: c.onPrimary },
+    sectionTitle: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: c.textMuted,
+      marginTop: spacing.md,
+      marginBottom: spacing.sm,
+      textTransform: 'uppercase',
+      letterSpacing: 0.8,
+    },
+    // Compact player row (substitui tabela horizontal)
+    compactCard: {
+      marginBottom: spacing.sm,
+      padding: spacing.md,
+    },
+    compactHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      marginBottom: spacing.sm,
+    },
+    compactNum: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    compactNumTxt: { color: c.onPrimary, fontWeight: '900', fontSize: 13 },
+    compactName: { fontSize: 14, fontWeight: '800', color: c.text },
+    compactPos: { fontSize: 11, color: c.textSecondary },
+    pointsBadge: {
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: radius.pill,
+      backgroundColor: c.primary + '22',
+    },
+    pointsBadgeTxt: { color: c.primary, fontSize: 12, fontWeight: '800' },
+    metricsRow: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+    metric: {
+      flex: 1,
+      minWidth: 70,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 6,
+      backgroundColor: c.surfaceVariant,
+      borderRadius: radius.sm,
+      alignItems: 'center',
+    },
+    metricLabel: {
+      fontSize: 9,
+      fontWeight: '700',
+      color: c.textSecondary,
+      textTransform: 'uppercase',
+    },
+    metricValue: { fontSize: 14, fontWeight: '900', marginTop: 2 },
+    metricSub: { fontSize: 9, color: c.textMuted },
+
+    // Player tabs pra analise individual
+    playersStrip: { paddingBottom: spacing.sm },
+    playerChip: {
+      paddingHorizontal: 14,
+      paddingVertical: 6,
+      borderRadius: radius.pill,
+      backgroundColor: c.surface,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      marginRight: spacing.sm,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      height: 36,
+    },
+    playerChipSelected: { backgroundColor: c.primary, borderColor: c.primary },
+    playerChipNum: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: c.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    playerChipNumSelected: { backgroundColor: c.surface },
+    playerChipNumTxt: { color: c.onPrimary, fontSize: 12, fontWeight: '900' },
+    playerChipNumTxtSelected: { color: c.primary },
+    playerChipName: { fontSize: 13, fontWeight: '700', color: c.text },
+    playerChipNameSelected: { color: c.onPrimary },
+  });
+
+// ============================================================================
+// Linha compacta por jogador (substitui PlayerStatsTable horizontal)
+// ============================================================================
+
+const PlayerCompactRow: React.FC<{
+  player: VolleyPlayer;
+  stats: PlayerVolleyStats;
+  c: ColorPalette;
+}> = ({ player, stats, c }) => {
+  const styles = makeStyles(c);
+  const aPct = attackPercentage(stats);
+  const sPct = servePercentage(stats);
+  const pPct = passPercentage(stats);
+  const bPct = blockPercentage(stats);
+  const dp = directPoints(stats);
+
+  const Metric: React.FC<{
+    label: string;
+    value: string;
+    sub: string;
+    ok?: boolean;
+  }> = ({ label, value, sub, ok }) => (
+    <View style={styles.metric}>
+      <Text style={styles.metricLabel}>{label}</Text>
+      <Text
+        style={[
+          styles.metricValue,
+          { color: ok === undefined ? c.text : ok ? c.success : c.danger },
+        ]}
+      >
+        {value}
+      </Text>
+      <Text style={styles.metricSub}>{sub}</Text>
+    </View>
+  );
+
+  return (
+    <Card style={styles.compactCard}>
+      <View style={styles.compactHeader}>
+        <View style={styles.compactNum}>
+          <Text style={styles.compactNumTxt}>{player.number}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.compactName}>{player.name}</Text>
+          <Text style={styles.compactPos}>{player.position}</Text>
+        </View>
+        <View style={styles.pointsBadge}>
+          <Text style={styles.pointsBadgeTxt}>{dp} pts</Text>
+        </View>
+      </View>
+      <View style={styles.metricsRow}>
+        <Metric
+          label="Ataque"
+          value={`${aPct.toFixed(0)}%`}
+          sub={`${stats.attacks.success}/${totalAttacks(stats)}`}
+          ok={aPct >= efficiencyThresholds.attack}
+        />
+        <Metric
+          label="Saque"
+          value={`${sPct.toFixed(0)}%`}
+          sub={`${stats.serves.ace} aces`}
+          ok={sPct >= efficiencyThresholds.serve}
+        />
+        <Metric
+          label="Passe"
+          value={`${pPct.toFixed(0)}%`}
+          sub={`${stats.passes.a + stats.passes.b}/${totalPasses(stats)}`}
+          ok={pPct >= efficiencyThresholds.pass}
+        />
+        <Metric
+          label="Bloq."
+          value={totalBlocks(stats) > 0 ? `${bPct.toFixed(0)}%` : '—'}
+          sub={`${stats.blocks.success}/${totalBlocks(stats)}`}
+          ok={bPct >= efficiencyThresholds.block}
+        />
+      </View>
+    </Card>
+  );
+};
+
+// ============================================================================
+// Main screen
+// ============================================================================
+
 export const VolleyReportsScreen: React.FC = () => {
-  useThemedColors();
+  const c = useThemedColors();
   const route = useRoute<Rt>();
   const nav = useNavigation<Nav>();
-  const responsive = useResponsive();
-  const desktop = responsive.isDesktop;
   const { matchId } = route.params;
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [mode, setMode] = useState<Mode>('current');
+  const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
+  const styles = useMemo(() => makeStyles(c), [c]);
 
   useEffect(() => {
-    const unsub = subscribeVolleyMatch(matchId, setMatch);
+    const unsub = subscribeVolleyMatch(matchId, (m) => {
+      setMatch(m);
+      if (m && m.players.length > 0 && selectedPlayer === null) {
+        setSelectedPlayer(m.players[0].number);
+      }
+    });
     return () => unsub();
-  }, [matchId]);
+  }, [matchId, selectedPlayer]);
 
   const playerStatsForMode = useMemo((): Record<number, PlayerVolleyStats> => {
     if (!match) return {};
@@ -54,64 +270,6 @@ export const VolleyReportsScreen: React.FC = () => {
 
   const summary = useMemo(() => teamSummary(playerStatsForMode), [playerStatsForMode]);
 
-  const styles = StyleSheet.create({
-    modeRow: {
-      flexDirection: 'row',
-      gap: spacing.sm,
-      marginBottom: spacing.md,
-    },
-    modeBtn: {
-      flex: 1,
-      paddingVertical: 10,
-      borderRadius: radius.md,
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderWidth: 1.5,
-      borderColor: colors.border,
-    },
-    modeBtnActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    modeTxt: { color: colors.text, fontWeight: '700', fontSize: 13 },
-    modeTxtActive: { color: colors.white },
-    setHistoryRow: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      gap: 6,
-      marginBottom: spacing.md,
-    },
-    setHistoryChip: {
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: radius.pill,
-      backgroundColor: colors.surfaceVariant,
-    },
-    setHistoryChipActive: {
-      backgroundColor: colors.primary,
-    },
-    setHistoryTxt: {
-      fontSize: 12,
-      fontWeight: '700',
-      color: colors.text,
-    },
-    setHistoryTxtActive: { color: colors.white },
-    sectionTitle: {
-      fontSize: 14,
-      fontWeight: '800',
-      color: colors.text,
-      marginTop: spacing.md,
-      marginBottom: spacing.sm,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-    },
-    playersGrid: {
-      flexDirection: desktop ? 'row' : 'column',
-      flexWrap: 'wrap',
-      gap: desktop ? spacing.md : 0,
-    },
-  });
-
   if (!match) {
     return (
       <Screen>
@@ -119,6 +277,12 @@ export const VolleyReportsScreen: React.FC = () => {
       </Screen>
     );
   }
+
+  const selectedPlayerObj = match.players.find((p) => p.number === selectedPlayer);
+  const selectedPlayerStats =
+    selectedPlayer !== null
+      ? playerStatsForMode[selectedPlayer] ?? emptyPlayerStats()
+      : emptyPlayerStats();
 
   return (
     <Screen>
@@ -128,23 +292,27 @@ export const VolleyReportsScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
+      {/* Mode toggle */}
       <View style={styles.modeRow}>
         <Pressable
           style={[styles.modeBtn, mode === 'current' && styles.modeBtnActive]}
           onPress={() => setMode('current')}
         >
           <Text style={[styles.modeTxt, mode === 'current' && styles.modeTxtActive]}>
-            Set atual
+            Set atual ({match.currentSet})
           </Text>
         </Pressable>
         <Pressable
           style={[styles.modeBtn, mode === 'all' && styles.modeBtnActive]}
           onPress={() => setMode('all')}
         >
-          <Text style={[styles.modeTxt, mode === 'all' && styles.modeTxtActive]}>Acumulado</Text>
+          <Text style={[styles.modeTxt, mode === 'all' && styles.modeTxtActive]}>
+            Acumulado
+          </Text>
         </Pressable>
       </View>
 
+      {/* Set history */}
       <View style={styles.setHistoryRow}>
         {match.sets.map((s) => {
           const active = s.number === match.currentSet && mode === 'current';
@@ -154,35 +322,75 @@ export const VolleyReportsScreen: React.FC = () => {
               style={[styles.setHistoryChip, active && styles.setHistoryChipActive]}
             >
               <Text style={[styles.setHistoryTxt, active && styles.setHistoryTxtActive]}>
-                Set {s.number}: {s.scoreA} x {s.scoreB} {s.finished ? '✓' : ''}
+                Set {s.number}: {s.scoreA}x{s.scoreB} {s.finished ? '✓' : ''}
               </Text>
             </View>
           );
         })}
       </View>
 
+      {/* Team summary */}
+      <Text style={styles.sectionTitle}>Resumo do time</Text>
       <TeamSummaryCards
         totalPoints={summary.totalPoints}
         totalAces={summary.totalAces}
         totalBlocks={summary.totalBlocks}
         totalErrors={summary.totalErrors}
-        desktop={desktop}
+        desktop={false}
       />
 
-      <Text style={styles.sectionTitle}>Tabela detalhada</Text>
-      <PlayerStatsTable players={match.players} playerStatsForMode={playerStatsForMode} />
+      {/* Estatisticas por jogador — agora STACK COMPACTA (sem scroll horizontal) */}
+      <Text style={styles.sectionTitle}>Estatísticas por jogador</Text>
+      {match.players.map((p) => (
+        <PlayerCompactRow
+          key={p.number}
+          player={p}
+          stats={playerStatsForMode[p.number] ?? emptyPlayerStats()}
+          c={c}
+        />
+      ))}
 
+      {/* Análise individual — tabs por jogador */}
       <Text style={styles.sectionTitle}>Análise individual</Text>
-      <View style={styles.playersGrid}>
-        {match.players.map((p) => (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.playersStrip}
+      >
+        {match.players.map((p) => {
+          const isSel = p.number === selectedPlayer;
+          return (
+            <Pressable
+              key={p.number}
+              style={[styles.playerChip, isSel && styles.playerChipSelected]}
+              onPress={() => setSelectedPlayer(p.number)}
+            >
+              <View style={[styles.playerChipNum, isSel && styles.playerChipNumSelected]}>
+                <Text
+                  style={[styles.playerChipNumTxt, isSel && styles.playerChipNumTxtSelected]}
+                >
+                  {p.number}
+                </Text>
+              </View>
+              <Text style={[styles.playerChipName, isSel && styles.playerChipNameSelected]}>
+                {p.name.split(' ')[0]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {selectedPlayerObj ? (
+        <View style={{ marginTop: spacing.sm }}>
           <PlayerStatsCard
-            key={p.number}
-            player={p}
-            stats={playerStatsForMode[p.number] ?? emptyPlayerStats()}
-            desktop={desktop}
+            player={selectedPlayerObj}
+            stats={selectedPlayerStats}
+            desktop={false}
           />
-        ))}
-      </View>
+        </View>
+      ) : null}
+
+      <View style={{ height: spacing.xxl }} />
     </Screen>
   );
 };
