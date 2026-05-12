@@ -10,6 +10,7 @@ import {
   performScoutAction,
   finishCurrentSet,
   undoLastPoint,
+  resetVolleyMatch,
 } from '../../services/volleyScoutService';
 import { emptyPlayerStats } from '../../services/volleyStats';
 import { toast } from '../../store/toastStore';
@@ -160,6 +161,29 @@ export const VolleyScoutScreen: React.FC = () => {
       await finishCurrentSet(match);
       toast.success('Set encerrado!');
       await load();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onResetAll = async () => {
+    if (!match) return;
+    const proceed = await webConfirm({
+      title: 'Zerar tudo',
+      message:
+        'Todos os sets, placares e estatísticas vão ser apagados. Essa ação não pode ser desfeita. Continuar?',
+      confirmLabel: 'Zerar tudo',
+      danger: true,
+    });
+    if (!proceed) return;
+    setBusy(true);
+    try {
+      await resetVolleyMatch(match);
+      toast.success('Tudo zerado! Partida começa do zero.');
+      await load();
+    } catch (e) {
+      console.error('resetVolleyMatch', e);
+      toast.error('Erro ao zerar partida.');
     } finally {
       setBusy(false);
     }
@@ -488,6 +512,11 @@ export const VolleyScoutScreen: React.FC = () => {
           title="🔄 Rotação"
           variant="ghost"
           onClick={() => nav.navigate('VolleyRotation', { matchId: match.id })}
+        />
+        <HtmlButton
+          title="🗑️  Zerar tudo"
+          variant="danger"
+          onClick={onResetAll}
         />
       </Stack>
 

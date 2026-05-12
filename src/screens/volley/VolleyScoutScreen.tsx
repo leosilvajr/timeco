@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Button, Badge } from '../../components';
@@ -11,6 +11,7 @@ import {
   performScoutAction,
   finishCurrentSet,
   undoLastPoint,
+  resetVolleyMatch,
 } from '../../services/volleyScoutService';
 import { emptyPlayerStats } from '../../services/volleyStats';
 import { useResponsive } from '../../hooks/useResponsive';
@@ -225,7 +226,11 @@ export const VolleyScoutScreen: React.FC = () => {
   const nav = useNavigation<Nav>();
   const route = useRoute<Rt>();
   const responsive = useResponsive();
+  const { width: windowW } = useWindowDimensions();
   const styles = useMemo(() => makeStyles(c), [c]);
+
+  // Em landscape (tela larga >= 720) cards lado a lado em 2 colunas
+  const isWide = windowW >= 720;
 
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
@@ -293,6 +298,28 @@ export const VolleyScoutScreen: React.FC = () => {
       await finishCurrentSet(match);
       toast.success('Set encerrado!');
       await load();
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const onResetAll = async () => {
+    if (!match) return;
+    const proceed =
+      typeof window !== 'undefined'
+        ? window.confirm(
+            'Zerar tudo? Todos os sets, placares e estatísticas vão ser apagados. Essa ação não pode ser desfeita.',
+          )
+        : true;
+    if (!proceed) return;
+    setBusy(true);
+    try {
+      await resetVolleyMatch(match);
+      toast.success('Tudo zerado! Partida começa do zero.');
+      await load();
+    } catch (e) {
+      console.error('resetVolleyMatch', e);
+      toast.error('Erro ao zerar partida.');
     } finally {
       setBusy(false);
     }
@@ -378,9 +405,24 @@ export const VolleyScoutScreen: React.FC = () => {
         </View>
       ) : null}
 
-      {/* Cards */}
+      {/* Cards — em landscape (>=720px) usa grid de 2 colunas */}
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          gap: isWide ? 10 : 0,
+        }}
+      >
       {CARDS.map((card) => (
-        <View key={card.title} style={styles.card}>
+        <View
+          key={card.title}
+          style={[
+            styles.card,
+            isWide
+              ? { width: '48%', flexGrow: 1, marginBottom: 0 }
+              : null,
+          ]}
+        >
           <Text style={styles.cardTitle}>
             {card.emoji}  {card.title}
           </Text>
@@ -437,6 +479,7 @@ export const VolleyScoutScreen: React.FC = () => {
           })}
         </View>
       ))}
+      </View>
 
       {/* Footer actions */}
       <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
@@ -460,6 +503,11 @@ export const VolleyScoutScreen: React.FC = () => {
           title="🔄 Rotação"
           variant="ghost"
           onPress={() => nav.navigate('VolleyRotation', { matchId: match.id })}
+        />
+        <Button
+          title="🗑️  Zerar tudo"
+          variant="danger"
+          onPress={onResetAll}
         />
       </View>
 

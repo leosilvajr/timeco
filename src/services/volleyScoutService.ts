@@ -379,6 +379,22 @@ export const setInitialRotation = async (
   });
 };
 
+/** Zera tudo: sets, placares, rotação, saque e history. Volta pro set 1. */
+export const resetVolleyMatch = async (match: VolleyMatch): Promise<void> => {
+  const emptySet = buildEmptySet(1, match.players);
+  await updateDoc(doc(db, 'volleyMatches', match.id), {
+    sets: [emptySet],
+    currentSet: 1,
+    currentRotation: [...match.initialRotation],
+    rotationCount: 0,
+    pointsCount: 0,
+    serveTeam: 'A',
+    pointHistory: [],
+    status: 'in_progress',
+    updatedAt: serverTimestamp(),
+  });
+};
+
 /** Finaliza o set atual e cria o próximo (se ainda houver). Marca jogo finalizado se atingir o formato. */
 export const finishCurrentSet = async (match: VolleyMatch): Promise<void> => {
   const sets = cloneSets(match.sets);
