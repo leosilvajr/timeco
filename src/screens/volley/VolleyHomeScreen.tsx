@@ -63,10 +63,19 @@ export const VolleyHomeScreen: React.FC = () => {
   );
 
   const onDelete = async (m: VolleyMatch) => {
-    const ok = typeof window !== 'undefined' ? window.confirm(`Apagar a partida "${m.teamAName} x ${m.teamBName}"?`) : true;
+    const ok =
+      typeof window !== 'undefined'
+        ? window.confirm(`Apagar a partida "${m.teamAName} x ${m.teamBName}"?`)
+        : true;
     if (!ok) return;
-    await deleteVolleyMatch(m.id);
-    await load();
+    try {
+      await deleteVolleyMatch(m.id);
+      setMatches((prev) => prev.filter((x) => x.id !== m.id));
+      toast.success('Partida apagada.');
+    } catch (e) {
+      console.error('deleteVolleyMatch', e);
+      toast.error('Erro ao apagar partida.');
+    }
   };
 
   const styles = StyleSheet.create({

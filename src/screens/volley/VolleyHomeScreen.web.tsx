@@ -1,9 +1,15 @@
 import React, { useCallback, useState } from 'react';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HtmlScreen, HtmlHeader, HtmlCard, HtmlButton } from '../../components/web';
+import {
+  HtmlScreen,
+  HtmlHeader,
+  HtmlCard,
+  HtmlButton,
+  webConfirm,
+} from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
-import { listUserVolleyMatches } from '../../services/volleyScoutService';
+import { listUserVolleyMatches, deleteVolleyMatch } from '../../services/volleyScoutService';
 import { toast } from '../../store/toastStore';
 import { VolleyMatch } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
@@ -17,21 +23,43 @@ export const VolleyHomeScreen: React.FC = () => {
   const [matches, setMatches] = useState<VolleyMatch[]>([]);
   const [loaded, setLoaded] = useState(false);
 
+  const load = useCallback(() => {
+    if (!user) return;
+    listUserVolleyMatches(user.id)
+      .then(setMatches)
+      .catch((e) => {
+        console.error('listUserVolleyMatches', e);
+        toast.error('Erro ao carregar partidas. Tente recarregar a página.');
+      })
+      .finally(() => setLoaded(true));
+  }, [user?.id]);
+
   // useFocusEffect — refaz fetch toda vez que a tela ganha foco
   // (ex: depois de criar uma partida, ao voltar do MatchSetup,
   // a partida nova aparece sem precisar refresh).
   useFocusEffect(
     useCallback(() => {
-      if (!user) return;
-      listUserVolleyMatches(user.id)
-        .then(setMatches)
-        .catch((e) => {
-          console.error('listUserVolleyMatches', e);
-          toast.error('Erro ao carregar partidas. Tente recarregar a página.');
-        })
-        .finally(() => setLoaded(true));
-    }, [user?.id]),
+      load();
+    }, [load]),
   );
+
+  const onDelete = async (m: VolleyMatch) => {
+    const ok = await webConfirm({
+      title: 'Apagar partida',
+      message: `Apagar a partida "${m.teamAName} x ${m.teamBName}"? Os dados de scout serão perdidos.`,
+      danger: true,
+      confirmLabel: 'Apagar',
+    });
+    if (!ok) return;
+    try {
+      await deleteVolleyMatch(m.id);
+      setMatches((prev) => prev.filter((x) => x.id !== m.id));
+      toast.success('Partida apagada.');
+    } catch (e) {
+      console.error('deleteVolleyMatch', e);
+      toast.error('Erro ao apagar partida.');
+    }
+  };
 
   return (
     <HtmlScreen maxWidth={760}>
@@ -77,33 +105,64 @@ export const VolleyHomeScreen: React.FC = () => {
         </p>
       ) : (
         matches.map((m) => (
-          <button
+          <div
             key={m.id}
-            onClick={() => nav.navigate('VolleyScout', { matchId: m.id })}
             style={{
-              display: 'block',
-              width: '100%',
-              textAlign: 'left',
-              padding: 12,
+              display: 'flex',
+              alignItems: 'stretch',
               background: c.surface,
               border: `1px solid ${c.border}`,
               borderRadius: 16,
               marginBottom: 8,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              color: 'inherit',
+              overflow: 'hidden',
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 700, color: c.text }}>
-              {m.teamAName} vs {m.teamBName}
-            </div>
-            <div style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
-              {m.date} · {m.location} · Set {m.currentSet}
-            </div>
-            <div style={{ fontSize: 12, color: c.textMuted, marginTop: 2 }}>
-              Status: {m.status === 'finished' ? '✅ Finalizado' : '⏱️ Em andamento'}
-            </div>
-          </button>
+            <button
+              onClick={() => nav.navigate('VolleyScout', { matchId: m.id })}
+              style={{
+                flex: 1,
+                textAlign: 'left',
+                padding: 12,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                color: 'inherit',
+                minWidth: 0,
+              }}
+            >
+              <div style={{ fontSize: 15, fontWeight: 700, color: c.text }}>
+                {m.teamAName} vs {m.teamBName}
+              </div>
+              <div style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
+                {m.date} · {m.location} · Set {m.currentSet}
+              </div>
+              <div style={{ fontSize: 12, color: c.textMuted, marginTop: 2 }}>
+                Status: {m.status === 'finished' ? '✅ Finalizado' : '⏱️ Em andamento'}
+              </div>
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(m);
+              }}
+              aria-label="Apagar partida"
+              style={{
+                flexShrink: 0,
+                padding: '0 14px',
+                background: 'transparent',
+                border: 'none',
+                borderLeft: `1px solid ${c.border}`,
+                color: c.danger,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              🗑️ Apagar
+            </button>
+          </div>
         ))
       )}
     </HtmlScreen>
