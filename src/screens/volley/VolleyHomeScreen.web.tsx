@@ -16,6 +16,24 @@ import type { VolleyStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyHome'>;
 
+const formatDateBR = (iso: string): string => {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-');
+  if (!y || !m || !d) return iso;
+  return `${d}/${m}/${y}`;
+};
+
+const winsCount = (match: VolleyMatch): { a: number; b: number } => {
+  let a = 0;
+  let b = 0;
+  for (const s of match.sets) {
+    if (!s.finished) continue;
+    if (s.scoreA > s.scoreB) a += 1;
+    else if (s.scoreB > s.scoreA) b += 1;
+  }
+  return { a, b };
+};
+
 export const VolleyHomeScreen: React.FC = () => {
   const c = useThemedColors();
   const nav = useNavigation<Nav>();
@@ -104,66 +122,102 @@ export const VolleyHomeScreen: React.FC = () => {
           Nenhum jogo ainda.
         </p>
       ) : (
-        matches.map((m) => (
-          <div
-            key={m.id}
-            style={{
-              display: 'flex',
-              alignItems: 'stretch',
-              background: c.surface,
-              border: `1px solid ${c.border}`,
-              borderRadius: 16,
-              marginBottom: 8,
-              overflow: 'hidden',
-            }}
-          >
-            <button
+        matches.map((m) => {
+          const w = winsCount(m);
+          const isFinished = m.status === 'finished';
+          return (
+            <div
+              key={m.id}
               onClick={() => nav.navigate('VolleyScout', { matchId: m.id })}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  nav.navigate('VolleyScout', { matchId: m.id });
+                }
+              }}
               style={{
-                flex: 1,
-                textAlign: 'left',
-                padding: 12,
-                background: 'transparent',
-                border: 'none',
+                background: c.surface,
+                border: `1px solid ${c.border}`,
+                borderRadius: 16,
+                padding: 14,
+                marginBottom: 8,
                 cursor: 'pointer',
-                fontFamily: 'inherit',
-                color: 'inherit',
-                minWidth: 0,
               }}
             >
-              <div style={{ fontSize: 15, fontWeight: 700, color: c.text }}>
-                {m.teamAName} vs {m.teamBName}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 6,
+                  gap: 8,
+                }}
+              >
+                <span style={{ fontSize: 16, fontWeight: 800, color: c.text }}>
+                  {m.teamAName} x {m.teamBName}
+                </span>
+                <span
+                  style={{
+                    padding: '2px 10px',
+                    borderRadius: 999,
+                    fontSize: 11,
+                    fontWeight: 700,
+                    background: isFinished ? `${c.success}33` : `${c.warning}33`,
+                    color: isFinished ? c.success : c.warning,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {isFinished ? 'FINALIZADO' : `SET ${m.currentSet}`}
+                </span>
               </div>
-              <div style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
-                {m.date} · {m.location} · Set {m.currentSet}
+              <div style={{ fontSize: 13, color: c.textSecondary }}>
+                {formatDateBR(m.date)} · {m.location} · Melhor de {m.format}
               </div>
-              <div style={{ fontSize: 12, color: c.textMuted, marginTop: 2 }}>
-                Status: {m.status === 'finished' ? '✅ Finalizado' : '⏱️ Em andamento'}
+              <div
+                style={{
+                  fontSize: 22,
+                  fontWeight: 900,
+                  color: c.primary,
+                  marginTop: 4,
+                }}
+              >
+                {w.a} x {w.b} sets
               </div>
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(m);
-              }}
-              aria-label="Apagar partida"
-              style={{
-                flexShrink: 0,
-                padding: '0 14px',
-                background: 'transparent',
-                border: 'none',
-                borderLeft: `1px solid ${c.border}`,
-                color: c.danger,
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              🗑️ Apagar
-            </button>
-          </div>
-        ))
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: 8,
+                }}
+              >
+                <span style={{ fontSize: 13, color: c.textSecondary }}>
+                  {m.players.length} jogadores
+                </span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(m);
+                  }}
+                  style={{
+                    padding: '4px 8px',
+                    background: 'transparent',
+                    border: 'none',
+                    color: c.danger,
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  Apagar
+                </button>
+              </div>
+            </div>
+          );
+        })
       )}
     </HtmlScreen>
   );
