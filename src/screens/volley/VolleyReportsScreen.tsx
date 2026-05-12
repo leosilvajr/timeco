@@ -120,11 +120,11 @@ const makeStyles = (c: ColorPalette) =>
     metricValue: { fontSize: 14, fontWeight: '900', marginTop: 2 },
     metricSub: { fontSize: 9, color: c.textMuted },
 
-    // Player tabs pra analise individual
+    // Player tabs pra analise individual — limpo, sem badge aninhado
     playersStrip: { paddingBottom: spacing.sm },
     playerChip: {
-      paddingHorizontal: 14,
-      paddingVertical: 6,
+      paddingHorizontal: 16,
+      height: 40,
       borderRadius: radius.pill,
       backgroundColor: c.surface,
       borderWidth: 1.5,
@@ -132,22 +132,17 @@ const makeStyles = (c: ColorPalette) =>
       marginRight: spacing.sm,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      height: 36,
+      gap: 8,
     },
     playerChipSelected: { backgroundColor: c.primary, borderColor: c.primary },
     playerChipNum: {
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      backgroundColor: c.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
+      fontSize: 11,
+      fontWeight: '900',
+      color: c.text,
+      opacity: 0.55,
     },
-    playerChipNumSelected: { backgroundColor: c.surface },
-    playerChipNumTxt: { color: c.onPrimary, fontSize: 12, fontWeight: '900' },
-    playerChipNumTxtSelected: { color: c.primary },
-    playerChipName: { fontSize: 13, fontWeight: '700', color: c.text },
+    playerChipNumSelected: { color: c.onPrimary, opacity: 0.85 },
+    playerChipName: { fontSize: 14, fontWeight: '700', color: c.text },
     playerChipNameSelected: { color: c.onPrimary },
   });
 
@@ -365,13 +360,9 @@ export const VolleyReportsScreen: React.FC = () => {
               style={[styles.playerChip, isSel && styles.playerChipSelected]}
               onPress={() => setSelectedPlayer(p.number)}
             >
-              <View style={[styles.playerChipNum, isSel && styles.playerChipNumSelected]}>
-                <Text
-                  style={[styles.playerChipNumTxt, isSel && styles.playerChipNumTxtSelected]}
-                >
-                  {p.number}
-                </Text>
-              </View>
+              <Text style={[styles.playerChipNum, isSel && styles.playerChipNumSelected]}>
+                #{p.number}
+              </Text>
               <Text style={[styles.playerChipName, isSel && styles.playerChipNameSelected]}>
                 {p.name.split(' ')[0]}
               </Text>

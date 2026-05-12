@@ -531,55 +531,58 @@ export const VolleyReportsScreen: React.FC = () => {
         ))}
       </Stack>
 
-      {/* Análise individual — tabs por jogador + card completo */}
-      <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.6 }}>
+      {/* Análise individual — tabs limpas estilo pill + card completo */}
+      <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.8 }}>
         Análise individual
       </Text>
-      <ScrollArea type="auto" scrollbarSize={6} mb="sm">
-        <Group gap="xs" wrap="nowrap">
-          {match.players.map((p) => {
-            const isSel = p.number === selectedPlayer;
-            return (
-              <Badge
-                key={p.number}
-                size="lg"
-                radius="xl"
-                variant={isSel ? 'filled' : 'outline'}
-                color="timeco"
-                onClick={() => setSelectedPlayer(p.number)}
+      <div
+        style={{
+          display: 'flex',
+          gap: 8,
+          overflowX: 'auto',
+          paddingBottom: 8,
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'thin',
+        }}
+      >
+        {match.players.map((p) => {
+          const isSel = p.number === selectedPlayer;
+          return (
+            <button
+              key={p.number}
+              onClick={() => setSelectedPlayer(p.number)}
+              style={{
+                padding: '8px 16px',
+                height: 40,
+                borderRadius: 999,
+                background: isSel ? c.primary : c.surface,
+                border: `1.5px solid ${isSel ? c.primary : c.border}`,
+                color: isSel ? c.onPrimary : c.text,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 14,
+                fontWeight: 700,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                flexShrink: 0,
+                transition: 'all 120ms ease',
+              }}
+            >
+              <span
                 style={{
-                  cursor: 'pointer',
-                  paddingLeft: 6,
-                  paddingRight: 14,
-                  height: 36,
-                  flexShrink: 0,
-                  textTransform: 'none',
+                  opacity: isSel ? 0.85 : 0.55,
+                  fontSize: 11,
+                  fontWeight: 900,
                 }}
-                leftSection={
-                  <span
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
-                      background: isSel ? c.surface : c.primary,
-                      color: isSel ? c.primary : c.onPrimary,
-                      fontWeight: 900,
-                      fontSize: 12,
-                    }}
-                  >
-                    {p.number}
-                  </span>
-                }
               >
-                {p.name.split(' ')[0]}
-              </Badge>
-            );
-          })}
-        </Group>
-      </ScrollArea>
+                #{p.number}
+              </span>
+              <span>{p.name.split(' ')[0]}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {selectedPlayerObj ? (
         <div style={{ marginTop: 8 }}>
