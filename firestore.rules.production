@@ -156,6 +156,20 @@ service cloud.firestore {
       allow delete: if isAuth() && request.auth.uid == resource.data.ownerId;
     }
 
+    // ====== VOLLEY TEAMS (cadastro de times do user) ======
+    // Mesma logica de volleyMatches: cada time pertence a um ownerId,
+    // so o dono le/escreve. Reaproveitado em multiplas partidas (em vez
+    // de cadastrar jogadores manualmente toda vez no MatchSetup).
+    match /volleyTeams/{teamId} {
+      allow read: if isAuth() && request.auth.uid == resource.data.ownerId;
+      allow list: if isAuth();
+      allow create: if isAuth() && request.auth.uid == request.resource.data.ownerId;
+      allow update: if isAuth()
+        && request.auth.uid == resource.data.ownerId
+        && request.resource.data.ownerId == resource.data.ownerId;
+      allow delete: if isAuth() && request.auth.uid == resource.data.ownerId;
+    }
+
     // ====== CHATS (1-a-1) ======
     // doc id = `${uidA}_${uidB}` (uids ordenados alfabeticamente)
     match /chats/{chatId} {

@@ -176,8 +176,13 @@ export const VolleyHomeScreen: React.FC = () => {
         </Text>
       </View>
 
-      <View style={{ marginBottom: spacing.md }}>
+      <View style={{ marginBottom: spacing.md, gap: spacing.sm }}>
         <Button title="➕  Nova partida" onPress={() => nav.navigate('VolleyMatchSetup')} />
+        <Button
+          title="👥  Meus times"
+          variant="outline"
+          onPress={() => nav.navigate('VolleyTeamsList')}
+        />
       </View>
 
       <FlatList

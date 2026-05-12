@@ -47,6 +47,9 @@ export type VolleyStackParamList = {
   VolleyScout: { matchId: string };
   VolleyRotation: { matchId: string };
   VolleyReports: { matchId: string };
+  VolleyTeamsList: undefined;
+  /** teamId opcional — quando passado, abre em modo "editar"; senao "criar novo". */
+  VolleyTeamEdit: { teamId?: string } | undefined;
 };
 
 export type ScoreboardStackParamList = {

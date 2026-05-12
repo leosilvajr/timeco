@@ -39,7 +39,14 @@ export const VolleyHomeScreen: React.FC = () => {
         </p>
       </HtmlCard>
 
-      <HtmlButton title="+ Novo jogo" onClick={() => nav.navigate('VolleyMatchSetup')} />
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <HtmlButton title="+ Novo jogo" onClick={() => nav.navigate('VolleyMatchSetup')} />
+        <HtmlButton
+          title="👥 Meus times"
+          variant="outline"
+          onClick={() => nav.navigate('VolleyTeamsList')}
+        />
+      </div>
 
       <div
         style={{

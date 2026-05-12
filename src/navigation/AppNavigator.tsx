@@ -43,6 +43,8 @@ import { VolleyMatchSetupScreen } from '../screens/volley/VolleyMatchSetupScreen
 import { VolleyScoutScreen } from '../screens/volley/VolleyScoutScreen';
 import { VolleyRotationScreen } from '../screens/volley/VolleyRotationScreen';
 import { VolleyReportsScreen } from '../screens/volley/VolleyReportsScreen';
+import { VolleyTeamsListScreen } from '../screens/volley/VolleyTeamsListScreen';
+import { VolleyTeamEditScreen } from '../screens/volley/VolleyTeamEditScreen';
 
 import { ScoreboardSetupScreen } from '../screens/scoreboard/ScoreboardSetupScreen';
 import { ScoreboardLiveScreen } from '../screens/scoreboard/ScoreboardLiveScreen';
@@ -117,6 +119,8 @@ const VolleyNavigator = () => (
     <VolleyStack.Screen name="VolleyScout" component={VolleyScoutScreen} />
     <VolleyStack.Screen name="VolleyRotation" component={VolleyRotationScreen} />
     <VolleyStack.Screen name="VolleyReports" component={VolleyReportsScreen} />
+    <VolleyStack.Screen name="VolleyTeamsList" component={VolleyTeamsListScreen} />
+    <VolleyStack.Screen name="VolleyTeamEdit" component={VolleyTeamEditScreen} />
   </VolleyStack.Navigator>
 );
 

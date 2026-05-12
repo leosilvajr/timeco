@@ -1,6 +1,7 @@
 export { Button } from './Button';
 export { Input } from './Input';
 export { DateInput } from './DateInput';
+export { DatePickerField } from './DatePickerField';
 export { TimeInput } from './TimeInput';
 export { Card } from './Card';
 export { StarRating } from './StarRating';

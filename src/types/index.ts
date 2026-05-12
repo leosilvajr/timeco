@@ -216,6 +216,19 @@ export interface VolleyPlayer {
   position: VolleyPosition;
 }
 
+/**
+ * Time cadastrado de volei (reutilizavel em multiplas partidas).
+ * Doc em volleyTeams/{teamId}. Apenas o ownerId pode ler/escrever.
+ */
+export interface VolleyTeam {
+  id: string;
+  ownerId: string;
+  name: string;
+  players: VolleyPlayer[];
+  createdAt: Timestamp | Date | null;
+  updatedAt?: Timestamp | Date | null;
+}
+
 /** Estatísticas de um jogador num set. Todos os contadores começam em 0. */
 export interface PlayerVolleyStats {
   attacks: { success: number; error: number; normal: number };
