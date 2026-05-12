@@ -96,7 +96,6 @@ export const VolleyScoutScreen: React.FC = () => {
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
 
   const load = useCallback(async () => {
     const m = await getVolleyMatch(route.params.matchId);
@@ -334,66 +333,67 @@ export const VolleyScoutScreen: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Player tabs — pill flat */}
-      <Text
-        size="xs"
-        fw={800}
-        c="dimmed"
-        tt="uppercase"
-        mb={6}
-        style={{ letterSpacing: 0.8 }}
-      >
-        Jogador
-      </Text>
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          overflowX: 'auto',
-          paddingBottom: 8,
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'thin',
-        }}
-      >
-        {match.players.map((p) => {
-          const isSel = p.number === selectedPlayer;
-          return (
-            <button
-              key={p.number}
-              onClick={() => setSelectedPlayer(p.number)}
-              style={{
-                padding: '8px 16px',
-                height: 40,
-                borderRadius: 999,
-                background: isSel ? c.primary : c.surface,
-                border: `1.5px solid ${isSel ? c.primary : c.border}`,
-                color: isSel ? c.onPrimary : c.text,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontSize: 14,
-                fontWeight: 700,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-                flexShrink: 0,
-                transition: 'all 120ms ease',
-              }}
-            >
-              <span
+        {/* Player tabs — pill flat (sticky junto com o scoreboard) */}
+        <Text
+          size="xs"
+          fw={800}
+          c="dimmed"
+          tt="uppercase"
+          mt={8}
+          mb={4}
+          style={{ letterSpacing: 0.8 }}
+        >
+          Jogador
+        </Text>
+        <div
+          style={{
+            display: 'flex',
+            gap: 6,
+            overflowX: 'auto',
+            paddingBottom: 4,
+            WebkitOverflowScrolling: 'touch',
+            scrollbarWidth: 'thin',
+          }}
+        >
+          {match.players.map((p) => {
+            const isSel = p.number === selectedPlayer;
+            return (
+              <button
+                key={p.number}
+                onClick={() => setSelectedPlayer(p.number)}
                 style={{
-                  opacity: isSel ? 0.85 : 0.55,
-                  fontSize: 11,
-                  fontWeight: 900,
+                  padding: '6px 12px',
+                  height: 32,
+                  borderRadius: 999,
+                  background: isSel ? c.primary : c.surface,
+                  border: `1.5px solid ${isSel ? c.primary : c.border}`,
+                  color: isSel ? c.onPrimary : c.text,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  flexShrink: 0,
+                  transition: 'all 120ms ease',
                 }}
               >
-                #{p.number}
-              </span>
-              <span>{p.name.split(' ')[0]}</span>
-            </button>
-          );
-        })}
+                <span
+                  style={{
+                    opacity: isSel ? 0.85 : 0.55,
+                    fontSize: 10,
+                    fontWeight: 900,
+                  }}
+                >
+                  #{p.number}
+                </span>
+                <span>{p.name.split(' ')[0]}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Player heading */}
@@ -406,114 +406,6 @@ export const VolleyScoutScreen: React.FC = () => {
             {selectedPlayerObj.position}
           </Text>
         </div>
-      ) : null}
-
-      {/* Painel Como funciona? — colapsavel */}
-      <button
-        onClick={() => setShowHelp((v) => !v)}
-        style={{
-          marginBottom: 8,
-          padding: '8px 12px',
-          borderRadius: 10,
-          background: c.surfaceVariant,
-          border: `1px dashed ${c.border}`,
-          color: c.text,
-          fontSize: 13,
-          fontWeight: 700,
-          cursor: 'pointer',
-          fontFamily: 'inherit',
-          textAlign: 'left',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}
-        aria-expanded={showHelp}
-      >
-        <span>{showHelp ? '▾' : '▸'}</span>
-        <span>ℹ️ Como funciona o Scout?</span>
-      </button>
-      {showHelp ? (
-        <Card
-          withBorder
-          radius="md"
-          padding="md"
-          mb={10}
-          style={{ background: c.surface }}
-        >
-          <Text size="sm" style={{ color: c.text, lineHeight: 1.55 }}>
-            <strong>Como usar:</strong> selecione o jogador no topo e use{' '}
-            <strong>+</strong> pra registrar uma ação ou <strong>−</strong> pra
-            desfazer. Quando a ação gera ponto, o placar e a rotação atualizam
-            sozinhos. Cores: <span style={{ color: c.success, fontWeight: 700 }}>verde</span> =
-            gera ponto, <span style={{ color: c.danger, fontWeight: 700 }}>vermelho</span> =
-            entrega ponto, <span style={{ color: c.info, fontWeight: 700 }}>azul</span> =
-            neutro (só estatística).
-          </Text>
-
-          <div style={{ height: 10 }} />
-
-          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
-            🎾 SAQUE
-          </Text>
-          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
-            • <strong>Certo</strong>: saque dentro, adversário recebeu (sem impacto no placar).<br />
-            • <strong>Erro</strong>: saque na rede ou fora → ponto pro adversário.<br />
-            • <strong>Ace</strong>: saque direto, ninguém tocou ou caiu → ponto pra você.
-          </Text>
-
-          <div style={{ height: 8 }} />
-          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
-            ⚡ ATAQUE
-          </Text>
-          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
-            • <strong>Ponto</strong>: ataque virou ponto direto → +1 pra você.<br />
-            • <strong>Normal</strong>: ataque defendido, o rali continua.<br />
-            • <strong>Erro</strong>: bola fora ou na rede → ponto pro adversário.
-          </Text>
-
-          <div style={{ height: 8 }} />
-          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
-            ✋ PASSE
-          </Text>
-          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
-            Qualidade da recepção do saque adversário.<br />
-            • <strong>A — Perfeito</strong>: levantador recebe no alvo, qualquer jogada possível.<br />
-            • <strong>B — Bom</strong>: levantador trabalha confortável.<br />
-            • <strong>C — Mediano</strong>: passe ruim, jogada limitada (geralmente bola alta).<br />
-            • <strong>Erro</strong>: bola caiu ou foi direto pro adversário → ponto contra.
-          </Text>
-
-          <div style={{ height: 8 }} />
-          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
-            🛡️ BLOQUEIO
-          </Text>
-          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
-            • <strong>Sucesso</strong>: bola morta na quadra adversária → +1 pra você.<br />
-            • <strong>Normal</strong>: tocou e voltou pra sua defesa montar a jogada.<br />
-            • <strong>Falha</strong>: bola caiu na sua quadra ou mãos fora → ponto contra.
-          </Text>
-
-          <div style={{ height: 8 }} />
-          <Text size="sm" fw={800} mb={4} style={{ color: c.text }}>
-            🎯 LEVANTAMENTO
-          </Text>
-          <Text size="sm" style={{ color: c.textSecondary, lineHeight: 1.55 }}>
-            • <strong>Certo / Erro</strong>: avaliação geral do levantamento.<br />
-            • <strong>Ponta / Saída / Meio / F.Meio / F.Saída</strong>: pra qual zona da rede
-            a bola foi distribuída (estatística de distribuição do levantador).
-          </Text>
-
-          <div style={{ height: 10 }} />
-
-          <Text size="sm" style={{ color: c.text, lineHeight: 1.55 }}>
-            <strong>Botões do rodapé:</strong>
-            <br />• <strong>↶ Desfazer ponto</strong> — reverte o último ponto registrado (placar + rotação).
-            <br />• <strong>🏁 Encerrar set</strong> — fecha o set atual e abre o próximo.
-            <br />• <strong>📊 Relatórios</strong> — estatísticas por jogador no set atual ou acumuladas.
-            <br />• <strong>🔄 Rotação</strong> — visualiza/ajusta a rotação dos 6 jogadores em quadra.
-            <br />• <strong>🗑️ Zerar tudo</strong> — apaga tudo e reinicia a partida do zero (não dá pra desfazer).
-          </Text>
-        </Card>
       ) : null}
 
       {/* Cards de ações — grid responsivo, mais compactos */}
