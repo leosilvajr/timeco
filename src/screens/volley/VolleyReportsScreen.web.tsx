@@ -65,100 +65,6 @@ const TeamSummaryBlock: React.FC<{
   </Card>
 );
 
-/** Linha compacta de jogador (substitui a tabela wide pra mobile). */
-const PlayerRow: React.FC<{
-  player: VolleyPlayer;
-  stats: PlayerVolleyStats;
-  c: ReturnType<typeof useThemedColors>;
-}> = ({ player, stats, c }) => {
-  const aPct = attackPercentage(stats);
-  const sPct = servePercentage(stats);
-  const pPct = passPercentage(stats);
-  const bPct = blockPercentage(stats);
-  const dp = directPoints(stats);
-
-  const metric = (label: string, value: string, sub: string, ok?: boolean) => (
-    <div style={{ flex: 1, minWidth: 80, textAlign: 'center' }}>
-      <Text size="xs" c="dimmed" fw={700} tt="uppercase">
-        {label}
-      </Text>
-      <Text
-        size="sm"
-        fw={800}
-        style={{ color: ok === undefined ? c.text : ok ? c.success : c.danger }}
-      >
-        {value}
-      </Text>
-      <Text size="xs" c="dimmed">
-        {sub}
-      </Text>
-    </div>
-  );
-
-  return (
-    <Card withBorder radius="md" padding="sm">
-      <Group justify="space-between" wrap="nowrap" mb="xs">
-        <Group gap={10} wrap="nowrap">
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              background: c.primary,
-              color: c.onPrimary,
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 900,
-              fontSize: 13,
-              flexShrink: 0,
-            }}
-          >
-            {player.number}
-          </span>
-          <div style={{ minWidth: 0 }}>
-            <Text size="sm" fw={800} style={{ color: c.text }} truncate>
-              {player.name}
-            </Text>
-            <Text size="xs" c="dimmed">
-              {player.position}
-            </Text>
-          </div>
-        </Group>
-        <Badge size="md" color="timeco" variant="light" radius="sm">
-          {dp} pts
-        </Badge>
-      </Group>
-      <Group gap="xs" wrap="nowrap" style={{ overflowX: 'auto' }}>
-        {metric(
-          'Ataque',
-          `${aPct.toFixed(0)}%`,
-          `${stats.attacks.success}/${totalAttacks(stats)}`,
-          aPct >= efficiencyThresholds.attack,
-        )}
-        {metric(
-          'Saque',
-          `${sPct.toFixed(0)}%`,
-          `${stats.serves.ace} aces`,
-          sPct >= efficiencyThresholds.serve,
-        )}
-        {metric(
-          'Passe',
-          `${pPct.toFixed(0)}%`,
-          `A:${stats.passes.a} B:${stats.passes.b}`,
-          pPct >= efficiencyThresholds.pass,
-        )}
-        {metric(
-          'Bloq.',
-          totalBlocks(stats) > 0 ? `${bPct.toFixed(0)}%` : '—',
-          `${stats.blocks.success}/${totalBlocks(stats)}`,
-          bPct >= efficiencyThresholds.block,
-        )}
-      </Group>
-    </Card>
-  );
-};
-
 /** Card completo de análise individual de um jogador. */
 const PlayerDetailCard: React.FC<{
   player: VolleyPlayer;
@@ -515,21 +421,6 @@ export const VolleyReportsScreen: React.FC = () => {
           color={c.danger}
         />
       </SimpleGrid>
-
-      {/* Tabela detalhada — agora EMPILHADA por jogador (mobile-first) */}
-      <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.6 }}>
-        Estatísticas por jogador
-      </Text>
-      <Stack gap="xs" mb="lg">
-        {match.players.map((p) => (
-          <PlayerRow
-            key={p.number}
-            player={p}
-            stats={playerStatsForMode[p.number] ?? emptyPlayerStats()}
-            c={c}
-          />
-        ))}
-      </Stack>
 
       {/* Análise individual — tabs limpas estilo pill + card completo */}
       <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.8 }}>

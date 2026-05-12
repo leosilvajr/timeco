@@ -146,85 +146,6 @@ const makeStyles = (c: ColorPalette) =>
     playerChipNameSelected: { color: c.onPrimary },
   });
 
-// ============================================================================
-// Linha compacta por jogador (substitui PlayerStatsTable horizontal)
-// ============================================================================
-
-const PlayerCompactRow: React.FC<{
-  player: VolleyPlayer;
-  stats: PlayerVolleyStats;
-  c: ColorPalette;
-}> = ({ player, stats, c }) => {
-  const styles = makeStyles(c);
-  const aPct = attackPercentage(stats);
-  const sPct = servePercentage(stats);
-  const pPct = passPercentage(stats);
-  const bPct = blockPercentage(stats);
-  const dp = directPoints(stats);
-
-  const Metric: React.FC<{
-    label: string;
-    value: string;
-    sub: string;
-    ok?: boolean;
-  }> = ({ label, value, sub, ok }) => (
-    <View style={styles.metric}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text
-        style={[
-          styles.metricValue,
-          { color: ok === undefined ? c.text : ok ? c.success : c.danger },
-        ]}
-      >
-        {value}
-      </Text>
-      <Text style={styles.metricSub}>{sub}</Text>
-    </View>
-  );
-
-  return (
-    <Card style={styles.compactCard}>
-      <View style={styles.compactHeader}>
-        <View style={styles.compactNum}>
-          <Text style={styles.compactNumTxt}>{player.number}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.compactName}>{player.name}</Text>
-          <Text style={styles.compactPos}>{player.position}</Text>
-        </View>
-        <View style={styles.pointsBadge}>
-          <Text style={styles.pointsBadgeTxt}>{dp} pts</Text>
-        </View>
-      </View>
-      <View style={styles.metricsRow}>
-        <Metric
-          label="Ataque"
-          value={`${aPct.toFixed(0)}%`}
-          sub={`${stats.attacks.success}/${totalAttacks(stats)}`}
-          ok={aPct >= efficiencyThresholds.attack}
-        />
-        <Metric
-          label="Saque"
-          value={`${sPct.toFixed(0)}%`}
-          sub={`${stats.serves.ace} aces`}
-          ok={sPct >= efficiencyThresholds.serve}
-        />
-        <Metric
-          label="Passe"
-          value={`${pPct.toFixed(0)}%`}
-          sub={`${stats.passes.a + stats.passes.b}/${totalPasses(stats)}`}
-          ok={pPct >= efficiencyThresholds.pass}
-        />
-        <Metric
-          label="Bloq."
-          value={totalBlocks(stats) > 0 ? `${bPct.toFixed(0)}%` : '—'}
-          sub={`${stats.blocks.success}/${totalBlocks(stats)}`}
-          ok={bPct >= efficiencyThresholds.block}
-        />
-      </View>
-    </Card>
-  );
-};
 
 // ============================================================================
 // Main screen
@@ -333,17 +254,6 @@ export const VolleyReportsScreen: React.FC = () => {
         totalErrors={summary.totalErrors}
         desktop={false}
       />
-
-      {/* Estatisticas por jogador — agora STACK COMPACTA (sem scroll horizontal) */}
-      <Text style={styles.sectionTitle}>Estatísticas por jogador</Text>
-      {match.players.map((p) => (
-        <PlayerCompactRow
-          key={p.number}
-          player={p}
-          stats={playerStatsForMode[p.number] ?? emptyPlayerStats()}
-          c={c}
-        />
-      ))}
 
       {/* Análise individual — tabs por jogador */}
       <Text style={styles.sectionTitle}>Análise individual</Text>
