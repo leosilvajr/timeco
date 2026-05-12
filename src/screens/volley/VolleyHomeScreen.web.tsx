@@ -4,6 +4,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HtmlScreen, HtmlHeader, HtmlCard, HtmlButton } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
 import { listUserVolleyMatches } from '../../services/volleyScoutService';
+import { toast } from '../../store/toastStore';
 import { VolleyMatch } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
 
@@ -24,7 +25,10 @@ export const VolleyHomeScreen: React.FC = () => {
       if (!user) return;
       listUserVolleyMatches(user.id)
         .then(setMatches)
-        .catch(() => undefined)
+        .catch((e) => {
+          console.error('listUserVolleyMatches', e);
+          toast.error('Erro ao carregar partidas. Tente recarregar a página.');
+        })
         .finally(() => setLoaded(true));
     }, [user?.id]),
   );

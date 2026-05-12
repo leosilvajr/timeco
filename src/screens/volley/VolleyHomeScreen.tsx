@@ -10,6 +10,7 @@ import {
   deleteVolleyMatch,
   listUserVolleyMatches,
 } from '../../services/volleyScoutService';
+import { toast } from '../../store/toastStore';
 import { VolleyMatch } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
 
@@ -49,6 +50,7 @@ export const VolleyHomeScreen: React.FC = () => {
       setMatches(await listUserVolleyMatches(user.id));
     } catch (e) {
       console.error('listVolleyMatches', e);
+      toast.error('Erro ao carregar partidas. Tente recarregar.');
     } finally {
       setLoading(false);
     }
