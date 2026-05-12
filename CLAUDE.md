@@ -44,8 +44,8 @@ App multi-esporte para sorteio de times equilibrados. Stack: Expo + React Native
 |---|---|
 | Ícone 512x512 | `assets/_play-store/icon-512.png` |
 | Feature graphic 1024x500 | `assets/_play-store/feature-graphic.png` |
-| Listing texts | [PLAY_STORE_LISTING.md](PLAY_STORE_LISTING.md) |
-| Build guide Android | [BUILD_ANDROID.md](BUILD_ANDROID.md) |
+| Listing texts | [docs/store/PLAY_STORE_LISTING.md](docs/store/PLAY_STORE_LISTING.md) |
+| Build guide Android | [docs/build/BUILD_ANDROID.md](docs/build/BUILD_ANDROID.md) |
 | Landing | `c:/Git/timeco-landing-page` (Next.js → timeco.com.br) |
 | Páginas legais | landing/`/privacy`, `/terms`, `/delete-account`, `/support` |
 | Página pública de perfil | `timeco.com.br/u/[userId]` |
@@ -79,7 +79,7 @@ npm run eas:build:production
 
 ## 📊 Cobertura de testes
 
-**417 testes em 30 suítes** (100% verde). Inclui:
+**418 testes em 30 suítes** (100% verde). Inclui:
 - Validators (84 testes — email, ranges, dates)
 - errorMessages (24 testes — Firebase code mapping pra pt-BR)
 - Smoke tests caixa-preta (33 testes — fluxo evento + scoreboard + erros)
