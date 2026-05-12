@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useState } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { HtmlScreen, HtmlHeader, HtmlCard, HtmlButton } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
@@ -16,13 +16,18 @@ export const VolleyHomeScreen: React.FC = () => {
   const [matches, setMatches] = useState<VolleyMatch[]>([]);
   const [loaded, setLoaded] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    listUserVolleyMatches(user.id)
-      .then(setMatches)
-      .catch(() => undefined)
-      .finally(() => setLoaded(true));
-  }, [user?.id]);
+  // useFocusEffect — refaz fetch toda vez que a tela ganha foco
+  // (ex: depois de criar uma partida, ao voltar do MatchSetup,
+  // a partida nova aparece sem precisar refresh).
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      listUserVolleyMatches(user.id)
+        .then(setMatches)
+        .catch(() => undefined)
+        .finally(() => setLoaded(true));
+    }, [user?.id]),
+  );
 
   return (
     <HtmlScreen maxWidth={760}>

@@ -83,7 +83,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
 
     setCreating(true);
     try {
-      const id = await createVolleyMatch({
+      await createVolleyMatch({
         ownerId: user.id,
         date,
         location: location.trim(),
@@ -93,8 +93,10 @@ export const VolleyMatchSetupScreen: React.FC = () => {
         rotationSystem,
         players: [...team.players].sort((a, b) => a.number - b.number),
       });
-      toast.success('Partida criada!');
-      nav.replace('VolleyScout', { matchId: id });
+      toast.success('Partida criada! Acesse ela na lista quando for jogar.');
+      // Volta pro VolleyHome — partida fica na lista pro user acessar
+      // quando for o dia do jogo (ou a qualquer momento).
+      nav.goBack();
     } catch (e: unknown) {
       setError(formatError(e, 'Não conseguimos criar a partida agora. Tente de novo.'));
     } finally {
@@ -286,7 +288,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
       ) : null}
 
       <div style={{ marginTop: 16, marginBottom: 32, display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <HtmlButton title="🏐  Iniciar partida" onClick={onCreate} loading={creating} />
+        <HtmlButton title="🏐  Criar partida" onClick={onCreate} loading={creating} />
         <HtmlButton
           title="Cancelar"
           variant="ghost"
