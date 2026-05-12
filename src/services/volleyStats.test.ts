@@ -241,8 +241,9 @@ describe('teamSummary', () => {
     const p3 = applyAction(emptyPlayerStats(), 'serve_error');
 
     const summary = teamSummary({ 1: p1, 2: p2, 3: p3 });
-    // pontos diretos: p1 (1 atk + 1 ace) + p2 (0) + p3 (0) = 2
-    expect(summary.totalPoints).toBe(2);
+    // pontos diretos: p1 (1 atk + 1 ace) + p2 (1 block success) + p3 (0) = 3
+    // Block_success agora contabiliza ponto pro time (alinhado ao scout do scouter).
+    expect(summary.totalPoints).toBe(3);
     expect(summary.totalAces).toBe(1);
     expect(summary.totalBlocks).toBe(1);
     // erros: p1 (0) + p2 (1 atk error) + p3 (1 serve error) = 2

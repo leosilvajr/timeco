@@ -233,8 +233,10 @@ export interface VolleyTeam {
 export interface PlayerVolleyStats {
   attacks: { success: number; error: number; normal: number };
   serves: { success: number; error: number; ace: number };
-  blocks: { success: number; error: number };
-  passes: { a: number; b: number; c: number };
+  /** normal = bloqueou mas nao foi ponto (continuou jogo). */
+  blocks: { success: number; error: number; normal: number };
+  /** error = passe ruim que virou ponto do adversario. */
+  passes: { a: number; b: number; c: number; error: number };
   sets: {
     success: number;
     error: number;
@@ -247,19 +249,21 @@ export interface PlayerVolleyStats {
 }
 
 export type VolleyAction =
-  | 'serve_success'
-  | 'serve_error'
-  | 'ace'
-  | 'attack_point'
-  | 'attack'
-  | 'attack_error'
-  | 'pass_a'
-  | 'pass_b'
-  | 'pass_c'
-  | 'block_success'
-  | 'block_error'
-  | 'set_success'
-  | 'set_error'
+  | 'serve_success'   // Certo (stats only)
+  | 'serve_error'     // Erro (ponto do adversario)
+  | 'ace'             // Ace (ponto nosso)
+  | 'attack_point'    // Ponto (ponto nosso)
+  | 'attack'          // Normal (stats only) — legado, alias de attack_normal
+  | 'attack_error'    // Erro (ponto do adversario)
+  | 'pass_a'          // Passe A (stats only)
+  | 'pass_b'          // Passe B (stats only)
+  | 'pass_c'          // Passe C (stats only)
+  | 'pass_error'      // Passe errado (ponto do adversario)
+  | 'block_success'   // Bloqueio com ponto (ponto nosso)
+  | 'block_normal'    // Bloqueou mas nao foi ponto (stats only)
+  | 'block_error'     // Falha (ponto do adversario)
+  | 'set_success'     // Certo
+  | 'set_error'       // Erro
   | 'set_ponta'
   | 'set_saida'
   | 'set_meio'

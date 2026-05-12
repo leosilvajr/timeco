@@ -4,8 +4,8 @@ import { PlayerVolleyStats, VolleyAction, VolleySetData } from '../types';
 export const emptyPlayerStats = (): PlayerVolleyStats => ({
   attacks: { success: 0, error: 0, normal: 0 },
   serves: { success: 0, error: 0, ace: 0 },
-  blocks: { success: 0, error: 0 },
-  passes: { a: 0, b: 0, c: 0 },
+  blocks: { success: 0, error: 0, normal: 0 },
+  passes: { a: 0, b: 0, c: 0, error: 0 },
   sets: {
     success: 0,
     error: 0,
@@ -45,10 +45,12 @@ export const applyAction = (
     case 'attack':        inc(next.attacks, 'normal'); break;
     case 'attack_error':  inc(next.attacks, 'error');  break;
     case 'block_success': inc(next.blocks, 'success'); break;
+    case 'block_normal':  inc(next.blocks, 'normal');  break;
     case 'block_error':   inc(next.blocks, 'error');   break;
     case 'pass_a':        inc(next.passes, 'a');       break;
     case 'pass_b':        inc(next.passes, 'b');       break;
     case 'pass_c':        inc(next.passes, 'c');       break;
+    case 'pass_error':    inc(next.passes, 'error');   break;
     case 'set_success':   inc(next.sets, 'success');   break;
     case 'set_error':     inc(next.sets, 'error');     break;
     case 'set_ponta':     inc(next.sets, 'ponta');     break;
@@ -69,10 +71,10 @@ export const totalServes = (s: PlayerVolleyStats): number =>
   s.serves.success + s.serves.error + s.serves.ace;
 
 export const totalPasses = (s: PlayerVolleyStats): number =>
-  s.passes.a + s.passes.b + s.passes.c;
+  s.passes.a + s.passes.b + s.passes.c + s.passes.error;
 
 export const totalBlocks = (s: PlayerVolleyStats): number =>
-  s.blocks.success + s.blocks.error;
+  s.blocks.success + s.blocks.error + s.blocks.normal;
 
 export const totalSetActions = (s: PlayerVolleyStats): number =>
   s.sets.success + s.sets.error;
@@ -113,7 +115,7 @@ export const directPoints = (s: PlayerVolleyStats): number =>
 
 /** Total de erros do jogador (todas as categorias). */
 export const totalErrors = (s: PlayerVolleyStats): number =>
-  s.attacks.error + s.serves.error + s.blocks.error + s.sets.error;
+  s.attacks.error + s.serves.error + s.blocks.error + s.passes.error + s.sets.error;
 
 /** Total de ações registradas (todas as categorias somadas). */
 export const totalActions = (s: PlayerVolleyStats): number =>
@@ -148,11 +150,13 @@ export const sumPlayerStats = (
   blocks: {
     success: a.blocks.success + b.blocks.success,
     error: a.blocks.error + b.blocks.error,
+    normal: a.blocks.normal + b.blocks.normal,
   },
   passes: {
     a: a.passes.a + b.passes.a,
     b: a.passes.b + b.passes.b,
     c: a.passes.c + b.passes.c,
+    error: a.passes.error + b.passes.error,
   },
   sets: {
     success: a.sets.success + b.sets.success,
@@ -194,10 +198,10 @@ export const teamSummary = (
   let totalBlocks = 0;
   let totalErrors = 0;
   for (const s of Object.values(playerStats)) {
-    totalPoints += s.attacks.success + s.serves.ace;
+    totalPoints += s.attacks.success + s.serves.ace + s.blocks.success;
     totalAces += s.serves.ace;
     totalBlocks += s.blocks.success;
-    totalErrors += s.attacks.error + s.serves.error + s.blocks.error;
+    totalErrors += s.attacks.error + s.serves.error + s.blocks.error + s.passes.error;
   }
   return { totalPoints, totalAces, totalBlocks, totalErrors };
 };
