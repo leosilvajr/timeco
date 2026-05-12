@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Button } from '../../components';
+import { Screen, Header, Button, Card, Badge } from '../../components';
 import { ColorPalette, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import {
@@ -21,17 +21,12 @@ import type { VolleyStackParamList } from '../../navigation/types';
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyScout'>;
 type Rt = RouteProp<VolleyStackParamList, 'VolleyScout'>;
 
-// ============================================================================
-// Configuracao das acoes — define os 5 cards e suas opcoes
-// ============================================================================
-
 type ActionKind = 'positive' | 'negative' | 'neutral';
 
 interface ActionConfig {
   label: string;
   action: VolleyAction;
   kind: ActionKind;
-  /** Lê o valor atual no PlayerVolleyStats. */
   read: (s: PlayerVolleyStats) => number;
 }
 
@@ -64,9 +59,9 @@ const CARDS: CardConfig[] = [
     title: 'PASSE',
     emoji: '✋',
     actions: [
-      { label: 'A', action: 'pass_a', kind: 'positive', read: (s) => s.passes.a },
-      { label: 'B', action: 'pass_b', kind: 'neutral', read: (s) => s.passes.b },
-      { label: 'C', action: 'pass_c', kind: 'neutral', read: (s) => s.passes.c },
+      { label: 'A — Perfeito', action: 'pass_a', kind: 'positive', read: (s) => s.passes.a },
+      { label: 'B — Bom', action: 'pass_b', kind: 'neutral', read: (s) => s.passes.b },
+      { label: 'C — Mediano', action: 'pass_c', kind: 'neutral', read: (s) => s.passes.c },
       { label: 'Erro', action: 'pass_error', kind: 'negative', read: (s) => s.passes.error },
     ],
   },
@@ -95,16 +90,13 @@ const CARDS: CardConfig[] = [
 ];
 
 // ============================================================================
-// Styles
+// Styles — segue padrao Mantine-ish do resto do Timeco
 // ============================================================================
 
 const makeStyles = (c: ColorPalette) =>
   StyleSheet.create({
-    scoreboard: {
-      flexDirection: 'row',
-      gap: spacing.md,
-      marginBottom: spacing.md,
-    },
+    // Scoreboard
+    scoreboard: { flexDirection: 'row', gap: spacing.md, marginBottom: spacing.md },
     teamBox: {
       flex: 1,
       padding: spacing.md,
@@ -114,23 +106,40 @@ const makeStyles = (c: ColorPalette) =>
     },
     teamBoxA: { borderColor: c.primary, backgroundColor: c.surfaceVariant },
     teamBoxB: { borderColor: c.border, backgroundColor: c.surface },
-    teamName: { fontSize: 12, fontWeight: '700', color: c.textSecondary },
-    teamScore: { fontSize: 38, fontWeight: '900', color: c.text, lineHeight: 42 },
+    teamName: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: c.textSecondary,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+    },
+    teamScore: { fontSize: 36, fontWeight: '900', color: c.text, lineHeight: 40, marginTop: 4 },
     teamSets: { fontSize: 11, color: c.textMuted, marginTop: 2 },
-    serveBadge: { fontSize: 10, fontWeight: '800', color: c.primary, marginTop: 2 },
 
+    // Section title
+    sectionLabel: {
+      fontSize: 11,
+      fontWeight: '800',
+      color: c.textMuted,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      marginBottom: 6,
+    },
+
+    // Player pills
     playersStrip: { paddingBottom: spacing.sm },
     chip: {
-      paddingHorizontal: spacing.md,
-      paddingVertical: 8,
+      paddingHorizontal: 14,
+      paddingVertical: 6,
       borderRadius: radius.pill,
       backgroundColor: c.surface,
-      borderWidth: 2,
+      borderWidth: 1.5,
       borderColor: c.border,
       marginRight: spacing.sm,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 6,
+      height: 36,
     },
     chipSelected: { backgroundColor: c.primary, borderColor: c.primary },
     chipNum: {
@@ -147,65 +156,82 @@ const makeStyles = (c: ColorPalette) =>
     chipName: { fontSize: 13, fontWeight: '700', color: c.text },
     chipNameSelected: { color: c.onPrimary },
 
+    // Player heading
     playerHeading: { marginTop: spacing.md, marginBottom: spacing.sm },
-    playerHeadingName: { fontSize: 18, fontWeight: '900', color: c.text },
+    playerHeadingName: { fontSize: 17, fontWeight: '900', color: c.text },
     playerHeadingPos: { fontSize: 13, color: c.textSecondary, marginTop: 2 },
 
-    card: {
-      backgroundColor: c.surface,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: c.border,
-      padding: spacing.md,
-      marginBottom: spacing.md,
-    },
+    // Cards
+    cardWrap: { marginBottom: spacing.md },
     cardTitle: {
-      fontSize: 13,
+      fontSize: 11,
       fontWeight: '800',
-      color: c.textSecondary,
+      color: c.textMuted,
       textTransform: 'uppercase',
-      letterSpacing: 0.6,
+      letterSpacing: 0.8,
       marginBottom: spacing.sm,
       textAlign: 'center',
     },
+
+    // Linha de acao
     actionRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: spacing.sm,
-      marginBottom: spacing.sm,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      marginBottom: 4,
+    },
+    actionDot: {
+      width: 10,
+      height: 10,
+      borderRadius: 5,
+      marginRight: 10,
     },
     actionLabel: {
       flex: 1,
-      paddingVertical: 10,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.md,
-      alignItems: 'center',
+      fontSize: 14,
+      fontWeight: '600',
+      color: c.text,
     },
-    actionLabelPositive: { backgroundColor: c.success },
-    actionLabelNegative: { backgroundColor: c.danger },
-    actionLabelNeutral: { backgroundColor: c.info },
-    actionLabelTxt: { color: c.white, fontSize: 14, fontWeight: '800' },
-    actionCount: { minWidth: 36, fontSize: 18, fontWeight: '900', color: c.text, textAlign: 'center' },
-    plusBtn: {
+    actionCount: {
+      minWidth: 28,
+      fontSize: 16,
+      fontWeight: '800',
+      textAlign: 'center',
+      marginRight: 6,
+    },
+    iconBtn: {
       width: 36,
       height: 36,
-      borderRadius: radius.sm,
-      backgroundColor: c.success,
+      borderRadius: 8,
       alignItems: 'center',
       justifyContent: 'center',
+      marginLeft: 4,
     },
-    minusBtn: {
-      width: 36,
-      height: 36,
-      borderRadius: radius.sm,
-      backgroundColor: c.danger,
-      alignItems: 'center',
-      justifyContent: 'center',
+    iconBtnSubtle: {
+      backgroundColor: c.surfaceVariant,
     },
-    btnTxt: { color: c.white, fontSize: 18, fontWeight: '900' },
-
-    footerActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md },
+    iconBtnFilled: {
+      backgroundColor: c.primary,
+    },
+    iconBtnFilledPositive: { backgroundColor: c.success },
+    iconBtnFilledNegative: { backgroundColor: c.danger },
+    iconBtnFilledNeutral: { backgroundColor: c.info },
+    iconBtnDisabled: { opacity: 0.4 },
+    iconBtnTxt: { color: c.white, fontSize: 18, fontWeight: '900', lineHeight: 22 },
+    iconBtnTxtSubtle: { color: c.textSecondary, fontSize: 18, fontWeight: '900', lineHeight: 22 },
   });
+
+const dotColor = (kind: ActionKind, c: ColorPalette) =>
+  kind === 'positive' ? c.success : kind === 'negative' ? c.danger : c.info;
+
+const filledBg = (kind: ActionKind, styles: ReturnType<typeof makeStyles>) =>
+  kind === 'positive'
+    ? styles.iconBtnFilledPositive
+    : kind === 'negative'
+    ? styles.iconBtnFilledNegative
+    : styles.iconBtnFilledNeutral;
 
 // ============================================================================
 // Main screen
@@ -316,7 +342,9 @@ export const VolleyScoutScreen: React.FC = () => {
           <Text style={styles.teamScore}>{currentSet?.scoreA ?? 0}</Text>
           <Text style={styles.teamSets}>Sets: {setsWonA}</Text>
           {match.serveTeam === 'A' && !currentSet?.finished ? (
-            <Text style={styles.serveBadge}>🎾 SAQUE</Text>
+            <View style={{ marginTop: 4 }}>
+              <Badge label="🎾 SAQUE" variant="primary" size="sm" />
+            </View>
           ) : null}
         </View>
         <View style={[styles.teamBox, styles.teamBoxB]}>
@@ -324,12 +352,15 @@ export const VolleyScoutScreen: React.FC = () => {
           <Text style={styles.teamScore}>{currentSet?.scoreB ?? 0}</Text>
           <Text style={styles.teamSets}>Sets: {setsWonB}</Text>
           {match.serveTeam === 'B' && !currentSet?.finished ? (
-            <Text style={styles.serveBadge}>🎾 SAQUE</Text>
+            <View style={{ marginTop: 4 }}>
+              <Badge label="🎾 SAQUE" variant="primary" size="sm" />
+            </View>
           ) : null}
         </View>
       </View>
 
-      {/* Chips de jogadores (tab navigator horizontal) */}
+      {/* Player selector */}
+      <Text style={styles.sectionLabel}>Jogador</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -349,7 +380,7 @@ export const VolleyScoutScreen: React.FC = () => {
                 </Text>
               </View>
               <Text style={[styles.chipName, isSel && styles.chipNameSelected]}>
-                {p.name.split(' ')[0].toUpperCase()}
+                {p.name.split(' ')[0]}
               </Text>
             </Pressable>
           );
@@ -366,44 +397,61 @@ export const VolleyScoutScreen: React.FC = () => {
         </View>
       ) : null}
 
-      {/* Cards de ações */}
+      {/* Cards de acoes — Card compartilhado do app */}
       {CARDS.map((card) => (
-        <View key={card.title} style={styles.card}>
+        <Card key={card.title} style={styles.cardWrap}>
           <Text style={styles.cardTitle}>
             {card.emoji}  {card.title}
           </Text>
           {card.actions.map((a) => {
-            const labelStyle =
-              a.kind === 'positive'
-                ? styles.actionLabelPositive
-                : a.kind === 'negative'
-                ? styles.actionLabelNegative
-                : styles.actionLabelNeutral;
             const count = a.read(playerStats);
+            const dColor = dotColor(a.kind, c);
             return (
-              <View key={a.action} style={styles.actionRow}>
-                <View style={[styles.actionLabel, labelStyle]}>
-                  <Text style={styles.actionLabelTxt}>{a.label}</Text>
-                </View>
-                <Text style={styles.actionCount}>{count}</Text>
-                <Pressable style={styles.plusBtn} onPress={() => handleAction(a.action, 1)}>
-                  <Text style={styles.btnTxt}>+</Text>
+              <View
+                key={a.action}
+                style={[
+                  styles.actionRow,
+                  count > 0 ? { backgroundColor: `${dColor}14` } : null,
+                ]}
+              >
+                <View style={[styles.actionDot, { backgroundColor: dColor }]} />
+                <Text style={styles.actionLabel} numberOfLines={1}>
+                  {a.label}
+                </Text>
+                <Text
+                  style={[
+                    styles.actionCount,
+                    { color: count > 0 ? c.text : c.textMuted },
+                  ]}
+                >
+                  {count}
+                </Text>
+                <Pressable
+                  style={[
+                    styles.iconBtn,
+                    styles.iconBtnSubtle,
+                    count === 0 ? styles.iconBtnDisabled : null,
+                  ]}
+                  onPress={() => handleAction(a.action, -1)}
+                  disabled={busy || count === 0}
+                >
+                  <Text style={styles.iconBtnTxtSubtle}>−</Text>
                 </Pressable>
                 <Pressable
-                  style={styles.minusBtn}
-                  onPress={() => handleAction(a.action, -1)}
-                  disabled={count === 0}
+                  style={[styles.iconBtn, filledBg(a.kind, styles)]}
+                  onPress={() => handleAction(a.action, 1)}
+                  disabled={busy}
                 >
-                  <Text style={[styles.btnTxt, count === 0 ? { opacity: 0.4 } : null]}>−</Text>
+                  <Text style={styles.iconBtnTxt}>+</Text>
                 </Pressable>
               </View>
             );
           })}
-        </View>
+        </Card>
       ))}
 
       {/* Footer actions */}
-      <View style={styles.footerActions}>
+      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
         <View style={{ flex: 1 }}>
           <Button title="↶ Desfazer ponto" variant="outline" onPress={onUndoLastPoint} />
         </View>

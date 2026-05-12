@@ -2,9 +2,20 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
+  Card,
+  Group,
+  Stack,
+  Text,
+  Badge,
+  ActionIcon,
+  ScrollArea,
+  Tooltip,
+} from '@mantine/core';
+import {
   HtmlScreen,
   HtmlHeader,
   HtmlButton,
+  HtmlCard,
   webConfirm,
 } from '../../components/web';
 import { useThemedColors } from '../../store';
@@ -61,9 +72,9 @@ const CARDS: CardConfig[] = [
     title: 'PASSE',
     emoji: '✋',
     actions: [
-      { label: 'A', action: 'pass_a', kind: 'positive', read: (s) => s.passes.a },
-      { label: 'B', action: 'pass_b', kind: 'neutral', read: (s) => s.passes.b },
-      { label: 'C', action: 'pass_c', kind: 'neutral', read: (s) => s.passes.c },
+      { label: 'A — Perfeito', action: 'pass_a', kind: 'positive', read: (s) => s.passes.a },
+      { label: 'B — Bom', action: 'pass_b', kind: 'neutral', read: (s) => s.passes.b },
+      { label: 'C — Mediano', action: 'pass_c', kind: 'neutral', read: (s) => s.passes.c },
       { label: 'Erro', action: 'pass_error', kind: 'negative', read: (s) => s.passes.error },
     ],
   },
@@ -90,6 +101,12 @@ const CARDS: CardConfig[] = [
     ],
   },
 ];
+
+const colorFor = (kind: ActionKind): string => {
+  if (kind === 'positive') return 'timeco';
+  if (kind === 'negative') return 'red';
+  return 'gray';
+};
 
 export const VolleyScoutScreen: React.FC = () => {
   const c = useThemedColors();
@@ -181,13 +198,6 @@ export const VolleyScoutScreen: React.FC = () => {
     (p) => p.number === selectedPlayer,
   );
 
-  // Cores baseadas em ActionKind
-  const colorFor = (kind: ActionKind) => {
-    if (kind === 'positive') return c.success;
-    if (kind === 'negative') return c.danger;
-    return c.info;
-  };
-
   return (
     <HtmlScreen maxWidth={1200}>
       <HtmlHeader
@@ -196,249 +206,245 @@ export const VolleyScoutScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
-      {/* Scoreboard */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-        <div
+      {/* Scoreboard compacto — Mantine Card, estética igual aos outros cards do app */}
+      <Group gap="md" mb="md" grow>
+        <Card
+          withBorder
+          radius="md"
+          padding="md"
           style={{
-            flex: 1,
-            padding: 16,
-            border: `2px solid ${c.primary}`,
             background: c.surfaceVariant,
-            borderRadius: 10,
+            borderColor: c.primary,
+            borderWidth: 2,
             textAlign: 'center',
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 700, color: c.textSecondary }}>
+          <Text size="xs" fw={700} c="dimmed" tt="uppercase">
             {match.teamAName}
-          </div>
-          <div style={{ fontSize: 38, fontWeight: 900, color: c.text, lineHeight: 1.1 }}>
+          </Text>
+          <Text size="36px" fw={900} style={{ color: c.text, lineHeight: 1.1, marginTop: 4 }}>
             {currentSet?.scoreA ?? 0}
-          </div>
-          <div style={{ fontSize: 11, color: c.textMuted, marginTop: 2 }}>Sets: {setsWonA}</div>
+          </Text>
+          <Text size="xs" c="dimmed" mt={2}>
+            Sets: {setsWonA}
+          </Text>
           {match.serveTeam === 'A' && !currentSet?.finished ? (
-            <div style={{ fontSize: 10, fontWeight: 800, color: c.primary, marginTop: 2 }}>
+            <Badge color="timeco" variant="light" size="sm" mt={4} radius="sm">
               🎾 SAQUE
-            </div>
+            </Badge>
           ) : null}
-        </div>
-        <div
+        </Card>
+
+        <Card
+          withBorder
+          radius="md"
+          padding="md"
           style={{
-            flex: 1,
-            padding: 16,
-            border: `2px solid ${c.border}`,
             background: c.surface,
-            borderRadius: 10,
             textAlign: 'center',
+            borderWidth: 2,
           }}
         >
-          <div style={{ fontSize: 12, fontWeight: 700, color: c.textSecondary }}>
+          <Text size="xs" fw={700} c="dimmed" tt="uppercase">
             {match.teamBName}
-          </div>
-          <div style={{ fontSize: 38, fontWeight: 900, color: c.text, lineHeight: 1.1 }}>
+          </Text>
+          <Text size="36px" fw={900} style={{ color: c.text, lineHeight: 1.1, marginTop: 4 }}>
             {currentSet?.scoreB ?? 0}
-          </div>
-          <div style={{ fontSize: 11, color: c.textMuted, marginTop: 2 }}>Sets: {setsWonB}</div>
+          </Text>
+          <Text size="xs" c="dimmed" mt={2}>
+            Sets: {setsWonB}
+          </Text>
           {match.serveTeam === 'B' && !currentSet?.finished ? (
-            <div style={{ fontSize: 10, fontWeight: 800, color: c.primary, marginTop: 2 }}>
+            <Badge color="timeco" variant="light" size="sm" mt={4} radius="sm">
               🎾 SAQUE
-            </div>
+            </Badge>
           ) : null}
-        </div>
-      </div>
+        </Card>
+      </Group>
 
-      {/* Tab navigator de jogadores */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 8,
-          paddingBottom: 8,
-          overflowX: 'auto',
-          WebkitOverflowScrolling: 'touch',
-        }}
+      {/* Player selector — pills minimalistas */}
+      <Text
+        size="xs"
+        fw={800}
+        c="dimmed"
+        tt="uppercase"
+        mb={6}
+        style={{ letterSpacing: 0.6 }}
       >
-        {match.players.map((p) => {
-          const isSel = p.number === selectedPlayer;
-          return (
-            <button
-              key={p.number}
-              onClick={() => setSelectedPlayer(p.number)}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 999,
-                background: isSel ? c.primary : c.surface,
-                border: `2px solid ${isSel ? c.primary : c.border}`,
-                color: isSel ? c.onPrimary : c.text,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 6,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                flexShrink: 0,
-              }}
-            >
-              <span
+        Jogador
+      </Text>
+      <ScrollArea type="auto" offsetScrollbars={false} scrollbarSize={6} mb="sm">
+        <Group gap="xs" wrap="nowrap">
+          {match.players.map((p) => {
+            const isSel = p.number === selectedPlayer;
+            return (
+              <Badge
+                key={p.number}
+                size="lg"
+                radius="xl"
+                variant={isSel ? 'filled' : 'outline'}
+                color="timeco"
+                onClick={() => setSelectedPlayer(p.number)}
                 style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: 12,
-                  background: isSel ? c.surface : c.primary,
-                  color: isSel ? c.primary : c.onPrimary,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 900,
-                  fontSize: 12,
+                  cursor: 'pointer',
+                  paddingLeft: 6,
+                  paddingRight: 14,
+                  height: 36,
+                  flexShrink: 0,
+                  textTransform: 'none',
                 }}
+                leftSection={
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                      background: isSel ? c.surface : c.primary,
+                      color: isSel ? c.primary : c.white,
+                      fontWeight: 900,
+                      fontSize: 12,
+                    }}
+                  >
+                    {p.number}
+                  </span>
+                }
               >
-                {p.number}
-              </span>
-              <span style={{ fontSize: 13, fontWeight: 700 }}>
-                {p.name.split(' ')[0].toUpperCase()}
-              </span>
-            </button>
-          );
-        })}
-      </div>
+                {p.name.split(' ')[0]}
+              </Badge>
+            );
+          })}
+        </Group>
+      </ScrollArea>
 
-      {/* Jogador selecionado */}
+      {/* Player heading */}
       {selectedPlayerObj ? (
-        <div style={{ marginTop: 16, marginBottom: 8 }}>
-          <div style={{ fontSize: 18, fontWeight: 900, color: c.text }}>
-            #{selectedPlayerObj.number} {selectedPlayerObj.name}
+        <Group justify="space-between" align="flex-end" mb="md" mt="xs">
+          <div>
+            <Text size="lg" fw={900} style={{ color: c.text }}>
+              #{selectedPlayerObj.number} {selectedPlayerObj.name}
+            </Text>
+            <Text size="sm" c="dimmed">
+              {selectedPlayerObj.position}
+            </Text>
           </div>
-          <div style={{ fontSize: 13, color: c.textSecondary, marginTop: 2 }}>
-            {selectedPlayerObj.position}
-          </div>
-        </div>
+        </Group>
       ) : null}
 
-      {/* Cards de ações — grid responsivo (1 col mobile, 2-3 cols desktop) */}
+      {/* Cards de acoes — grid responsivo, estilo do app */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: 12,
-          marginTop: 12,
         }}
       >
         {CARDS.map((card) => (
-          <div
-            key={card.title}
-            style={{
-              background: c.surface,
-              borderRadius: 16,
-              border: `1px solid ${c.border}`,
-              padding: 12,
-            }}
-          >
-            <div
-              style={{
-                fontSize: 13,
-                fontWeight: 800,
-                color: c.textSecondary,
-                textTransform: 'uppercase',
-                letterSpacing: 0.6,
-                marginBottom: 8,
-                textAlign: 'center',
-              }}
+          <HtmlCard key={card.title} style={{ marginBottom: 0 }}>
+            <Text
+              size="xs"
+              fw={800}
+              c="dimmed"
+              tt="uppercase"
+              mb="sm"
+              ta="center"
+              style={{ letterSpacing: 0.8 }}
             >
               {card.emoji}  {card.title}
-            </div>
-            {card.actions.map((a) => {
-              const count = a.read(playerStats);
-              const labelBg = colorFor(a.kind);
-              return (
-                <div
-                  key={a.action}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    marginBottom: 8,
-                  }}
-                >
-                  <div
+            </Text>
+            <Stack gap={6}>
+              {card.actions.map((a) => {
+                const count = a.read(playerStats);
+                const kindColor = colorFor(a.kind);
+                const dotColor =
+                  a.kind === 'positive'
+                    ? c.success
+                    : a.kind === 'negative'
+                    ? c.danger
+                    : c.info;
+                return (
+                  <Group
+                    key={a.action}
+                    justify="space-between"
+                    wrap="nowrap"
                     style={{
-                      flex: 1,
-                      padding: '10px 12px',
-                      borderRadius: 10,
-                      background: labelBg,
-                      color: c.white,
-                      fontSize: 14,
-                      fontWeight: 800,
-                      textAlign: 'center',
+                      padding: '6px 10px',
+                      borderRadius: 8,
+                      background: count > 0 ? `${dotColor}14` : 'transparent',
+                      transition: 'background 120ms ease',
                     }}
                   >
-                    {a.label}
-                  </div>
-                  <div
-                    style={{
-                      minWidth: 36,
-                      fontSize: 18,
-                      fontWeight: 900,
-                      color: c.text,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {count}
-                  </div>
-                  <button
-                    onClick={() => handleAction(a.action, 1)}
-                    disabled={busy}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 6,
-                      background: c.success,
-                      color: c.white,
-                      border: 'none',
-                      fontSize: 18,
-                      fontWeight: 900,
-                      cursor: busy ? 'wait' : 'pointer',
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    +
-                  </button>
-                  <button
-                    onClick={() => handleAction(a.action, -1)}
-                    disabled={busy || count === 0}
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: 6,
-                      background: c.danger,
-                      color: c.white,
-                      border: 'none',
-                      fontSize: 18,
-                      fontWeight: 900,
-                      cursor: busy || count === 0 ? 'not-allowed' : 'pointer',
-                      opacity: count === 0 ? 0.4 : 1,
-                      fontFamily: 'inherit',
-                    }}
-                  >
-                    −
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                    <Group gap={10} wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+                      <span
+                        style={{
+                          width: 10,
+                          height: 10,
+                          borderRadius: 5,
+                          background: dotColor,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <Text size="sm" fw={600} c={c.text} truncate>
+                        {a.label}
+                      </Text>
+                    </Group>
+                    <Group gap={6} wrap="nowrap">
+                      <Text
+                        size="md"
+                        fw={800}
+                        ta="center"
+                        style={{
+                          color: count > 0 ? c.text : c.textMuted,
+                          minWidth: 24,
+                        }}
+                      >
+                        {count}
+                      </Text>
+                      <Tooltip label="Desfazer" position="top" withArrow openDelay={500}>
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          size="lg"
+                          radius="md"
+                          onClick={() => handleAction(a.action, -1)}
+                          disabled={busy || count === 0}
+                          aria-label={`Desfazer ${a.label}`}
+                        >
+                          −
+                        </ActionIcon>
+                      </Tooltip>
+                      <Tooltip label="Registrar" position="top" withArrow openDelay={500}>
+                        <ActionIcon
+                          variant="filled"
+                          color={kindColor}
+                          size="lg"
+                          radius="md"
+                          onClick={() => handleAction(a.action, 1)}
+                          disabled={busy}
+                          aria-label={`Registrar ${a.label}`}
+                        >
+                          +
+                        </ActionIcon>
+                      </Tooltip>
+                    </Group>
+                  </Group>
+                );
+              })}
+            </Stack>
+          </HtmlCard>
         ))}
       </div>
 
       {/* Footer actions */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-        <div style={{ flex: 1 }}>
+      <Stack gap={8} mt="md">
+        <Group grow gap={8}>
           <HtmlButton title="↶ Desfazer ponto" variant="outline" onClick={onUndoLastPoint} />
-        </div>
-        {!currentSet?.finished ? (
-          <div style={{ flex: 1 }}>
+          {!currentSet?.finished ? (
             <HtmlButton title="🏁 Encerrar set" variant="ghost" onClick={onCloseSet} />
-          </div>
-        ) : null}
-      </div>
-
-      <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          ) : null}
+        </Group>
         <HtmlButton
           title="📊 Relatórios"
           variant="secondary"
@@ -449,7 +455,7 @@ export const VolleyScoutScreen: React.FC = () => {
           variant="ghost"
           onClick={() => nav.navigate('VolleyRotation', { matchId: match.id })}
         />
-      </div>
+      </Stack>
 
       <div style={{ height: 32 }} />
     </HtmlScreen>
