@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -12,26 +12,21 @@ import { getVolleyTeam } from '../../services/volleyTeamService';
 import { listUserVolleyMatchesCached } from '../../services/volleyCacheService';
 import {
   aggregatePlayerStats,
-  matchOutcome,
   matchesForTeam,
   teamEfficiencies,
   teamOverview,
   topPerformers,
 } from '../../services/volleyTeamStats';
-import { efficiencyThresholds } from '../../services/volleyStats';
+import { KpiCard } from './components/dashboard/KpiCard.web';
+import { HighlightRow } from './components/dashboard/HighlightRow.web';
+import { PlayerAggregateCard } from './components/dashboard/PlayerAggregateCard.web';
+import { MatchHistoryItem } from './components/dashboard/MatchHistoryItem.web';
 import { VolleyMatch, VolleyTeam } from '../../types';
 import { toast } from '../../store/toastStore';
 import type { VolleyStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyTeamDashboard'>;
 type Rt = RouteProp<VolleyStackParamList, 'VolleyTeamDashboard'>;
-
-const formatDateBR = (iso: string): string => {
-  if (!iso) return '';
-  const [y, m, d] = iso.split('-');
-  if (!y || !m || !d) return iso;
-  return `${d}/${m}/${y}`;
-};
 
 export const VolleyTeamDashboardScreen: React.FC = () => {
   const c = useThemedColors();
@@ -108,29 +103,6 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
     margin: '16px 0 8px',
   };
 
-  const kpiCard = (label: string, value: string | number, sub?: string): React.ReactNode => (
-    <div
-      style={{
-        background: c.surface,
-        border: `1px solid ${c.border}`,
-        borderRadius: 10,
-        padding: 12,
-        flex: 1,
-        minWidth: 120,
-        textAlign: 'center',
-      }}
-    >
-      <div style={{ fontSize: 11, color: c.textSecondary, fontWeight: 700, textTransform: 'uppercase' }}>
-        {label}
-      </div>
-      <div style={{ fontSize: 22, fontWeight: 900, color: c.text, marginTop: 4 }}>{value}</div>
-      {sub ? <div style={{ fontSize: 11, color: c.textMuted, marginTop: 2 }}>{sub}</div> : null}
-    </div>
-  );
-
-  const pctColor = (pct: number, threshold: number): string =>
-    pct >= threshold ? c.success : pct >= threshold * 0.7 ? c.warning : c.danger;
-
   return (
     <HtmlScreen maxWidth={960}>
       <HtmlHeader
@@ -148,10 +120,18 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
       {/* Visão geral */}
       <div style={sectionTitle}>📊 Visão geral</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {kpiCard('Vitórias', overview.wins, `${overview.losses} derrotas`)}
-        {kpiCard('Taxa', `${overview.winRate.toFixed(0)}%`, `${overview.finished} jogos`)}
-        {kpiCard('Sets', `${overview.setsWon} - ${overview.setsLost}`)}
-        {kpiCard('Pontos', `${overview.pointsScored}`, `${overview.pointsConceded} sofridos`)}
+        <KpiCard label="Vitórias" value={overview.wins} sub={`${overview.losses} derrotas`} />
+        <KpiCard
+          label="Taxa"
+          value={`${overview.winRate.toFixed(0)}%`}
+          sub={`${overview.finished} jogos`}
+        />
+        <KpiCard label="Sets" value={`${overview.setsWon} - ${overview.setsLost}`} />
+        <KpiCard
+          label="Pontos"
+          value={`${overview.pointsScored}`}
+          sub={`${overview.pointsConceded} sofridos`}
+        />
       </div>
 
       {overview.recentForm.length > 0 ? (
@@ -186,62 +166,51 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
       {/* Eficiencias do time */}
       <div style={sectionTitle}>⚡ Eficiência do time</div>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        {kpiCard('Ataque', `${effs.attackPct.toFixed(1)}%`, `${effs.totalAttacks} totais`)}
-        {kpiCard('Saque', `${effs.servePct.toFixed(1)}%`, `${effs.totalServes} totais`)}
-        {kpiCard('Passe', `${effs.passPct.toFixed(1)}%`, `${effs.totalPasses} totais`)}
-        {kpiCard('Bloqueio', `${effs.blockPct.toFixed(1)}%`, `${effs.totalBlocks} totais`)}
+        <KpiCard label="Ataque" value={`${effs.attackPct.toFixed(1)}%`} sub={`${effs.totalAttacks} totais`} />
+        <KpiCard label="Saque" value={`${effs.servePct.toFixed(1)}%`} sub={`${effs.totalServes} totais`} />
+        <KpiCard label="Passe" value={`${effs.passPct.toFixed(1)}%`} sub={`${effs.totalPasses} totais`} />
+        <KpiCard label="Bloqueio" value={`${effs.blockPct.toFixed(1)}%`} sub={`${effs.totalBlocks} totais`} />
       </div>
 
       {/* Destaques */}
       <div style={sectionTitle}>🏆 Destaques</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
         {tops.scorer ? (
-          <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 22 }}>🎯</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: c.textSecondary, fontWeight: 700, textTransform: 'uppercase' }}>Maior pontuador</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: c.text }}>
-                #{tops.scorer.player.number} {tops.scorer.player.name} <span style={{ color: c.textMuted, fontWeight: 600 }}>· {tops.scorer.player.position}</span>
-              </div>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: c.primary }}>{tops.scorer.directPoints}</div>
-          </div>
+          <HighlightRow
+            emoji="🎯"
+            title="Maior pontuador"
+            playerNumber={tops.scorer.player.number}
+            playerName={tops.scorer.player.name}
+            playerPosition={tops.scorer.player.position}
+            value={tops.scorer.directPoints}
+          />
         ) : null}
         {tops.server ? (
-          <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 22 }}>🎾</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: c.textSecondary, fontWeight: 700, textTransform: 'uppercase' }}>Melhor sacador (aces)</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: c.text }}>
-                #{tops.server.player.number} {tops.server.player.name}
-              </div>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: c.primary }}>{tops.server.stats.serves.ace}</div>
-          </div>
+          <HighlightRow
+            emoji="🎾"
+            title="Melhor sacador (aces)"
+            playerNumber={tops.server.player.number}
+            playerName={tops.server.player.name}
+            value={tops.server.stats.serves.ace}
+          />
         ) : null}
         {tops.blocker ? (
-          <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 22 }}>🛡️</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: c.textSecondary, fontWeight: 700, textTransform: 'uppercase' }}>Melhor bloqueador</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: c.text }}>
-                #{tops.blocker.player.number} {tops.blocker.player.name}
-              </div>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: c.primary }}>{tops.blocker.stats.blocks.success}</div>
-          </div>
+          <HighlightRow
+            emoji="🛡️"
+            title="Melhor bloqueador"
+            playerNumber={tops.blocker.player.number}
+            playerName={tops.blocker.player.name}
+            value={tops.blocker.stats.blocks.success}
+          />
         ) : null}
         {tops.passer ? (
-          <div style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: 10, padding: 12, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 22 }}>✋</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 11, color: c.textSecondary, fontWeight: 700, textTransform: 'uppercase' }}>Melhor passador (%A+B)</div>
-              <div style={{ fontSize: 15, fontWeight: 800, color: c.text }}>
-                #{tops.passer.player.number} {tops.passer.player.name}
-              </div>
-            </div>
-            <div style={{ fontSize: 20, fontWeight: 900, color: c.primary }}>{tops.passer.passPct.toFixed(0)}%</div>
-          </div>
+          <HighlightRow
+            emoji="✋"
+            title="Melhor passador (%A+B)"
+            playerNumber={tops.passer.player.number}
+            playerName={tops.passer.player.name}
+            value={`${tops.passer.passPct.toFixed(0)}%`}
+          />
         ) : null}
         {!tops.scorer && !tops.server && !tops.blocker && !tops.passer ? (
           <p style={{ color: c.textMuted, fontSize: 13 }}>
@@ -253,63 +222,11 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
       {/* Tabela de jogadores */}
       <div style={sectionTitle}>👥 Desempenho individual</div>
       {aggregates.length === 0 ? (
-        <p style={{ color: c.textMuted, fontSize: 13 }}>
-          Sem jogadores cadastrados.
-        </p>
+        <p style={{ color: c.textMuted, fontSize: 13 }}>Sem jogadores cadastrados.</p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {aggregates.map((agg) => (
-            <div
-              key={agg.player.number}
-              style={{
-                background: c.surface,
-                border: `1px solid ${c.border}`,
-                borderRadius: 10,
-                padding: 10,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <span style={{
-                  background: c.primary,
-                  color: c.onPrimary,
-                  fontSize: 11,
-                  fontWeight: 900,
-                  padding: '2px 8px',
-                  borderRadius: 999,
-                }}>
-                  #{agg.player.number}
-                </span>
-                <span style={{ fontSize: 14, fontWeight: 800, color: c.text }}>{agg.player.name}</span>
-                <span style={{ fontSize: 11, color: c.textMuted }}>{agg.player.position}</span>
-                <span style={{ flex: 1 }} />
-                <span style={{ fontSize: 11, color: c.textSecondary }}>
-                  {agg.matchesPlayed} {agg.matchesPlayed === 1 ? 'jogo' : 'jogos'}
-                </span>
-              </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, fontSize: 11 }}>
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: c.surfaceVariant }}>
-                  Ataque <strong style={{ color: pctColor(agg.attackPct, efficiencyThresholds.attack) }}>{agg.attackPct.toFixed(0)}%</strong>
-                </span>
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: c.surfaceVariant }}>
-                  Saque <strong style={{ color: pctColor(agg.servePct, efficiencyThresholds.serve) }}>{agg.servePct.toFixed(0)}%</strong>
-                </span>
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: c.surfaceVariant }}>
-                  Passe <strong style={{ color: pctColor(agg.passPct, efficiencyThresholds.pass) }}>{agg.passPct.toFixed(0)}%</strong>
-                </span>
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: c.surfaceVariant }}>
-                  Bloq <strong style={{ color: pctColor(agg.blockPct, efficiencyThresholds.block) }}>{agg.blockPct.toFixed(0)}%</strong>
-                </span>
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: c.surfaceVariant }}>
-                  Pontos <strong style={{ color: c.primary }}>{agg.directPoints}</strong>
-                </span>
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: c.surfaceVariant }}>
-                  Aces <strong>{agg.stats.serves.ace}</strong>
-                </span>
-                <span style={{ padding: '2px 8px', borderRadius: 6, background: c.surfaceVariant }}>
-                  Blocks <strong>{agg.stats.blocks.success}</strong>
-                </span>
-              </div>
-            </div>
+            <PlayerAggregateCard key={agg.player.number} agg={agg} />
           ))}
         </div>
       )}
@@ -326,61 +243,13 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
         [...matches]
           .sort((a, b) => b.date.localeCompare(a.date))
           .slice(0, 10)
-          .map((m) => {
-            const o = matchOutcome(m);
-            const isFinished = m.status === 'finished';
-            const isScheduled = m.status === 'scheduled';
-            const statusLabel = isScheduled
-              ? 'EM BREVE'
-              : !isFinished
-              ? 'EM ANDAMENTO'
-              : o.won
-              ? 'VITÓRIA'
-              : 'DERROTA';
-            const statusColor = isScheduled
-              ? c.info
-              : !isFinished
-              ? c.warning
-              : o.won
-              ? c.success
-              : c.danger;
-            return (
-              <div
-                key={m.id}
-                onClick={() => nav.navigate('VolleyReports', { matchId: m.id })}
-                role="button"
-                tabIndex={0}
-                style={{
-                  background: c.surface,
-                  border: `1px solid ${c.border}`,
-                  borderRadius: 10,
-                  padding: 12,
-                  marginBottom: 6,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                }}
-              >
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: c.text }}>
-                    vs {m.teamBName}
-                  </div>
-                  <div style={{ fontSize: 12, color: c.textSecondary }}>
-                    {formatDateBR(m.date)} · {m.location}
-                  </div>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: 16, fontWeight: 900, color: c.text }}>
-                    {o.setsA} x {o.setsB}
-                  </div>
-                  <div style={{ fontSize: 10, fontWeight: 700, color: statusColor }}>
-                    {statusLabel}
-                  </div>
-                </div>
-              </div>
-            );
-          })
+          .map((m) => (
+            <MatchHistoryItem
+              key={m.id}
+              match={m}
+              onPress={() => nav.navigate('VolleyReports', { matchId: m.id })}
+            />
+          ))
       )}
 
       <div style={{ height: 32 }} />
