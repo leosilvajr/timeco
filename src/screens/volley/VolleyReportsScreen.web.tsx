@@ -12,7 +12,9 @@ import {
   ScrollArea,
   SimpleGrid,
 } from '@mantine/core';
-import { HtmlScreen, HtmlHeader, HtmlCard } from '../../components/web';
+import { HtmlScreen, HtmlHeader, HtmlCard, HtmlButton } from '../../components/web';
+import { exportMatchReportPdf } from '../../services/volleyReportExport';
+import { toast } from '../../store/toastStore';
 import { useThemedColors } from '../../store';
 import { subscribeVolleyMatch } from '../../services/volleyScoutService';
 import {
@@ -480,6 +482,22 @@ export const VolleyReportsScreen: React.FC = () => {
           <PlayerDetailCard player={selectedPlayerObj} stats={selectedPlayerStats} c={c} />
         </div>
       ) : null}
+
+      {/* Export PDF — usa print dialog do browser (Save as PDF) */}
+      <div style={{ marginTop: 16 }}>
+        <HtmlButton
+          title={match.status === 'finished' ? '📄 Exportar e compartilhar PDF' : '📄 Exportar PDF parcial'}
+          variant="secondary"
+          onClick={async () => {
+            try {
+              await exportMatchReportPdf(match);
+            } catch (e) {
+              console.error('export pdf', e);
+              toast.error('Não foi possível gerar o PDF.');
+            }
+          }}
+        />
+      </div>
 
       <div style={{ height: 32 }} />
     </HtmlScreen>

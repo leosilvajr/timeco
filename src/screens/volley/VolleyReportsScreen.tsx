@@ -2,7 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Screen, Header, Card } from '../../components';
+import { Screen, Header, Card, Button } from '../../components';
+import { exportMatchReportPdf } from '../../services/volleyReportExport';
+import { toast } from '../../store/toastStore';
 import { ColorPalette, spacing, radius } from '../../constants/theme';
 import { useThemedColors } from '../../store';
 import { subscribeVolleyMatch } from '../../services/volleyScoutService';
@@ -290,6 +292,22 @@ export const VolleyReportsScreen: React.FC = () => {
           />
         </View>
       ) : null}
+
+      {/* Export PDF — disponivel sempre, mas mais util quando a partida finaliza */}
+      <View style={{ marginTop: spacing.md }}>
+        <Button
+          title={match.status === 'finished' ? '📄 Exportar e compartilhar PDF' : '📄 Exportar PDF parcial'}
+          variant="secondary"
+          onPress={async () => {
+            try {
+              await exportMatchReportPdf(match);
+            } catch (e) {
+              console.error('export pdf', e);
+              toast.error('Não foi possível gerar o PDF.');
+            }
+          }}
+        />
+      </View>
 
       <View style={{ height: spacing.xxl }} />
     </Screen>
