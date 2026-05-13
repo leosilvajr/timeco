@@ -33,7 +33,7 @@ import { PlayerStatsCard } from './components/PlayerStatsCard';
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyReports'>;
 type Rt = RouteProp<VolleyStackParamList, 'VolleyReports'>;
 
-type Mode = 'current' | 'all';
+type Mode = 'all' | number;
 
 const makeStyles = (c: ColorPalette) =>
   StyleSheet.create({
@@ -159,7 +159,8 @@ export const VolleyReportsScreen: React.FC = () => {
   const nav = useNavigation<Nav>();
   const { matchId } = route.params;
   const [match, setMatch] = useState<VolleyMatch | null>(null);
-  const [mode, setMode] = useState<Mode>('current');
+  // Default mode: 'all' (visao geral) se a partida ja finalizou; senao, o set atual.
+  const [mode, setMode] = useState<Mode | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const styles = useMemo(() => makeStyles(c), [c]);
 
@@ -169,22 +170,29 @@ export const VolleyReportsScreen: React.FC = () => {
       if (m && m.players.length > 0 && selectedPlayer === null) {
         setSelectedPlayer(m.players[0].number);
       }
+      // Define o default do mode na primeira carga: finalizada -> Visao geral, senao o set atual
+      if (m && mode === null) {
+        setMode(m.status === 'finished' ? 'all' : m.currentSet);
+      }
     });
     return () => unsub();
-  }, [matchId, selectedPlayer]);
+  }, [matchId, selectedPlayer, mode]);
+
+  const effectiveMode: Mode = mode ?? 'all';
 
   const playerStatsForMode = useMemo((): Record<number, PlayerVolleyStats> => {
     if (!match) return {};
-    if (mode === 'current') {
-      const set = match.sets.find((s) => s.number === match.currentSet);
-      return set?.playerStats ?? {};
+    if (effectiveMode === 'all') {
+      const result: Record<number, PlayerVolleyStats> = {};
+      for (const p of match.players) {
+        result[p.number] = accumulateAcrossSets(match.sets, p.number);
+      }
+      return result;
     }
-    const result: Record<number, PlayerVolleyStats> = {};
-    for (const p of match.players) {
-      result[p.number] = accumulateAcrossSets(match.sets, p.number);
-    }
-    return result;
-  }, [match, mode]);
+    // effectiveMode = numero do set
+    const set = match.sets.find((s) => s.number === effectiveMode);
+    return set?.playerStats ?? {};
+  }, [match, effectiveMode]);
 
   const summary = useMemo(() => teamSummary(playerStatsForMode), [playerStatsForMode]);
 
@@ -210,45 +218,44 @@ export const VolleyReportsScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
-      {/* Mode toggle */}
-      <View style={styles.modeRow}>
+      {/* Filtros: Visao geral + um chip por set, todos clicaveis */}
+      <View style={styles.setHistoryRow}>
         <Pressable
-          style={[styles.modeBtn, mode === 'current' && styles.modeBtnActive]}
-          onPress={() => setMode('current')}
-        >
-          <Text style={[styles.modeTxt, mode === 'current' && styles.modeTxtActive]}>
-            Set atual ({match.currentSet})
-          </Text>
-        </Pressable>
-        <Pressable
-          style={[styles.modeBtn, mode === 'all' && styles.modeBtnActive]}
+          style={[
+            styles.setHistoryChip,
+            effectiveMode === 'all' && styles.setHistoryChipActive,
+          ]}
           onPress={() => setMode('all')}
         >
-          <Text style={[styles.modeTxt, mode === 'all' && styles.modeTxtActive]}>
-            Acumulado
+          <Text
+            style={[
+              styles.setHistoryTxt,
+              effectiveMode === 'all' && styles.setHistoryTxtActive,
+            ]}
+          >
+            📊 Visão geral
           </Text>
         </Pressable>
-      </View>
-
-      {/* Set history */}
-      <View style={styles.setHistoryRow}>
         {match.sets.map((s) => {
-          const active = s.number === match.currentSet && mode === 'current';
+          const active = effectiveMode === s.number;
           return (
-            <View
+            <Pressable
               key={s.number}
               style={[styles.setHistoryChip, active && styles.setHistoryChipActive]}
+              onPress={() => setMode(s.number)}
             >
               <Text style={[styles.setHistoryTxt, active && styles.setHistoryTxtActive]}>
                 Set {s.number}: {s.scoreA}x{s.scoreB} {s.finished ? '✓' : ''}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </View>
 
       {/* Team summary */}
-      <Text style={styles.sectionTitle}>Resumo do time</Text>
+      <Text style={styles.sectionTitle}>
+        Resumo do time — {effectiveMode === 'all' ? 'Visão geral' : `Set ${effectiveMode}`}
+      </Text>
       <TeamSummaryCards
         totalPoints={summary.totalPoints}
         totalAces={summary.totalAces}

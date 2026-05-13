@@ -125,6 +125,18 @@ export const VolleyHomeScreen: React.FC = () => {
         matches.map((m) => {
           const w = winsCount(m);
           const isFinished = m.status === 'finished';
+          const isScheduled = m.status === 'scheduled';
+          const badgeBg = isFinished
+            ? `${c.success}33`
+            : isScheduled
+            ? `${c.info}33`
+            : `${c.warning}33`;
+          const badgeColor = isFinished ? c.success : isScheduled ? c.info : c.warning;
+          const badgeText = isFinished
+            ? 'FINALIZADA'
+            : isScheduled
+            ? 'EM BREVE'
+            : `SET ${m.currentSet}`;
           return (
             <div
               key={m.id}
@@ -164,12 +176,12 @@ export const VolleyHomeScreen: React.FC = () => {
                     borderRadius: 999,
                     fontSize: 11,
                     fontWeight: 700,
-                    background: isFinished ? `${c.success}33` : `${c.warning}33`,
-                    color: isFinished ? c.success : c.warning,
+                    background: badgeBg,
+                    color: badgeColor,
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {isFinished ? 'FINALIZADO' : `SET ${m.currentSet}`}
+                  {badgeText}
                 </span>
               </div>
               <div style={{ fontSize: 13, color: c.textSecondary }}>

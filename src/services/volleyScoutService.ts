@@ -53,8 +53,15 @@ const buildEmptySet = (
   };
 };
 
+const todayISO = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
 export const createVolleyMatch = async (input: CreateVolleyMatchInput): Promise<string> => {
   const initialRotation = defaultRotation(input.players.map((p) => p.number));
+  // Data futura -> 'scheduled' (Em breve). Mesma data ou passada -> 'in_progress' direto.
+  const status = input.date > todayISO() ? 'scheduled' : 'in_progress';
   const ref = await addDoc(collection(db, 'volleyMatches'), {
     ownerId: input.ownerId,
     date: input.date,
@@ -63,7 +70,7 @@ export const createVolleyMatch = async (input: CreateVolleyMatchInput): Promise<
     teamBName: input.teamBName,
     format: input.format,
     rotationSystem: input.rotationSystem,
-    status: 'in_progress',
+    status,
     currentSet: 1,
     players: input.players,
     sets: [buildEmptySet(1, input.players)],
@@ -108,6 +115,14 @@ export const subscribeVolleyMatch = (
 
 export const deleteVolleyMatch = async (matchId: string): Promise<void> => {
   await deleteDoc(doc(db, 'volleyMatches', matchId));
+};
+
+/** Inicia uma partida agendada: 'scheduled' -> 'in_progress'. */
+export const startVolleyMatch = async (matchId: string): Promise<void> => {
+  await updateDoc(doc(db, 'volleyMatches', matchId), {
+    status: 'in_progress',
+    updatedAt: serverTimestamp(),
+  });
 };
 
 const cloneSets = (sets: VolleySetData[]): VolleySetData[] =>
@@ -267,6 +282,8 @@ export const performScoutAction = async (
   delta: 1 | -1 = 1,
   autoRotation: boolean = true,
 ): Promise<void> => {
+  // Defense-in-depth: nao escreve em partida finalizada.
+  if (match.status === 'finished') return;
   const sets = cloneSets(match.sets);
   const idx = sets.findIndex((s) => s.number === match.currentSet);
   if (idx < 0) return;

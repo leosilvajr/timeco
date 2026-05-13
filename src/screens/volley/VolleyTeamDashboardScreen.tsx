@@ -375,6 +375,21 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
           .map((m) => {
             const o = matchOutcome(m);
             const isFinished = m.status === 'finished';
+            const isScheduled = m.status === 'scheduled';
+            const statusLabel = isScheduled
+              ? 'EM BREVE'
+              : !isFinished
+              ? 'EM ANDAMENTO'
+              : o.won
+              ? 'VITÓRIA'
+              : 'DERROTA';
+            const statusColor = isScheduled
+              ? c.info
+              : !isFinished
+              ? c.warning
+              : o.won
+              ? c.success
+              : c.danger;
             return (
               <Pressable
                 key={m.id}
@@ -397,10 +412,10 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
                     style={{
                       fontSize: 10,
                       fontWeight: '700',
-                      color: !isFinished ? c.warning : o.won ? c.success : c.danger,
+                      color: statusColor,
                     }}
                   >
-                    {!isFinished ? 'EM ANDAMENTO' : o.won ? 'VITÓRIA' : 'DERROTA'}
+                    {statusLabel}
                   </Text>
                 </View>
               </Pressable>

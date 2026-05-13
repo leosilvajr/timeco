@@ -13,6 +13,7 @@ import {
   finishCurrentSet,
   undoLastPoint,
   resetVolleyMatch,
+  startVolleyMatch,
 } from '../../services/volleyScoutService';
 import { emptyPlayerStats } from '../../services/volleyStats';
 import { isSetWon, setMomentum } from '../../services/volleyRules';
@@ -285,6 +286,7 @@ export const VolleyScoutScreen: React.FC = () => {
   const handleAction = (action: VolleyAction, delta: 1 | -1) => {
     const current = matchRef.current;
     if (!current || selectedPlayer === null) return;
+    if (current.status === 'finished' || current.status === 'scheduled') return;
 
     // Optimistic UI
     const next = previewScoutAction(current, selectedPlayer, action, delta);
@@ -336,6 +338,20 @@ export const VolleyScoutScreen: React.FC = () => {
     }
   };
 
+  const onStartMatch = async () => {
+    if (!match) return;
+    setBusy(true);
+    try {
+      await startVolleyMatch(match.id);
+      toast.success('Partida iniciada!');
+    } catch (e) {
+      console.error('startVolleyMatch', e);
+      toast.error('Não conseguimos iniciar a partida.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const onResetAll = async () => {
     if (!match) return;
     const proceed =
@@ -366,6 +382,8 @@ export const VolleyScoutScreen: React.FC = () => {
     );
   }
 
+  const isLocked = match.status !== 'in_progress';
+
   const selectedPlayerObj: VolleyPlayer | undefined = match.players.find(
     (p) => p.number === selectedPlayer,
   );
@@ -377,6 +395,51 @@ export const VolleyScoutScreen: React.FC = () => {
         subtitle={`${match.teamAName} vs ${match.teamBName}`}
         onBack={() => nav.goBack()}
       />
+
+      {/* Banners de status */}
+      {match.status === 'scheduled' ? (
+        <View
+          style={{
+            backgroundColor: c.warning + '22',
+            borderWidth: 2,
+            borderColor: c.warning,
+            borderRadius: 10,
+            padding: 14,
+            marginBottom: 12,
+          }}
+        >
+          <Text style={{ fontSize: 13, fontWeight: '800', color: c.warning, marginBottom: 6, textAlign: 'center' }}>
+            ⏳ PARTIDA AGENDADA
+          </Text>
+          <Text style={{ fontSize: 13, color: c.text, marginBottom: 10, textAlign: 'center' }}>
+            Essa partida está marcada pra{' '}
+            <Text style={{ fontWeight: '800' }}>
+              {match.date.split('-').reverse().join('/')}
+            </Text>
+            . Inicie agora pra começar a registrar.
+          </Text>
+          <Button title="🏐 Iniciar partida agora" onPress={onStartMatch} loading={busy} />
+        </View>
+      ) : null}
+      {match.status === 'finished' ? (
+        <View
+          style={{
+            backgroundColor: c.success + '22',
+            borderWidth: 2,
+            borderColor: c.success,
+            borderRadius: 10,
+            padding: 12,
+            marginBottom: 12,
+          }}
+        >
+          <Text style={{ fontSize: 13, fontWeight: '800', color: c.success, marginBottom: 4, textAlign: 'center' }}>
+            🏁 PARTIDA FINALIZADA
+          </Text>
+          <Text style={{ fontSize: 12, color: c.textSecondary, textAlign: 'center' }}>
+            Modo somente leitura. Os contadores não podem mais ser alterados.
+          </Text>
+        </View>
+      ) : null}
 
       {/* Banner de SET POINT / MATCH POINT / SET GANHO */}
       {currentSet && !currentSet.finished
@@ -552,26 +615,31 @@ export const VolleyScoutScreen: React.FC = () => {
                 <Pressable
                   style={[
                     styles.btn,
-                    count === 0 ? styles.btnMinusDisabled : styles.btnMinus,
+                    count === 0 || isLocked ? styles.btnMinusDisabled : styles.btnMinus,
+                    isLocked ? { opacity: 0.5 } : null,
                   ]}
                   onPress={() => handleAction(a.action, -1)}
-                  disabled={busy || count === 0}
+                  disabled={busy || count === 0 || isLocked}
                 >
                   <Text
                     style={[
                       styles.btnTxt,
-                      count === 0 ? styles.btnTxtMinusDisabled : styles.btnTxtMinus,
+                      count === 0 || isLocked ? styles.btnTxtMinusDisabled : styles.btnTxtMinus,
                     ]}
                   >
                     −
                   </Text>
                 </Pressable>
                 <Pressable
-                  style={[styles.btn, plusBg(a.kind, styles)]}
+                  style={[
+                    styles.btn,
+                    isLocked ? styles.btnMinusDisabled : plusBg(a.kind, styles),
+                    isLocked ? { opacity: 0.5 } : null,
+                  ]}
                   onPress={() => handleAction(a.action, 1)}
-                  disabled={busy}
+                  disabled={busy || isLocked}
                 >
-                  <Text style={styles.btnTxt}>+</Text>
+                  <Text style={[styles.btnTxt, isLocked ? styles.btnTxtMinusDisabled : null]}>+</Text>
                 </Pressable>
               </View>
             );
@@ -581,16 +649,18 @@ export const VolleyScoutScreen: React.FC = () => {
       </View>
 
       {/* Footer actions */}
-      <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
-        <View style={{ flex: 1 }}>
-          <Button title="↶ Desfazer ponto" variant="outline" onPress={onUndoLastPoint} />
-        </View>
-        {!currentSet?.finished ? (
+      {!isLocked ? (
+        <View style={{ flexDirection: 'row', gap: spacing.sm, marginTop: spacing.md }}>
           <View style={{ flex: 1 }}>
-            <Button title="🏁 Encerrar set" variant="ghost" onPress={onCloseSet} />
+            <Button title="↶ Desfazer ponto" variant="outline" onPress={onUndoLastPoint} />
           </View>
-        ) : null}
-      </View>
+          {!currentSet?.finished ? (
+            <View style={{ flex: 1 }}>
+              <Button title="🏁 Encerrar set" variant="ghost" onPress={onCloseSet} />
+            </View>
+          ) : null}
+        </View>
+      ) : null}
 
       <View style={{ marginTop: spacing.sm, gap: spacing.sm }}>
         <Button
@@ -603,11 +673,13 @@ export const VolleyScoutScreen: React.FC = () => {
           variant="ghost"
           onPress={() => nav.navigate('VolleyRotation', { matchId: match.id })}
         />
-        <Button
-          title="🗑️  Zerar tudo"
-          variant="danger"
-          onPress={onResetAll}
-        />
+        {!isLocked ? (
+          <Button
+            title="🗑️  Zerar tudo"
+            variant="danger"
+            onPress={onResetAll}
+          />
+        ) : null}
       </View>
 
       <View style={{ height: spacing.xxl }} />

@@ -8,7 +8,6 @@ import {
   Text,
   Badge,
   Progress,
-  SegmentedControl,
   ScrollArea,
   SimpleGrid,
 } from '@mantine/core';
@@ -42,7 +41,7 @@ import type { VolleyStackParamList } from '../../navigation/types';
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyReports'>;
 type Rt = RouteProp<VolleyStackParamList, 'VolleyReports'>;
 
-type Mode = 'current' | 'all';
+type Mode = 'all' | number;
 
 // ============================================================================
 // Componentes auxiliares
@@ -245,7 +244,7 @@ export const VolleyReportsScreen: React.FC = () => {
   const nav = useNavigation<Nav>();
   const route = useRoute<Rt>();
   const [match, setMatch] = useState<VolleyMatch | null>(null);
-  const [mode, setMode] = useState<Mode>('current');
+  const [mode, setMode] = useState<Mode | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
 
   useEffect(() => {
@@ -254,22 +253,28 @@ export const VolleyReportsScreen: React.FC = () => {
       if (m && m.players.length > 0 && selectedPlayer === null) {
         setSelectedPlayer(m.players[0].number);
       }
+      if (m && mode === null) {
+        // Finalizada -> visao geral; em andamento -> set atual
+        setMode(m.status === 'finished' ? 'all' : m.currentSet);
+      }
     });
     return () => unsub();
-  }, [route.params.matchId, selectedPlayer]);
+  }, [route.params.matchId, selectedPlayer, mode]);
+
+  const effectiveMode: Mode = mode ?? 'all';
 
   const playerStatsForMode = useMemo((): Record<number, PlayerVolleyStats> => {
     if (!match) return {};
-    if (mode === 'current') {
-      const set = match.sets.find((s) => s.number === match.currentSet);
-      return set?.playerStats ?? {};
+    if (effectiveMode === 'all') {
+      const result: Record<number, PlayerVolleyStats> = {};
+      for (const p of match.players) {
+        result[p.number] = accumulateAcrossSets(match.sets, p.number);
+      }
+      return result;
     }
-    const result: Record<number, PlayerVolleyStats> = {};
-    for (const p of match.players) {
-      result[p.number] = accumulateAcrossSets(match.sets, p.number);
-    }
-    return result;
-  }, [match, mode]);
+    const set = match.sets.find((s) => s.number === effectiveMode);
+    return set?.playerStats ?? {};
+  }, [match, effectiveMode]);
 
   const summary = useMemo(() => teamSummary(playerStatsForMode), [playerStatsForMode]);
 
@@ -376,26 +381,54 @@ export const VolleyReportsScreen: React.FC = () => {
         </div>
       </HtmlCard>
 
-      {/* Mode toggle */}
+      {/* Filtros: Visao geral + um chip por set */}
       <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.6 }}>
-        Modo de visualização
+        Filtrar por set
       </Text>
-      <SegmentedControl
-        value={mode}
-        onChange={(v) => setMode(v as Mode)}
-        color="timeco"
-        radius="md"
-        fullWidth
-        mb="md"
-        data={[
-          { value: 'current', label: `Set atual (${match.currentSet})` },
-          { value: 'all', label: 'Acumulado (todos sets)' },
-        ]}
-      />
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+        <button
+          onClick={() => setMode('all')}
+          style={{
+            padding: '6px 14px',
+            borderRadius: 999,
+            border: `1.5px solid ${effectiveMode === 'all' ? c.primary : c.border}`,
+            background: effectiveMode === 'all' ? c.primary : c.surface,
+            color: effectiveMode === 'all' ? c.onPrimary : c.text,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+          }}
+        >
+          📊 Visão geral
+        </button>
+        {match.sets.map((s) => {
+          const active = effectiveMode === s.number;
+          return (
+            <button
+              key={s.number}
+              onClick={() => setMode(s.number)}
+              style={{
+                padding: '6px 14px',
+                borderRadius: 999,
+                border: `1.5px solid ${active ? c.primary : c.border}`,
+                background: active ? c.primary : c.surface,
+                color: active ? c.onPrimary : c.text,
+                fontSize: 13,
+                fontWeight: 700,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              Set {s.number}: {s.scoreA}x{s.scoreB} {s.finished ? '✓' : ''}
+            </button>
+          );
+        })}
+      </div>
 
       {/* Team summary cards */}
       <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.6 }}>
-        Resumo do time
+        Resumo do time — {effectiveMode === 'all' ? 'Visão geral' : `Set ${effectiveMode}`}
       </Text>
       <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm" mb="lg">
         <TeamSummaryBlock

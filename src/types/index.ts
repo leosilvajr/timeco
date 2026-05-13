@@ -284,7 +284,15 @@ export type VolleyFormat = 3 | 5;
 
 export type VolleyRotationSystem = '5x1' | '4x2' | '6x0';
 
-export type VolleyMatchStatus = 'in_progress' | 'finished';
+/**
+ * Status do ciclo de vida da partida:
+ * - 'scheduled': data futura, ainda nao comecou (Scout pergunta "iniciar
+ *   agora?" antes de habilitar os botoes de pontuacao)
+ * - 'in_progress': em andamento (Scout totalmente habilitado)
+ * - 'finished': encerrada (Scout em modo leitura — sem +/-, sem encerrar
+ *   set, sem reset)
+ */
+export type VolleyMatchStatus = 'scheduled' | 'in_progress' | 'finished';
 
 export interface VolleyPointHistoryEntry {
   team: 'A' | 'B';

@@ -12,6 +12,7 @@ import {
   finishCurrentSet,
   undoLastPoint,
   resetVolleyMatch,
+  startVolleyMatch,
 } from '../../services/volleyScoutService';
 import { emptyPlayerStats } from '../../services/volleyStats';
 import { isSetWon, setMomentum, targetPointsForSet } from '../../services/volleyRules';
@@ -147,6 +148,7 @@ export const VolleyScoutScreen: React.FC = () => {
   const handleAction = (action: VolleyAction, delta: 1 | -1) => {
     const current = matchRef.current;
     if (!current || selectedPlayer === null) return;
+    if (current.status === 'finished' || current.status === 'scheduled') return;
 
     // 1. Optimistic: aplica a mudanca local imediatamente (UI instantanea)
     const next = previewScoutAction(current, selectedPlayer, action, delta);
@@ -203,6 +205,20 @@ export const VolleyScoutScreen: React.FC = () => {
     }
   };
 
+  const onStartMatch = async () => {
+    if (!match) return;
+    setBusy(true);
+    try {
+      await startVolleyMatch(match.id);
+      toast.success('Partida iniciada!');
+    } catch (e) {
+      console.error('startVolleyMatch', e);
+      toast.error('Não conseguimos iniciar a partida.');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const onResetAll = async () => {
     if (!match) return;
     const proceed = await webConfirm({
@@ -234,6 +250,9 @@ export const VolleyScoutScreen: React.FC = () => {
     );
   }
 
+  // Bloqueia +/- e acoes destrutivas quando a partida nao esta in_progress.
+  const isLocked = match.status !== 'in_progress';
+
   const selectedPlayerObj: VolleyPlayer | undefined = match.players.find(
     (p) => p.number === selectedPlayer,
   );
@@ -259,6 +278,49 @@ export const VolleyScoutScreen: React.FC = () => {
         subtitle={`${match.teamAName} vs ${match.teamBName}`}
         onBack={() => nav.goBack()}
       />
+
+      {/* Banner de status: scheduled mostra CTA Iniciar, finished mostra read-only */}
+      {match.status === 'scheduled' ? (
+        <div
+          style={{
+            background: c.warning + '22',
+            border: `2px solid ${c.warning}`,
+            borderRadius: 10,
+            padding: 14,
+            marginBottom: 12,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 800, color: c.warning, marginBottom: 6 }}>
+            ⏳ PARTIDA AGENDADA
+          </div>
+          <div style={{ fontSize: 13, color: c.text, marginBottom: 10 }}>
+            Essa partida está marcada pra <strong>{match.date.split('-').reverse().join('/')}</strong>.
+            Você pode iniciar agora pra começar a registrar as ações.
+          </div>
+          <HtmlButton title="🏐 Iniciar partida agora" onClick={onStartMatch} loading={busy} />
+        </div>
+      ) : null}
+      {match.status === 'finished' ? (
+        <div
+          style={{
+            background: c.success + '22',
+            border: `2px solid ${c.success}`,
+            borderRadius: 10,
+            padding: 12,
+            marginBottom: 12,
+            textAlign: 'center',
+          }}
+        >
+          <div style={{ fontSize: 13, fontWeight: 800, color: c.success, marginBottom: 4 }}>
+            🏁 PARTIDA FINALIZADA
+          </div>
+          <div style={{ fontSize: 12, color: c.textSecondary }}>
+            Modo somente leitura. Os contadores não podem mais ser alterados.
+            Acesse os <strong>Relatórios</strong> pra ver as estatísticas completas.
+          </div>
+        </div>
+      ) : null}
 
       {/* Scoreboard + tabs sticky no topo do scroll */}
       <div
@@ -582,46 +644,46 @@ export const VolleyScoutScreen: React.FC = () => {
                     </span>
                     <button
                       onClick={() => handleAction(a.action, -1)}
-                      disabled={busy || count === 0}
+                      disabled={busy || count === 0 || isLocked}
                       aria-label={`Decrementar ${a.label}`}
                       style={{
                         width: 30,
                         height: 30,
                         borderRadius: 6,
-                        background: count === 0 ? c.surfaceVariant : c.border,
-                        color: count === 0 ? c.textMuted : c.text,
+                        background: count === 0 || isLocked ? c.surfaceVariant : c.border,
+                        color: count === 0 || isLocked ? c.textMuted : c.text,
                         border: 'none',
-                        cursor: count === 0 ? 'not-allowed' : 'pointer',
+                        cursor: count === 0 || isLocked ? 'not-allowed' : 'pointer',
                         fontSize: 18,
                         fontWeight: 900,
                         lineHeight: 1,
                         fontFamily: 'inherit',
                         flexShrink: 0,
                         transition: 'all 120ms ease',
-                        opacity: busy ? 0.5 : 1,
+                        opacity: busy || isLocked ? 0.5 : 1,
                       }}
                     >
                       −
                     </button>
                     <button
                       onClick={() => handleAction(a.action, 1)}
-                      disabled={busy}
+                      disabled={busy || isLocked}
                       aria-label={`Incrementar ${a.label}`}
                       style={{
                         width: 30,
                         height: 30,
                         borderRadius: 6,
-                        background: kColors.bg,
-                        color: kColors.fg,
+                        background: isLocked ? c.surfaceVariant : kColors.bg,
+                        color: isLocked ? c.textMuted : kColors.fg,
                         border: 'none',
-                        cursor: 'pointer',
+                        cursor: isLocked ? 'not-allowed' : 'pointer',
                         fontSize: 18,
                         fontWeight: 900,
                         lineHeight: 1,
                         fontFamily: 'inherit',
                         flexShrink: 0,
                         transition: 'all 120ms ease',
-                        opacity: busy ? 0.5 : 1,
+                        opacity: busy || isLocked ? 0.5 : 1,
                       }}
                     >
                       +
@@ -636,16 +698,18 @@ export const VolleyScoutScreen: React.FC = () => {
 
       {/* Footer actions */}
       <Stack gap={8} mt="md">
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{ flex: 1 }}>
-            <HtmlButton title="↶ Desfazer ponto" variant="outline" onClick={onUndoLastPoint} />
-          </div>
-          {!currentSet?.finished ? (
+        {!isLocked ? (
+          <div style={{ display: 'flex', gap: 8 }}>
             <div style={{ flex: 1 }}>
-              <HtmlButton title="🏁 Encerrar set" variant="ghost" onClick={onCloseSet} />
+              <HtmlButton title="↶ Desfazer ponto" variant="outline" onClick={onUndoLastPoint} />
             </div>
-          ) : null}
-        </div>
+            {!currentSet?.finished ? (
+              <div style={{ flex: 1 }}>
+                <HtmlButton title="🏁 Encerrar set" variant="ghost" onClick={onCloseSet} />
+              </div>
+            ) : null}
+          </div>
+        ) : null}
         <HtmlButton
           title="📊 Relatórios"
           variant="secondary"
@@ -656,11 +720,13 @@ export const VolleyScoutScreen: React.FC = () => {
           variant="ghost"
           onClick={() => nav.navigate('VolleyRotation', { matchId: match.id })}
         />
-        <HtmlButton
-          title="🗑️  Zerar tudo"
-          variant="danger"
-          onClick={onResetAll}
-        />
+        {!isLocked ? (
+          <HtmlButton
+            title="🗑️  Zerar tudo"
+            variant="danger"
+            onClick={onResetAll}
+          />
+        ) : null}
       </Stack>
 
       <div style={{ height: 32 }} />

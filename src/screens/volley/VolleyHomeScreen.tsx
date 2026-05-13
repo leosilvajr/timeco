@@ -119,6 +119,10 @@ export const VolleyHomeScreen: React.FC = () => {
       backgroundColor: colors.success + '33',
       color: colors.success,
     },
+    badgeScheduled: {
+      backgroundColor: colors.info + '33',
+      color: colors.info,
+    },
     sub: {
       fontSize: 13,
       color: colors.textSecondary,
@@ -148,16 +152,25 @@ export const VolleyHomeScreen: React.FC = () => {
 
   const renderMatch = ({ item }: { item: VolleyMatch }) => {
     const w = winsCount(item);
-    const isFinished = item.status === 'finished';
+    const badgeStyle =
+      item.status === 'finished'
+        ? styles.badgeFinished
+        : item.status === 'scheduled'
+        ? styles.badgeScheduled
+        : styles.badgeProgress;
+    const badgeText =
+      item.status === 'finished'
+        ? 'FINALIZADA'
+        : item.status === 'scheduled'
+        ? 'EM BREVE'
+        : `SET ${item.currentSet}`;
     return (
       <Card style={[styles.matchCard, cols > 1 && { flex: 1 }]} onPress={() => nav.navigate('VolleyScout', { matchId: item.id })}>
         <View style={styles.matchHeader}>
           <Text style={styles.title}>
             {item.teamAName} x {item.teamBName}
           </Text>
-          <Text style={[styles.badge, isFinished ? styles.badgeFinished : styles.badgeProgress]}>
-            {isFinished ? 'FINALIZADO' : `SET ${item.currentSet}`}
-          </Text>
+          <Text style={[styles.badge, badgeStyle]}>{badgeText}</Text>
         </View>
         <Text style={styles.sub}>
           {formatDateBR(item.date)} · {item.location} · Melhor de {item.format}
