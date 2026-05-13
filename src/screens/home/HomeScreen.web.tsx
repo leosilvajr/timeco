@@ -7,7 +7,9 @@ import { useAuthStore, useThemedColors, useUnreadCount } from '../../store';
 import { computeProfileCompletion } from '../../hooks/useProfileCompletion';
 import { listEventsForUser } from '../../services/eventService';
 import { Event } from '../../types';
-import { getSport } from '../../constants/sports';
+import { HomeAlertBanner } from './components/HomeAlertBanner.web';
+import { UpcomingEventItem } from './components/UpcomingEventItem.web';
+import { UtilityLink } from './components/UtilityLink.web';
 import type { MainTabParamList } from '../../navigation/types';
 
 type Nav = BottomTabNavigationProp<MainTabParamList>;
@@ -25,26 +27,6 @@ const isUpcoming = (e: Event): boolean => {
   if (!d) return true;
   return d.getTime() >= Date.now() - 1000 * 60 * 60 * 4;
 };
-
-const formatRelative = (d: Date): string => {
-  const diffMs = d.getTime() - Date.now();
-  const diffHr = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffHr / 24);
-  if (diffDays > 1) return `Em ${diffDays} dias`;
-  if (diffDays === 1) return 'Amanhã';
-  if (diffHr > 1) return `Em ${diffHr}h`;
-  if (diffHr >= 0) return 'Hoje';
-  return 'Em andamento';
-};
-
-const formatDateTime = (d: Date): string =>
-  d.toLocaleString('pt-BR', {
-    weekday: 'short',
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
 
 export const HomeScreen: React.FC = () => {
   const c = useThemedColors();
@@ -173,73 +155,28 @@ export const HomeScreen: React.FC = () => {
         <HtmlNotificationBell />
       </div>
 
-      {/* Profile completion banner */}
       {!completion.isComplete ? (
-        <button
+        <HomeAlertBanner
+          emoji="📝"
+          title={`Perfil ${completion.percent}% completo`}
+          subtitle={`Faltam ${completion.missing.length} info${
+            completion.missing.length === 1 ? '' : 's'
+          } (${
+            completion.missingCritical.length > 0 ? 'criticas pra sorteio' : 'extras'
+          })`}
           onClick={goEditProfile}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: 12,
-            borderRadius: 10,
-            background: c.surfaceVariant,
-            border: `1px solid ${c.primaryLight}`,
-            marginBottom: 12,
-            width: '100%',
-            cursor: 'pointer',
-            color: c.text,
-            fontFamily: 'inherit',
-            textAlign: 'left',
-          }}
-        >
-          <span style={{ fontSize: 22 }}>📝</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: c.text }}>
-              Perfil {completion.percent}% completo
-            </div>
-            <div style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
-              Faltam {completion.missing.length} info
-              {completion.missing.length === 1 ? '' : 's'} (
-              {completion.missingCritical.length > 0 ? 'criticas pra sorteio' : 'extras'})
-            </div>
-          </div>
-          <span style={{ fontSize: 22, color: c.textMuted }}>›</span>
-        </button>
+        />
       ) : null}
 
-      {/* Notificações alerta */}
       {unread > 0 ? (
-        <button
+        <HomeAlertBanner
+          emoji="🔔"
+          title={`${unread} notificação${unread === 1 ? '' : 'ões'} não lida${
+            unread === 1 ? '' : 's'
+          }`}
+          subtitle="Convites, mensagens e atualizações"
           onClick={goNotifications}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: 12,
-            borderRadius: 10,
-            background: c.surfaceVariant,
-            border: `1px solid ${c.primaryLight}`,
-            marginBottom: 12,
-            width: '100%',
-            cursor: 'pointer',
-            color: c.text,
-            fontFamily: 'inherit',
-            textAlign: 'left',
-          }}
-        >
-          <span style={{ fontSize: 22 }}>🔔</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: c.text }}>
-              {unread} notificação{unread === 1 ? '' : 'ões'} não lida
-              {unread === 1 ? '' : 's'}
-            </div>
-            <div style={{ fontSize: 12, color: c.textSecondary, marginTop: 2 }}>
-              Convites, mensagens e atualizações
-            </div>
-          </div>
-          <span style={{ fontSize: 22, color: c.textMuted }}>›</span>
-        </button>
+        />
       ) : null}
 
       {/* Próximos jogos */}
@@ -263,61 +200,13 @@ export const HomeScreen: React.FC = () => {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {events.map((ev) => {
-            const sport = getSport(ev.sport);
-            const d = eventDate(ev);
-            return (
-              <button
-                key={ev.id}
-                onClick={() => goEventDetail(ev.id)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 12,
-                  padding: 12,
-                  background: c.surface,
-                  border: `1px solid ${c.border}`,
-                  borderRadius: 16,
-                  cursor: 'pointer',
-                  width: '100%',
-                  textAlign: 'left',
-                  fontFamily: 'inherit',
-                  color: 'inherit',
-                }}
-              >
-                <span style={{ fontSize: 30 }}>{sport.emoji}</span>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 800,
-                      color: c.text,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {ev.title}
-                  </div>
-                  <div style={{ fontSize: 13, color: c.primary, fontWeight: 700 }}>
-                    {d ? formatRelative(d) : 'Sem data'}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: c.textSecondary,
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                    }}
-                  >
-                    {d ? formatDateTime(d) : ''} · 📍 {ev.location}
-                  </div>
-                </div>
-                <span style={{ fontSize: 22, color: c.textMuted }}>›</span>
-              </button>
-            );
-          })}
+          {events.map((ev) => (
+            <UpcomingEventItem
+              key={ev.id}
+              event={ev}
+              onClick={() => goEventDetail(ev.id)}
+            />
+          ))}
           <button
             onClick={goEvents}
             style={{
@@ -357,74 +246,19 @@ export const HomeScreen: React.FC = () => {
       {/* Utilitários */}
       <div style={sectionTitleStyle}>Utilitários</div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-        <button
+        <UtilityLink
+          emoji="🏆"
+          title="Placar eletrônico"
+          subtitle="Marcador digital pra usar durante o jogo."
           onClick={goScoreboard}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: 12,
-            background: c.surface,
-            border: `1px solid ${c.border}`,
-            borderRadius: 10,
-            cursor: 'pointer',
-            width: '100%',
-            textAlign: 'left',
-            fontFamily: 'inherit',
-            color: 'inherit',
-          }}
-        >
-          <span style={{ fontSize: 24 }}>🏆</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: c.text }}>Placar eletrônico</div>
-            <div style={{ fontSize: 12, color: c.textSecondary }}>
-              Marcador digital pra usar durante o jogo.
-            </div>
-          </div>
-          <span style={{ fontSize: 18, color: c.textMuted }}>›</span>
-        </button>
-        <button
+        />
+        <UtilityLink
+          emoji="🏐"
+          title="Vôlei avançado · Scout"
+          badge="EXTRA"
+          subtitle="Estatísticas profissionais por jogador e set."
           onClick={goVolley}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            padding: 12,
-            background: c.surface,
-            border: `1px solid ${c.border}`,
-            borderRadius: 10,
-            cursor: 'pointer',
-            width: '100%',
-            textAlign: 'left',
-            fontFamily: 'inherit',
-            color: 'inherit',
-          }}
-        >
-          <span style={{ fontSize: 24 }}>🏐</span>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: c.text }}>
-              Vôlei avançado · Scout{' '}
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 900,
-                  background: c.primary,
-                  color: c.white,
-                  borderRadius: 999,
-                  padding: '2px 6px',
-                  marginLeft: 4,
-                  letterSpacing: 0.5,
-                }}
-              >
-                EXTRA
-              </span>
-            </div>
-            <div style={{ fontSize: 12, color: c.textSecondary }}>
-              Estatísticas profissionais por jogador e set.
-            </div>
-          </div>
-          <span style={{ fontSize: 18, color: c.textMuted }}>›</span>
-        </button>
+        />
       </div>
     </HtmlScreen>
   );
