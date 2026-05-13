@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Card, Stack, Text } from '@mantine/core';
+import { Stack, Text } from '@mantine/core';
 import { HtmlScreen, HtmlHeader, HtmlButton, webConfirm } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
 import { invalidateVolleyMatchesCache } from '../../services/volleyCacheService';
@@ -16,28 +16,20 @@ import {
   startVolleyMatch,
 } from '../../services/volleyScoutService';
 import { emptyPlayerStats } from '../../services/volleyStats';
-import { isSetWon, setMomentum, targetPointsForSet } from '../../services/volleyRules';
 import { toast } from '../../store/toastStore';
 import { VolleyAction, VolleyMatch, VolleyPlayer, PlayerVolleyStats } from '../../types';
+import { MatchStatusBanners } from './components/scout/MatchStatusBanners.web';
+import { SetMomentumBanner } from './components/scout/SetMomentumBanner.web';
+import { Scoreboard } from './components/scout/Scoreboard.web';
+import { PlayerTabsStrip } from './components/scout/PlayerTabsStrip.web';
+import {
+  ActionCard,
+  type CardConfig,
+} from './components/scout/ActionCard.web';
 import type { VolleyStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyScout'>;
 type Rt = RouteProp<VolleyStackParamList, 'VolleyScout'>;
-
-type ActionKind = 'positive' | 'negative' | 'neutral';
-
-interface ActionConfig {
-  label: string;
-  action: VolleyAction;
-  kind: ActionKind;
-  read: (s: PlayerVolleyStats) => number;
-}
-
-interface CardConfig {
-  title: string;
-  emoji: string;
-  actions: ActionConfig[];
-}
 
 const CARDS: CardConfig[] = [
   {
@@ -257,18 +249,6 @@ export const VolleyScoutScreen: React.FC = () => {
     (p) => p.number === selectedPlayer,
   );
 
-  // Cor pra cada kind
-  const kindColors = (kind: ActionKind) => {
-    if (kind === 'positive') return { bg: c.success, fg: c.white };
-    if (kind === 'negative') return { bg: c.danger, fg: c.white };
-    return { bg: c.info, fg: c.white };
-  };
-  const dotColor = (kind: ActionKind) => {
-    if (kind === 'positive') return c.success;
-    if (kind === 'negative') return c.danger;
-    return c.info;
-  };
-
   return (
     <HtmlScreen maxWidth={1200}>
       {/* Esconde scrollbar do strip de jogadores (Chrome/Safari) */}
@@ -279,48 +259,7 @@ export const VolleyScoutScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
-      {/* Banner de status: scheduled mostra CTA Iniciar, finished mostra read-only */}
-      {match.status === 'scheduled' ? (
-        <div
-          style={{
-            background: c.warning + '22',
-            border: `2px solid ${c.warning}`,
-            borderRadius: 10,
-            padding: 14,
-            marginBottom: 12,
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ fontSize: 13, fontWeight: 800, color: c.warning, marginBottom: 6 }}>
-            ⏳ PARTIDA AGENDADA
-          </div>
-          <div style={{ fontSize: 13, color: c.text, marginBottom: 10 }}>
-            Essa partida está marcada pra <strong>{match.date.split('-').reverse().join('/')}</strong>.
-            Você pode iniciar agora pra começar a registrar as ações.
-          </div>
-          <HtmlButton title="🏐 Iniciar partida agora" onClick={onStartMatch} loading={busy} />
-        </div>
-      ) : null}
-      {match.status === 'finished' ? (
-        <div
-          style={{
-            background: c.success + '22',
-            border: `2px solid ${c.success}`,
-            borderRadius: 10,
-            padding: 12,
-            marginBottom: 12,
-            textAlign: 'center',
-          }}
-        >
-          <div style={{ fontSize: 13, fontWeight: 800, color: c.success, marginBottom: 4 }}>
-            🏁 PARTIDA FINALIZADA
-          </div>
-          <div style={{ fontSize: 12, color: c.textSecondary }}>
-            Modo somente leitura. Os contadores não podem mais ser alterados.
-            Acesse os <strong>Relatórios</strong> pra ver as estatísticas completas.
-          </div>
-        </div>
-      ) : null}
+      <MatchStatusBanners match={match} busy={busy} onStartMatch={onStartMatch} />
 
       {/* Scoreboard + tabs sticky no topo do scroll */}
       <div
@@ -339,216 +278,18 @@ export const VolleyScoutScreen: React.FC = () => {
           boxShadow: `0 2px 4px ${c.background === '#FFFFFF' ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.3)'}`,
         }}
       >
-        {(() => {
-          if (!currentSet || currentSet.finished) return null;
-          const won = isSetWon(currentSet, match.format);
-          if (won.won) {
-            const winnerName = won.winner === 'A' ? match.teamAName : match.teamBName;
-            return (
-              <div
-                onClick={onCloseSet}
-                role="button"
-                tabIndex={0}
-                style={{
-                  marginBottom: 6,
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  background: c.success,
-                  color: c.white,
-                  fontSize: 12,
-                  fontWeight: 900,
-                  textAlign: 'center',
-                  cursor: 'pointer',
-                  letterSpacing: 0.5,
-                }}
-                title="Clique pra encerrar este set"
-              >
-                🏆 {winnerName.toUpperCase()} VENCEU O SET — TOQUE PRA ENCERRAR
-              </div>
-            );
-          }
-          const m = setMomentum(currentSet, match);
-          if (m.kind === 'normal') return null;
-          const teamName = m.team === 'A' ? match.teamAName : match.teamBName;
-          const bg = m.kind === 'match_point' ? c.danger : c.warning;
-          const label = m.kind === 'match_point' ? 'MATCH POINT' : 'SET POINT';
-          return (
-            <div
-              style={{
-                marginBottom: 6,
-                padding: '4px 10px',
-                borderRadius: 8,
-                background: bg,
-                color: c.white,
-                fontSize: 11,
-                fontWeight: 900,
-                textAlign: 'center',
-                letterSpacing: 0.5,
-              }}
-            >
-              ⚡ {label} — {teamName}
-            </div>
-          );
-        })()}
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div
-            style={{
-              flex: 1,
-              background: c.surfaceVariant,
-              border: `2px solid ${c.primary}`,
-              borderRadius: 10,
-              padding: '6px 8px',
-              textAlign: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              minWidth: 0,
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 800,
-                  color: c.textSecondary,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {match.teamAName}
-              </div>
-              <div style={{ fontSize: 10, color: c.textMuted, marginTop: 1 }}>
-                Sets {setsWonA}
-                {match.serveTeam === 'A' && !currentSet?.finished ? ' · 🎾' : ''}
-              </div>
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 900,
-                color: c.text,
-                lineHeight: 1,
-                minWidth: 30,
-                textAlign: 'right',
-              }}
-            >
-              {currentSet?.scoreA ?? 0}
-            </div>
-          </div>
-          <div
-            style={{
-              flex: 1,
-              background: c.surface,
-              border: `2px solid ${c.border}`,
-              borderRadius: 10,
-              padding: '6px 8px',
-              textAlign: 'center',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              minWidth: 0,
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-              <div
-                style={{
-                  fontSize: 10,
-                  fontWeight: 800,
-                  color: c.textSecondary,
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                }}
-              >
-                {match.teamBName}
-              </div>
-              <div style={{ fontSize: 10, color: c.textMuted, marginTop: 1 }}>
-                Sets {setsWonB}
-                {match.serveTeam === 'B' && !currentSet?.finished ? ' · 🎾' : ''}
-              </div>
-            </div>
-            <div
-              style={{
-                fontSize: 24,
-                fontWeight: 900,
-                color: c.text,
-                lineHeight: 1,
-                minWidth: 30,
-                textAlign: 'right',
-              }}
-            >
-              {currentSet?.scoreB ?? 0}
-            </div>
-          </div>
-        </div>
-
-        {/* Player tabs — pill flat (sticky junto com o scoreboard) */}
-        <Text
-          size="xs"
-          fw={800}
-          c="dimmed"
-          tt="uppercase"
-          mt={8}
-          mb={4}
-          style={{ letterSpacing: 0.8 }}
-        >
-          Jogador
-        </Text>
-        <div
-          className="volley-tabs-strip"
-          style={{
-            display: 'flex',
-            gap: 6,
-            overflowX: 'auto',
-            paddingBottom: 2,
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-        >
-          {match.players.map((p) => {
-            const isSel = p.number === selectedPlayer;
-            return (
-              <button
-                key={p.number}
-                onClick={() => setSelectedPlayer(p.number)}
-                style={{
-                  padding: '6px 12px',
-                  height: 32,
-                  borderRadius: 999,
-                  background: isSel ? c.primary : c.surface,
-                  border: `1.5px solid ${isSel ? c.primary : c.border}`,
-                  color: isSel ? c.onPrimary : c.text,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                  fontSize: 13,
-                  fontWeight: 700,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  flexShrink: 0,
-                  transition: 'all 120ms ease',
-                }}
-              >
-                <span
-                  style={{
-                    opacity: isSel ? 0.85 : 0.55,
-                    fontSize: 10,
-                    fontWeight: 900,
-                  }}
-                >
-                  #{p.number}
-                </span>
-                <span>{p.name.split(' ')[0]}</span>
-              </button>
-            );
-          })}
-        </div>
+        <SetMomentumBanner match={match} currentSet={currentSet} onCloseSet={onCloseSet} />
+        <Scoreboard
+          match={match}
+          currentSet={currentSet}
+          setsWonA={setsWonA}
+          setsWonB={setsWonB}
+        />
+        <PlayerTabsStrip
+          players={match.players}
+          selectedPlayer={selectedPlayer}
+          onSelect={setSelectedPlayer}
+        />
       </div>
 
       {/* Player heading */}
@@ -572,127 +313,14 @@ export const VolleyScoutScreen: React.FC = () => {
         }}
       >
         {CARDS.map((card) => (
-          <Card
+          <ActionCard
             key={card.title}
-            withBorder
-            radius="md"
-            padding="sm"
-            style={{ background: c.surface }}
-          >
-            <Text
-              size="xs"
-              fw={800}
-              c="dimmed"
-              tt="uppercase"
-              mb={6}
-              ta="center"
-              style={{ letterSpacing: 0.8 }}
-            >
-              {card.emoji}  {card.title}
-            </Text>
-            <Stack gap={2}>
-              {card.actions.map((a) => {
-                const count = a.read(playerStats);
-                const dot = dotColor(a.kind);
-                const kColors = kindColors(a.kind);
-                const hasValue = count > 0;
-                return (
-                  <div
-                    key={a.action}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '2px 10px',
-                      borderRadius: 8,
-                      background: hasValue ? `${dot}12` : 'transparent',
-                      transition: 'background 120ms ease',
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: 4,
-                        background: dot,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span
-                      style={{
-                        flex: 1,
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: c.text,
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      }}
-                    >
-                      {a.label}
-                    </span>
-                    <span
-                      style={{
-                        minWidth: 28,
-                        textAlign: 'center',
-                        fontSize: 20,
-                        fontWeight: 900,
-                        color: hasValue ? c.text : c.textMuted,
-                      }}
-                    >
-                      {count}
-                    </span>
-                    <button
-                      onClick={() => handleAction(a.action, -1)}
-                      disabled={busy || count === 0 || isLocked}
-                      aria-label={`Decrementar ${a.label}`}
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 6,
-                        background: count === 0 || isLocked ? c.surfaceVariant : c.border,
-                        color: count === 0 || isLocked ? c.textMuted : c.text,
-                        border: 'none',
-                        cursor: count === 0 || isLocked ? 'not-allowed' : 'pointer',
-                        fontSize: 18,
-                        fontWeight: 900,
-                        lineHeight: 1,
-                        fontFamily: 'inherit',
-                        flexShrink: 0,
-                        transition: 'all 120ms ease',
-                        opacity: busy || isLocked ? 0.5 : 1,
-                      }}
-                    >
-                      −
-                    </button>
-                    <button
-                      onClick={() => handleAction(a.action, 1)}
-                      disabled={busy || isLocked}
-                      aria-label={`Incrementar ${a.label}`}
-                      style={{
-                        width: 30,
-                        height: 30,
-                        borderRadius: 6,
-                        background: isLocked ? c.surfaceVariant : kColors.bg,
-                        color: isLocked ? c.textMuted : kColors.fg,
-                        border: 'none',
-                        cursor: isLocked ? 'not-allowed' : 'pointer',
-                        fontSize: 18,
-                        fontWeight: 900,
-                        lineHeight: 1,
-                        fontFamily: 'inherit',
-                        flexShrink: 0,
-                        transition: 'all 120ms ease',
-                        opacity: busy || isLocked ? 0.5 : 1,
-                      }}
-                    >
-                      +
-                    </button>
-                  </div>
-                );
-              })}
-            </Stack>
-          </Card>
+            card={card}
+            playerStats={playerStats}
+            busy={busy}
+            isLocked={isLocked}
+            onAction={handleAction}
+          />
         ))}
       </div>
 
