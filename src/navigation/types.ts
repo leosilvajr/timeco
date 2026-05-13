@@ -50,6 +50,8 @@ export type VolleyStackParamList = {
   VolleyTeamsList: undefined;
   /** teamId opcional — quando passado, abre em modo "editar"; senao "criar novo". */
   VolleyTeamEdit: { teamId?: string } | undefined;
+  /** Estatisticas agregadas do time atraves do historico de partidas. */
+  VolleyTeamDashboard: { teamId: string };
 };
 
 export type ScoreboardStackParamList = {

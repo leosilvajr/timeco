@@ -81,7 +81,7 @@ export const VolleyTeamsListScreen: React.FC = () => {
         />
       ) : (
         teams.map((team) => (
-          <HtmlCard key={team.id} onClick={() => nav.navigate('VolleyTeamEdit', { teamId: team.id })}>
+          <HtmlCard key={team.id} onClick={() => nav.navigate('VolleyTeamDashboard', { teamId: team.id })}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: c.text }}>{team.name}</div>

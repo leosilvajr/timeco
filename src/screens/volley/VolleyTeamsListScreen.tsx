@@ -102,7 +102,7 @@ export const VolleyTeamsListScreen: React.FC = () => {
           <Card
             key={team.id}
             style={styles.row}
-            onPress={() => nav.navigate('VolleyTeamEdit', { teamId: team.id })}
+            onPress={() => nav.navigate('VolleyTeamDashboard', { teamId: team.id })}
           >
             <View style={styles.body}>
               <Text style={styles.name}>{team.name}</Text>
