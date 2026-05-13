@@ -64,6 +64,16 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
     }, [load]),
   );
 
+  // CRITICAL: useMemo precisa ser chamado SEMPRE (Rules of Hooks).
+  // Antes estava depois dos early returns -> React error #310.
+  const overview = useMemo(() => teamOverview(matches), [matches]);
+  const aggregates = useMemo(
+    () => (team ? aggregatePlayerStats(matches, team.players) : []),
+    [matches, team],
+  );
+  const tops = useMemo(() => topPerformers(aggregates), [aggregates]);
+  const effs = useMemo(() => teamEfficiencies(aggregates), [aggregates]);
+
   if (loading) {
     return (
       <HtmlScreen>
@@ -84,15 +94,6 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
       </HtmlScreen>
     );
   }
-
-  // Memoizados: O(matches * players * sets); invalidam apenas com matches/team.players
-  const overview = useMemo(() => teamOverview(matches), [matches]);
-  const aggregates = useMemo(
-    () => aggregatePlayerStats(matches, team.players),
-    [matches, team.players],
-  );
-  const tops = useMemo(() => topPerformers(aggregates), [aggregates]);
-  const effs = useMemo(() => teamEfficiencies(aggregates), [aggregates]);
 
   const sectionTitle: React.CSSProperties = {
     fontSize: 12,
