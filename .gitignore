@@ -5,6 +5,10 @@
 .DS_Store
 **/.DS_Store
 
+# Firebase Admin SDK credentials (NUNCA commitar - da acesso total)
+service-account.json
+service-account*.json
+
 # Logs
 logs
 *.log
