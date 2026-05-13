@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -6,7 +6,7 @@ import { Screen, Header, Button, EmptyState } from '../../components';
 import { ColorPalette, spacing, radius } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import { getVolleyTeam } from '../../services/volleyTeamService';
-import { listUserVolleyMatches } from '../../services/volleyScoutService';
+import { listUserVolleyMatchesCached } from '../../services/volleyCacheService';
 import {
   aggregatePlayerStats,
   matchOutcome,
@@ -137,7 +137,7 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
     try {
       const [t, allMatches] = await Promise.all([
         getVolleyTeam(route.params.teamId),
-        listUserVolleyMatches(user.id),
+        listUserVolleyMatchesCached(user.id),
       ]);
       setTeam(t);
       if (t) setMatches(matchesForTeam(allMatches, t.name));
@@ -176,10 +176,14 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
     );
   }
 
-  const overview = teamOverview(matches);
-  const aggregates = aggregatePlayerStats(matches, team.players);
-  const tops = topPerformers(aggregates);
-  const effs = teamEfficiencies(aggregates);
+  // Memoizados: caros (O(matches * players * sets)), invalidam apenas com matches/team.players
+  const overview = useMemo(() => teamOverview(matches), [matches]);
+  const aggregates = useMemo(
+    () => aggregatePlayerStats(matches, team.players),
+    [matches, team.players],
+  );
+  const tops = useMemo(() => topPerformers(aggregates), [aggregates]);
+  const effs = useMemo(() => teamEfficiencies(aggregates), [aggregates]);
 
   const pctColor = (pct: number, threshold: number) =>
     pct >= threshold ? c.success : pct >= threshold * 0.7 ? c.warning : c.danger;

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
@@ -9,7 +9,7 @@ import {
 } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
 import { getVolleyTeam } from '../../services/volleyTeamService';
-import { listUserVolleyMatches } from '../../services/volleyScoutService';
+import { listUserVolleyMatchesCached } from '../../services/volleyCacheService';
 import {
   aggregatePlayerStats,
   matchOutcome,
@@ -49,7 +49,7 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
     try {
       const [t, allMatches] = await Promise.all([
         getVolleyTeam(route.params.teamId),
-        listUserVolleyMatches(user.id),
+        listUserVolleyMatchesCached(user.id),
       ]);
       setTeam(t);
       if (t) {
@@ -90,10 +90,14 @@ export const VolleyTeamDashboardScreen: React.FC = () => {
     );
   }
 
-  const overview = teamOverview(matches);
-  const aggregates = aggregatePlayerStats(matches, team.players);
-  const tops = topPerformers(aggregates);
-  const effs = teamEfficiencies(aggregates);
+  // Memoizados: O(matches * players * sets); invalidam apenas com matches/team.players
+  const overview = useMemo(() => teamOverview(matches), [matches]);
+  const aggregates = useMemo(
+    () => aggregatePlayerStats(matches, team.players),
+    [matches, team.players],
+  );
+  const tops = useMemo(() => topPerformers(aggregates), [aggregates]);
+  const effs = useMemo(() => teamEfficiencies(aggregates), [aggregates]);
 
   const sectionTitle: React.CSSProperties = {
     fontSize: 12,

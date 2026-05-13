@@ -9,7 +9,11 @@ import {
   webConfirm,
 } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
-import { listUserVolleyMatches, deleteVolleyMatch } from '../../services/volleyScoutService';
+import { deleteVolleyMatch } from '../../services/volleyScoutService';
+import {
+  listUserVolleyMatchesCached,
+  removeMatchFromCache,
+} from '../../services/volleyCacheService';
 import { toast } from '../../store/toastStore';
 import { VolleyMatch } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
@@ -43,10 +47,10 @@ export const VolleyHomeScreen: React.FC = () => {
 
   const load = useCallback(() => {
     if (!user) return;
-    listUserVolleyMatches(user.id)
+    listUserVolleyMatchesCached(user.id)
       .then(setMatches)
       .catch((e) => {
-        console.error('listUserVolleyMatches', e);
+        console.error('listUserVolleyMatchesCached', e);
         toast.error('Erro ao carregar partidas. Tente recarregar a página.');
       })
       .finally(() => setLoaded(true));
@@ -71,6 +75,7 @@ export const VolleyHomeScreen: React.FC = () => {
     if (!ok) return;
     try {
       await deleteVolleyMatch(m.id);
+      if (user) removeMatchFromCache(user.id, m.id);
       setMatches((prev) => prev.filter((x) => x.id !== m.id));
       toast.success('Partida apagada.');
     } catch (e) {

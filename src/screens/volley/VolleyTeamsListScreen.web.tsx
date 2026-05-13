@@ -10,7 +10,11 @@ import {
   webConfirm,
 } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
-import { listUserVolleyTeams, deleteVolleyTeam } from '../../services/volleyTeamService';
+import { deleteVolleyTeam } from '../../services/volleyTeamService';
+import {
+  listUserVolleyTeamsCached,
+  invalidateVolleyTeamsCache,
+} from '../../services/volleyCacheService';
 import { VolleyTeam } from '../../types';
 import { toast } from '../../store/toastStore';
 import type { VolleyStackParamList } from '../../navigation/types';
@@ -27,7 +31,7 @@ export const VolleyTeamsListScreen: React.FC = () => {
   const load = useCallback(async () => {
     if (!user) return;
     try {
-      const list = await listUserVolleyTeams(user.id);
+      const list = await listUserVolleyTeamsCached(user.id);
       setTeams(list);
     } catch (e) {
       console.error('listUserVolleyTeams', e);
@@ -53,6 +57,7 @@ export const VolleyTeamsListScreen: React.FC = () => {
     if (!proceed) return;
     try {
       await deleteVolleyTeam(team.id);
+      if (user) invalidateVolleyTeamsCache(user.id);
       setTeams((prev) => prev.filter((t) => t.id !== team.id));
       toast.success(`Time "${team.name}" excluído.`);
     } catch (e) {

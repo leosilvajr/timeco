@@ -3,7 +3,8 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Card, Stack, Text } from '@mantine/core';
 import { HtmlScreen, HtmlHeader, HtmlButton, webConfirm } from '../../components/web';
-import { useThemedColors } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
+import { invalidateVolleyMatchesCache } from '../../services/volleyCacheService';
 import {
   getVolleyMatch,
   subscribeVolleyMatch,
@@ -95,6 +96,7 @@ export const VolleyScoutScreen: React.FC = () => {
   const c = useThemedColors();
   const nav = useNavigation<Nav>();
   const route = useRoute<Rt>();
+  const user = useAuthStore((s) => s.user);
 
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
@@ -164,13 +166,8 @@ export const VolleyScoutScreen: React.FC = () => {
       .catch((e) => {
         console.error('performScoutAction', e);
         toast.error('Erro de rede. Sincronizando...');
-        // Forca reload pra alinhar com o que ficou no Firestore
-        getVolleyMatch(route.params.matchId).then((m) => {
-          if (m) {
-            setMatch(m);
-            matchRef.current = m;
-          }
-        });
+        // onSnapshot reconcilia sozinho com o que ficou no Firestore — nao precisa
+        // de getVolleyMatch extra aqui.
       });
   };
 
@@ -198,6 +195,7 @@ export const VolleyScoutScreen: React.FC = () => {
     setBusy(true);
     try {
       await finishCurrentSet(match);
+      if (user) invalidateVolleyMatchesCache(user.id);
       toast.success('Set encerrado!');
       await load();
     } finally {
@@ -210,6 +208,7 @@ export const VolleyScoutScreen: React.FC = () => {
     setBusy(true);
     try {
       await startVolleyMatch(match.id);
+      if (user) invalidateVolleyMatchesCache(user.id);
       toast.success('Partida iniciada!');
     } catch (e) {
       console.error('startVolleyMatch', e);
@@ -232,6 +231,7 @@ export const VolleyScoutScreen: React.FC = () => {
     setBusy(true);
     try {
       await resetVolleyMatch(match);
+      if (user) invalidateVolleyMatchesCache(user.id);
       toast.success('Tudo zerado! Partida começa do zero.');
       await load();
     } catch (e) {

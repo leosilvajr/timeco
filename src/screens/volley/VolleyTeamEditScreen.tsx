@@ -10,6 +10,7 @@ import {
   updateVolleyTeam,
   getVolleyTeam,
 } from '../../services/volleyTeamService';
+import { invalidateVolleyTeamsCache } from '../../services/volleyCacheService';
 import { isValidJerseyNumber } from '../../utils/validators';
 import { formatError } from '../../utils/errorMessages';
 import { VolleyPlayer, VolleyPosition } from '../../types';
@@ -152,6 +153,7 @@ export const VolleyTeamEditScreen: React.FC = () => {
         });
         toast.success('Time criado!');
       }
+      invalidateVolleyTeamsCache(user.id);
       nav.goBack();
     } catch (e: unknown) {
       setError(formatError(e, 'Não conseguimos salvar o time agora. Tente de novo.'));

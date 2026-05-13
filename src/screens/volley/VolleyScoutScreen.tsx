@@ -4,7 +4,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Button } from '../../components';
 import { ColorPalette, spacing, radius } from '../../constants/theme';
-import { useThemedColors } from '../../store';
+import { useAuthStore, useThemedColors } from '../../store';
 import {
   getVolleyMatch,
   subscribeVolleyMatch,
@@ -20,6 +20,7 @@ import { isSetWon, setMomentum } from '../../services/volleyRules';
 import { useResponsive } from '../../hooks/useResponsive';
 import { toast } from '../../store/toastStore';
 import { VolleyAction, VolleyMatch, VolleyPlayer, PlayerVolleyStats } from '../../types';
+import { invalidateVolleyMatchesCache } from '../../services/volleyCacheService';
 import type { VolleyStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyScout'>;
@@ -234,6 +235,7 @@ export const VolleyScoutScreen: React.FC = () => {
   const route = useRoute<Rt>();
   const responsive = useResponsive();
   const { width: windowW } = useWindowDimensions();
+  const user = useAuthStore((s) => s.user);
   const styles = useMemo(() => makeStyles(c), [c]);
 
   // Em landscape (tela larga >= 720) cards lado a lado em 2 colunas
@@ -294,18 +296,13 @@ export const VolleyScoutScreen: React.FC = () => {
     setMatch(next);
     matchRef.current = next;
 
-    // Persistencia serializada em background
+    // Persistencia serializada em background. onSnapshot reconcilia sozinho
+    // se algo der errado — nao precisa de getVolleyMatch extra.
     writeQueueRef.current = writeQueueRef.current
       .then(() => performScoutAction(current, selectedPlayer, action, delta))
       .catch((e) => {
         console.error('performScoutAction', e);
         toast.error('Erro de rede. Sincronizando...');
-        getVolleyMatch(route.params.matchId).then((m) => {
-          if (m) {
-            setMatch(m);
-            matchRef.current = m;
-          }
-        });
       });
   };
 
@@ -331,6 +328,7 @@ export const VolleyScoutScreen: React.FC = () => {
     setBusy(true);
     try {
       await finishCurrentSet(match);
+      if (user) invalidateVolleyMatchesCache(user.id);
       toast.success('Set encerrado!');
       await load();
     } finally {
@@ -343,6 +341,7 @@ export const VolleyScoutScreen: React.FC = () => {
     setBusy(true);
     try {
       await startVolleyMatch(match.id);
+      if (user) invalidateVolleyMatchesCache(user.id);
       toast.success('Partida iniciada!');
     } catch (e) {
       console.error('startVolleyMatch', e);
@@ -364,6 +363,7 @@ export const VolleyScoutScreen: React.FC = () => {
     setBusy(true);
     try {
       await resetVolleyMatch(match);
+      if (user) invalidateVolleyMatchesCache(user.id);
       toast.success('Tudo zerado! Partida começa do zero.');
       await load();
     } catch (e) {

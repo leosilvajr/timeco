@@ -11,7 +11,10 @@ import {
 } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
 import { createVolleyMatch } from '../../services/volleyScoutService';
-import { listUserVolleyTeams } from '../../services/volleyTeamService';
+import {
+  listUserVolleyTeamsCached,
+  invalidateVolleyMatchesCache,
+} from '../../services/volleyCacheService';
 import { formatError } from '../../utils/errorMessages';
 import { VolleyFormat, VolleyRotationSystem, VolleyTeam } from '../../types';
 import { toast } from '../../store/toastStore';
@@ -47,7 +50,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
     if (!user) return;
     setLoadingTeams(true);
     try {
-      const list = await listUserVolleyTeams(user.id);
+      const list = await listUserVolleyTeamsCached(user.id);
       setMyTeams(list);
       if (list.length > 0 && !selectedTeamId) {
         setSelectedTeamId(list[0].id);
@@ -94,6 +97,7 @@ export const VolleyMatchSetupScreen: React.FC = () => {
         rotationSystem,
         players: [...team.players].sort((a, b) => a.number - b.number),
       });
+      invalidateVolleyMatchesCache(user.id);
       toast.success('Partida criada! Acesse ela na lista quando for jogar.');
       // Volta pro VolleyHome — partida fica na lista pro user acessar
       // quando for o dia do jogo (ou a qualquer momento).
