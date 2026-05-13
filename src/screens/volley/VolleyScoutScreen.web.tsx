@@ -14,6 +14,7 @@ import {
   resetVolleyMatch,
 } from '../../services/volleyScoutService';
 import { emptyPlayerStats } from '../../services/volleyStats';
+import { isSetWon, setMomentum, targetPointsForSet } from '../../services/volleyRules';
 import { toast } from '../../store/toastStore';
 import { VolleyAction, VolleyMatch, VolleyPlayer, PlayerVolleyStats } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
@@ -276,6 +277,57 @@ export const VolleyScoutScreen: React.FC = () => {
           boxShadow: `0 2px 4px ${c.background === '#FFFFFF' ? 'rgba(0,0,0,0.06)' : 'rgba(0,0,0,0.3)'}`,
         }}
       >
+        {(() => {
+          if (!currentSet || currentSet.finished) return null;
+          const won = isSetWon(currentSet, match.format);
+          if (won.won) {
+            const winnerName = won.winner === 'A' ? match.teamAName : match.teamBName;
+            return (
+              <div
+                onClick={onCloseSet}
+                role="button"
+                tabIndex={0}
+                style={{
+                  marginBottom: 6,
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  background: c.success,
+                  color: c.white,
+                  fontSize: 12,
+                  fontWeight: 900,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  letterSpacing: 0.5,
+                }}
+                title="Clique pra encerrar este set"
+              >
+                🏆 {winnerName.toUpperCase()} VENCEU O SET — TOQUE PRA ENCERRAR
+              </div>
+            );
+          }
+          const m = setMomentum(currentSet, match);
+          if (m.kind === 'normal') return null;
+          const teamName = m.team === 'A' ? match.teamAName : match.teamBName;
+          const bg = m.kind === 'match_point' ? c.danger : c.warning;
+          const label = m.kind === 'match_point' ? 'MATCH POINT' : 'SET POINT';
+          return (
+            <div
+              style={{
+                marginBottom: 6,
+                padding: '4px 10px',
+                borderRadius: 8,
+                background: bg,
+                color: c.white,
+                fontSize: 11,
+                fontWeight: 900,
+                textAlign: 'center',
+                letterSpacing: 0.5,
+              }}
+            >
+              ⚡ {label} — {teamName}
+            </div>
+          );
+        })()}
         <div style={{ display: 'flex', gap: 8 }}>
           <div
             style={{
