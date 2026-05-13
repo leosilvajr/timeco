@@ -1,9 +1,9 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, ScrollView, useWindowDimensions } from 'react-native';
+import { View, Text, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Screen, Header, Button } from '../../components';
-import { ColorPalette, spacing, radius } from '../../constants/theme';
+import { spacing } from '../../constants/theme';
 import { useAuthStore, useThemedColors } from '../../store';
 import {
   getVolleyMatch,
@@ -16,30 +16,19 @@ import {
   startVolleyMatch,
 } from '../../services/volleyScoutService';
 import { emptyPlayerStats } from '../../services/volleyStats';
-import { isSetWon, setMomentum } from '../../services/volleyRules';
 import { useResponsive } from '../../hooks/useResponsive';
 import { toast } from '../../store/toastStore';
 import { VolleyAction, VolleyMatch, VolleyPlayer, PlayerVolleyStats } from '../../types';
 import { invalidateVolleyMatchesCache } from '../../services/volleyCacheService';
+import { MatchStatusBanners } from './components/scout/MatchStatusBanners';
+import { SetMomentumBanner } from './components/scout/SetMomentumBanner';
+import { Scoreboard } from './components/scout/Scoreboard';
+import { PlayerTabsStrip } from './components/scout/PlayerTabsStrip';
+import { ActionCard, type CardConfig } from './components/scout/ActionCard';
 import type { VolleyStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyScout'>;
 type Rt = RouteProp<VolleyStackParamList, 'VolleyScout'>;
-
-type ActionKind = 'positive' | 'negative' | 'neutral';
-
-interface ActionConfig {
-  label: string;
-  action: VolleyAction;
-  kind: ActionKind;
-  read: (s: PlayerVolleyStats) => number;
-}
-
-interface CardConfig {
-  title: string;
-  emoji: string;
-  actions: ActionConfig[];
-}
 
 const CARDS: CardConfig[] = [
   {
@@ -94,140 +83,10 @@ const CARDS: CardConfig[] = [
   },
 ];
 
-const makeStyles = (c: ColorPalette) =>
-  StyleSheet.create({
-    // Scoreboard compacto (pela metade)
-    scoreboard: { flexDirection: 'row', gap: 8, marginBottom: 8 },
-    teamBox: {
-      flex: 1,
-      paddingVertical: 6,
-      paddingHorizontal: 8,
-      borderRadius: 10,
-      flexDirection: 'row',
-      alignItems: 'center',
-      borderWidth: 2,
-      gap: 10,
-    },
-    teamBoxA: { borderColor: c.primary, backgroundColor: c.surfaceVariant },
-    teamBoxB: { borderColor: c.border, backgroundColor: c.surface },
-    teamInfo: { flex: 1, minWidth: 0 },
-    teamName: {
-      fontSize: 10,
-      fontWeight: '800',
-      color: c.textSecondary,
-      textTransform: 'uppercase',
-      letterSpacing: 0.5,
-    },
-    teamScore: { fontSize: 24, fontWeight: '900', color: c.text, lineHeight: 26, minWidth: 30, textAlign: 'right' },
-    teamSets: { fontSize: 10, color: c.textMuted, marginTop: 1 },
-
-    sectionLabel: {
-      fontSize: 11,
-      fontWeight: '800',
-      color: c.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      marginBottom: 6,
-    },
-
-    // Tab navigator de jogadores
-    playersStrip: { paddingBottom: spacing.sm },
-    tab: {
-      paddingHorizontal: 16,
-      height: 40,
-      borderRadius: radius.pill,
-      backgroundColor: c.surface,
-      borderWidth: 1.5,
-      borderColor: c.border,
-      marginRight: spacing.sm,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-    },
-    tabSelected: { backgroundColor: c.primary, borderColor: c.primary },
-    tabNum: {
-      fontSize: 11,
-      fontWeight: '900',
-      color: c.text,
-      opacity: 0.55,
-    },
-    tabNumSelected: { color: c.onPrimary, opacity: 0.85 },
-    tabName: { fontSize: 14, fontWeight: '700', color: c.text },
-    tabNameSelected: { color: c.onPrimary },
-
-    // Player heading
-    playerHeading: { marginTop: spacing.sm, marginBottom: 10 },
-    playerHeadingName: { fontSize: 17, fontWeight: '900', color: c.text },
-    playerHeadingPos: { fontSize: 11, color: c.textSecondary, marginTop: 2 },
-
-    // Card
-    card: {
-      backgroundColor: c.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: c.border,
-      padding: spacing.sm,
-      marginBottom: 10,
-    },
-    cardTitle: {
-      fontSize: 11,
-      fontWeight: '800',
-      color: c.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      marginBottom: 6,
-      textAlign: 'center',
-    },
-
-    // Action row
-    actionRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 8,
-      paddingVertical: 2,
-      paddingHorizontal: 10,
-      borderRadius: 8,
-      marginBottom: 2,
-    },
-    actionDot: { width: 8, height: 8, borderRadius: 4 },
-    actionLabel: { flex: 1, fontSize: 15, fontWeight: '600', color: c.text },
-    actionCount: {
-      minWidth: 28,
-      fontSize: 18,
-      fontWeight: '900',
-      textAlign: 'center',
-    },
-    btn: {
-      width: 30,
-      height: 30,
-      borderRadius: 6,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    btnMinus: { backgroundColor: c.border },
-    btnMinusDisabled: { backgroundColor: c.surfaceVariant },
-    btnPlusPositive: { backgroundColor: c.success },
-    btnPlusNegative: { backgroundColor: c.danger },
-    btnPlusNeutral: { backgroundColor: c.info },
-    btnTxt: {
-      fontSize: 18,
-      fontWeight: '900',
-      lineHeight: 22,
-      color: c.white,
-    },
-    btnTxtMinus: { color: c.text },
-    btnTxtMinusDisabled: { color: c.textMuted },
-  });
-
-const dotColor = (kind: ActionKind, c: ColorPalette) =>
-  kind === 'positive' ? c.success : kind === 'negative' ? c.danger : c.info;
-
-const plusBg = (kind: ActionKind, styles: ReturnType<typeof makeStyles>) =>
-  kind === 'positive'
-    ? styles.btnPlusPositive
-    : kind === 'negative'
-    ? styles.btnPlusNegative
-    : styles.btnPlusNeutral;
+// Estilos do main screen — apenas o que nao foi extraido pros componentes.
+const makeMainStyles = () => ({
+  playerHeading: { marginTop: spacing.sm, marginBottom: 10 } as const,
+});
 
 export const VolleyScoutScreen: React.FC = () => {
   const c = useThemedColors();
@@ -236,7 +95,7 @@ export const VolleyScoutScreen: React.FC = () => {
   const responsive = useResponsive();
   const { width: windowW } = useWindowDimensions();
   const user = useAuthStore((s) => s.user);
-  const styles = useMemo(() => makeStyles(c), [c]);
+  const styles = useMemo(() => makeMainStyles(), []);
 
   // Em landscape (tela larga >= 720) cards lado a lado em 2 colunas
   const isWide = windowW >= 720;
@@ -396,174 +255,24 @@ export const VolleyScoutScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
-      {/* Banners de status */}
-      {match.status === 'scheduled' ? (
-        <View
-          style={{
-            backgroundColor: c.warning + '22',
-            borderWidth: 2,
-            borderColor: c.warning,
-            borderRadius: 10,
-            padding: 14,
-            marginBottom: 12,
-          }}
-        >
-          <Text style={{ fontSize: 13, fontWeight: '800', color: c.warning, marginBottom: 6, textAlign: 'center' }}>
-            ⏳ PARTIDA AGENDADA
-          </Text>
-          <Text style={{ fontSize: 13, color: c.text, marginBottom: 10, textAlign: 'center' }}>
-            Essa partida está marcada pra{' '}
-            <Text style={{ fontWeight: '800' }}>
-              {match.date.split('-').reverse().join('/')}
-            </Text>
-            . Inicie agora pra começar a registrar.
-          </Text>
-          <Button title="🏐 Iniciar partida agora" onPress={onStartMatch} loading={busy} />
-        </View>
-      ) : null}
-      {match.status === 'finished' ? (
-        <View
-          style={{
-            backgroundColor: c.success + '22',
-            borderWidth: 2,
-            borderColor: c.success,
-            borderRadius: 10,
-            padding: 12,
-            marginBottom: 12,
-          }}
-        >
-          <Text style={{ fontSize: 13, fontWeight: '800', color: c.success, marginBottom: 4, textAlign: 'center' }}>
-            🏁 PARTIDA FINALIZADA
-          </Text>
-          <Text style={{ fontSize: 12, color: c.textSecondary, textAlign: 'center' }}>
-            Modo somente leitura. Os contadores não podem mais ser alterados.
-          </Text>
-        </View>
-      ) : null}
-
-      {/* Banner de SET POINT / MATCH POINT / SET GANHO */}
-      {currentSet && !currentSet.finished
-        ? (() => {
-            const won = isSetWon(currentSet, match.format);
-            if (won.won) {
-              const winnerName = won.winner === 'A' ? match.teamAName : match.teamBName;
-              return (
-                <Pressable
-                  onPress={onCloseSet}
-                  style={{
-                    marginBottom: 6,
-                    paddingVertical: 8,
-                    paddingHorizontal: 12,
-                    borderRadius: 8,
-                    backgroundColor: c.success,
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: c.white,
-                      fontSize: 12,
-                      fontWeight: '900',
-                      textAlign: 'center',
-                      letterSpacing: 0.5,
-                    }}
-                  >
-                    🏆 {winnerName.toUpperCase()} VENCEU O SET — TOQUE PRA ENCERRAR
-                  </Text>
-                </Pressable>
-              );
-            }
-            const m = setMomentum(currentSet, match);
-            if (m.kind === 'normal') return null;
-            const teamName = m.team === 'A' ? match.teamAName : match.teamBName;
-            const bg = m.kind === 'match_point' ? c.danger : c.warning;
-            const label = m.kind === 'match_point' ? 'MATCH POINT' : 'SET POINT';
-            return (
-              <View
-                style={{
-                  marginBottom: 6,
-                  paddingVertical: 4,
-                  paddingHorizontal: 10,
-                  borderRadius: 8,
-                  backgroundColor: bg,
-                }}
-              >
-                <Text
-                  style={{
-                    color: c.white,
-                    fontSize: 11,
-                    fontWeight: '900',
-                    textAlign: 'center',
-                    letterSpacing: 0.5,
-                  }}
-                >
-                  ⚡ {label} — {teamName}
-                </Text>
-              </View>
-            );
-          })()
-        : null}
-
-      {/* Scoreboard compacto */}
-      <View style={styles.scoreboard}>
-        <View style={[styles.teamBox, styles.teamBoxA]}>
-          <View style={styles.teamInfo}>
-            <Text style={styles.teamName} numberOfLines={1}>
-              {match.teamAName}
-            </Text>
-            <Text style={styles.teamSets}>
-              Sets {setsWonA}
-              {match.serveTeam === 'A' && !currentSet?.finished ? ' · 🎾' : ''}
-            </Text>
-          </View>
-          <Text style={styles.teamScore}>{currentSet?.scoreA ?? 0}</Text>
-        </View>
-        <View style={[styles.teamBox, styles.teamBoxB]}>
-          <View style={styles.teamInfo}>
-            <Text style={styles.teamName} numberOfLines={1}>
-              {match.teamBName}
-            </Text>
-            <Text style={styles.teamSets}>
-              Sets {setsWonB}
-              {match.serveTeam === 'B' && !currentSet?.finished ? ' · 🎾' : ''}
-            </Text>
-          </View>
-          <Text style={styles.teamScore}>{currentSet?.scoreB ?? 0}</Text>
-        </View>
-      </View>
-
-      {/* Player tabs */}
-      <Text style={styles.sectionLabel}>Jogador</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.playersStrip}
-      >
-        {match.players.map((p) => {
-          const isSel = p.number === selectedPlayer;
-          return (
-            <Pressable
-              key={p.number}
-              style={[styles.tab, isSel && styles.tabSelected]}
-              onPress={() => setSelectedPlayer(p.number)}
-            >
-              <Text style={[styles.tabNum, isSel && styles.tabNumSelected]}>
-                #{p.number}
-              </Text>
-              <Text style={[styles.tabName, isSel && styles.tabNameSelected]}>
-                {p.name.split(' ')[0]}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
+      <MatchStatusBanners match={match} busy={busy} onStartMatch={onStartMatch} />
+      <SetMomentumBanner match={match} currentSet={currentSet} onCloseSet={onCloseSet} />
+      <Scoreboard match={match} currentSet={currentSet} setsWonA={setsWonA} setsWonB={setsWonB} />
+      <PlayerTabsStrip
+        players={match.players}
+        selectedPlayer={selectedPlayer}
+        onSelect={setSelectedPlayer}
+      />
 
       {/* Player heading */}
       {selectedPlayerObj ? (
         <View style={styles.playerHeading}>
-          <Text style={styles.playerHeadingName}>
+          <Text style={{ fontSize: 17, fontWeight: '900', color: c.text }}>
             #{selectedPlayerObj.number} {selectedPlayerObj.name}
           </Text>
-          <Text style={styles.playerHeadingPos}>{selectedPlayerObj.position}</Text>
+          <Text style={{ fontSize: 11, color: c.textSecondary, marginTop: 2 }}>
+            {selectedPlayerObj.position}
+          </Text>
         </View>
       ) : null}
 
@@ -575,77 +284,17 @@ export const VolleyScoutScreen: React.FC = () => {
           gap: isWide ? 10 : 0,
         }}
       >
-      {CARDS.map((card) => (
-        <View
-          key={card.title}
-          style={[
-            styles.card,
-            isWide
-              ? { width: '48%', flexGrow: 1, marginBottom: 0 }
-              : null,
-          ]}
-        >
-          <Text style={styles.cardTitle}>
-            {card.emoji}  {card.title}
-          </Text>
-          {card.actions.map((a) => {
-            const count = a.read(playerStats);
-            const dot = dotColor(a.kind, c);
-            const hasValue = count > 0;
-            return (
-              <View
-                key={a.action}
-                style={[
-                  styles.actionRow,
-                  hasValue ? { backgroundColor: `${dot}14` } : null,
-                ]}
-              >
-                <View style={[styles.actionDot, { backgroundColor: dot }]} />
-                <Text style={styles.actionLabel} numberOfLines={1}>
-                  {a.label}
-                </Text>
-                <Text
-                  style={[
-                    styles.actionCount,
-                    { color: hasValue ? c.text : c.textMuted },
-                  ]}
-                >
-                  {count}
-                </Text>
-                <Pressable
-                  style={[
-                    styles.btn,
-                    count === 0 || isLocked ? styles.btnMinusDisabled : styles.btnMinus,
-                    isLocked ? { opacity: 0.5 } : null,
-                  ]}
-                  onPress={() => handleAction(a.action, -1)}
-                  disabled={busy || count === 0 || isLocked}
-                >
-                  <Text
-                    style={[
-                      styles.btnTxt,
-                      count === 0 || isLocked ? styles.btnTxtMinusDisabled : styles.btnTxtMinus,
-                    ]}
-                  >
-                    −
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[
-                    styles.btn,
-                    isLocked ? styles.btnMinusDisabled : plusBg(a.kind, styles),
-                    isLocked ? { opacity: 0.5 } : null,
-                  ]}
-                  onPress={() => handleAction(a.action, 1)}
-                  disabled={busy || isLocked}
-                >
-                  <Text style={[styles.btnTxt, isLocked ? styles.btnTxtMinusDisabled : null]}>+</Text>
-                </Pressable>
-              </View>
-            );
-          })}
-        </View>
-      ))}
+        {CARDS.map((card) => (
+          <ActionCard
+            key={card.title}
+            card={card}
+            playerStats={playerStats}
+            busy={busy}
+            isLocked={isLocked}
+            onAction={handleAction}
+            wide={isWide}
+          />
+        ))}
       </View>
 
       {/* Footer actions */}
