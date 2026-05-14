@@ -20,6 +20,8 @@ import { useResponsive } from '../../hooks/useResponsive';
 import { toast } from '../../store/toastStore';
 import { VolleyAction, VolleyMatch, VolleyPlayer, PlayerVolleyStats } from '../../types';
 import { invalidateVolleyMatchesCache } from '../../services/volleyCacheService';
+import { usePendingWritesCount } from '../../hooks/usePendingWritesCount';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import { MatchStatusBanners } from './components/scout/MatchStatusBanners';
 import { SetMomentumBanner } from './components/scout/SetMomentumBanner';
 import { Scoreboard } from './components/scout/Scoreboard';
@@ -103,6 +105,8 @@ export const VolleyScoutScreen: React.FC = () => {
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const { pending: pendingWrites, trackWrite } = usePendingWritesCount();
+  const { isReachable } = useNetworkStatus();
 
   const matchRef = useRef<VolleyMatch | null>(null);
   const writeQueueRef = useRef<Promise<void>>(Promise.resolve());
@@ -155,13 +159,19 @@ export const VolleyScoutScreen: React.FC = () => {
     setMatch(next);
     matchRef.current = next;
 
-    // Persistencia serializada em background. onSnapshot reconcilia sozinho
-    // se algo der errado — nao precisa de getVolleyMatch extra.
+    // Persistencia serializada em background. trackWrite incrementa o
+    // contador 'pendingWrites' enquanto a write nao resolve (importante
+    // quando offline). onSnapshot reconcilia sozinho.
     writeQueueRef.current = writeQueueRef.current
-      .then(() => performScoutAction(current, selectedPlayer, action, delta))
+      .then(() =>
+        trackWrite(
+          performScoutAction(current, selectedPlayer, action, delta),
+        ),
+      )
+      .then(() => undefined)
       .catch((e) => {
         console.error('performScoutAction', e);
-        toast.error('Erro de rede. Sincronizando...');
+        if (isReachable) toast.error('Erro ao registrar acao.');
       });
   };
 
@@ -256,6 +266,31 @@ export const VolleyScoutScreen: React.FC = () => {
       />
 
       <MatchStatusBanners match={match} busy={busy} onStartMatch={onStartMatch} />
+
+      {pendingWrites > 0 ? (
+        <View
+          style={{
+            backgroundColor: c.info + '22',
+            borderWidth: 1,
+            borderColor: c.info,
+            borderRadius: 8,
+            paddingVertical: 6,
+            paddingHorizontal: 10,
+            marginBottom: 8,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 11,
+              color: c.info,
+              fontWeight: '700',
+              textAlign: 'center',
+            }}
+          >
+            ⏳ {pendingWrites} {pendingWrites === 1 ? 'ação' : 'ações'} aguardando sincronizar
+          </Text>
+        </View>
+      ) : null}
       <SetMomentumBanner match={match} currentSet={currentSet} onCloseSet={onCloseSet} />
       <Scoreboard match={match} currentSet={currentSet} setsWonA={setsWonA} setsWonB={setsWonB} />
       <PlayerTabsStrip

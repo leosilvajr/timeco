@@ -7,7 +7,12 @@ import {
   // @ts-expect-error — getReactNativePersistence existe em runtime mas não no .d.ts oficial
   getReactNativePersistence,
 } from 'firebase/auth';
-import { getFirestore, connectFirestoreEmulator, Firestore } from 'firebase/firestore';
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  enableIndexedDbPersistence,
+  Firestore,
+} from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -58,6 +63,30 @@ const auth: Auth = initAuth();
 
 const db: Firestore = getFirestore(app);
 const storage: FirebaseStorage = getStorage(app);
+
+/**
+ * Habilita cache offline no Firestore.
+ *
+ * - Web: IndexedDB persistence (~50MB). Sem isso, fechar a aba perde tudo.
+ *   Falha se ja tiver outra aba do mesmo dominio aberta com persistence.
+ * - Native: persistence ja vem ligada automaticamente pelo SDK. Nao precisa
+ *   chamar nada — chamar isso no native quebra ('not supported').
+ *
+ * Permite o app funcionar offline: leituras de docs ja visitados sao
+ * servidas do cache, e writes feitas offline ficam em fila e sincronizam
+ * automaticamente quando voltar a conexao.
+ */
+if (isWeb && !isEmulatorMode) {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('Firestore offline: ja tem outra aba do app aberta com persistence. Vai funcionar normalmente, mas so uma aba tem cache local.');
+    } else if (err.code === 'unimplemented') {
+      console.warn('Firestore offline: browser nao suporta IndexedDB (raro). App funciona online apenas.');
+    } else {
+      console.warn('Firestore offline persistence falhou:', err);
+    }
+  });
+}
 
 let emulatorsConnected = false;
 

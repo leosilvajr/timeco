@@ -11,6 +11,7 @@ import {
 import { db } from './firebase';
 import { ProfilePhoto } from '../types';
 import { uploadProfilePhoto, deletePhoto } from './photoService';
+import { enqueueUpload } from './photoUploadQueueService';
 
 /** Limite de fotos pessoais por usuário (storage + UX). */
 export const PROFILE_PHOTOS_LIMIT = 10;
@@ -32,7 +33,10 @@ export const addProfilePhoto = async (
       `Limite de ${PROFILE_PHOTOS_LIMIT} fotos atingido. Apague alguma antes de adicionar.`,
     );
   }
-  const upload = await uploadProfilePhoto(userId, file);
+  // Usa fila de upload: se offline, entra na fila e resolve quando voltar.
+  const upload = await enqueueUpload('Foto do perfil', () =>
+    uploadProfilePhoto(userId, file),
+  );
   const ref = await addDoc(photosCol(userId), {
     ownerId: userId,
     url: upload.url,

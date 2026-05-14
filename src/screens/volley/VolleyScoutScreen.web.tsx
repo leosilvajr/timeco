@@ -5,6 +5,8 @@ import { Stack, Text } from '@mantine/core';
 import { HtmlScreen, HtmlHeader, HtmlButton, webConfirm } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
 import { invalidateVolleyMatchesCache } from '../../services/volleyCacheService';
+import { usePendingWritesCount } from '../../hooks/usePendingWritesCount';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 import {
   getVolleyMatch,
   subscribeVolleyMatch,
@@ -93,6 +95,8 @@ export const VolleyScoutScreen: React.FC = () => {
   const [match, setMatch] = useState<VolleyMatch | null>(null);
   const [selectedPlayer, setSelectedPlayer] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+  const { pending: pendingWrites, trackWrite } = usePendingWritesCount();
+  const { isReachable } = useNetworkStatus();
 
   // Refs pra UI otimista: state local atualizado na hora, persistencia
   // serializada via writeQueue pra evitar race condition.
@@ -152,14 +156,21 @@ export const VolleyScoutScreen: React.FC = () => {
 
     // 2. Persistencia em background, serializada via queue pra evitar race
     //    (cliques rapidos consecutivos chegariam no Firestore em paralelo
-    //    com 'last-write-wins' e perderiam contagem)
+    //    com 'last-write-wins' e perderiam contagem). trackWrite atualiza
+    //    o contador 'pendingWrites' enquanto o write nao resolve (offline).
     writeQueueRef.current = writeQueueRef.current
-      .then(() => performScoutAction(current, selectedPlayer, action, delta))
+      .then(() =>
+        trackWrite(
+          performScoutAction(current, selectedPlayer, action, delta),
+        ),
+      )
+      .then(() => undefined)
       .catch((e) => {
         console.error('performScoutAction', e);
-        toast.error('Erro de rede. Sincronizando...');
-        // onSnapshot reconcilia sozinho com o que ficou no Firestore — nao precisa
-        // de getVolleyMatch extra aqui.
+        // Em modo offline o Firestore mantem o write em fila sem erro.
+        // Aqui so cai erro real (validacao, permissao). onSnapshot
+        // reconcilia sozinho.
+        if (isReachable) toast.error('Erro ao registrar acao.');
       });
   };
 
@@ -260,6 +271,24 @@ export const VolleyScoutScreen: React.FC = () => {
       />
 
       <MatchStatusBanners match={match} busy={busy} onStartMatch={onStartMatch} />
+
+      {pendingWrites > 0 ? (
+        <div
+          style={{
+            background: c.info + '22',
+            border: `1px solid ${c.info}`,
+            borderRadius: 8,
+            padding: '6px 10px',
+            marginBottom: 8,
+            fontSize: 11,
+            color: c.info,
+            fontWeight: 700,
+            textAlign: 'center',
+          }}
+        >
+          ⏳ {pendingWrites} {pendingWrites === 1 ? 'ação' : 'ações'} aguardando sincronizar
+        </div>
+      ) : null}
 
       {/* Scoreboard + tabs sticky no topo do scroll */}
       <div

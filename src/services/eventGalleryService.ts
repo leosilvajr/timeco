@@ -13,6 +13,7 @@ import {
 import { db } from './firebase';
 import { EventPhoto } from '../types';
 import { uploadEventPhoto, deletePhoto } from './photoService';
+import { enqueueUpload } from './photoUploadQueueService';
 
 /**
  * Adiciona uma foto à galeria de um evento. Faz upload no Storage e salva
@@ -25,7 +26,10 @@ export const addPhotoToEvent = async (
   file: Blob | File,
   caption?: string,
 ): Promise<EventPhoto> => {
-  const upload = await uploadEventPhoto(eventId, uploaderId, file);
+  // Fila de upload com retry on reconnect
+  const upload = await enqueueUpload('Foto do evento', () =>
+    uploadEventPhoto(eventId, uploaderId, file),
+  );
   const ref = await addDoc(collection(db, 'events', eventId, 'photos'), {
     eventId,
     uploaderId,

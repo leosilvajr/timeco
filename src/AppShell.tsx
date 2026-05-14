@@ -8,9 +8,13 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { AppNavigator } from './navigation';
 import { DebugOverlay } from './components/DebugOverlay';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { OfflineBadge } from './components/OfflineBadge';
 import { ToastContainer } from './components/ToastContainer';
 import { HtmlToastContainer } from './components/web';
 import { onAuthStateChanged, ensureUserDocument } from './services/authService';
+import { prefetchOfflineData } from './services/offlinePrefetch';
+import { tryDrainQueue } from './services/photoUploadQueueService';
+import { useNetworkStatus } from './hooks/useNetworkStatus';
 import { subscribeNotifications } from './services/notificationService';
 import { requestWebNotificationPermission, showWebNotification } from './services/webPush';
 import {
@@ -37,6 +41,15 @@ export const AppShell: React.FC = () => {
   const setNotifications = useNotificationStore((s) => s.setNotifications);
   const markSeen = useNotificationStore((s) => s.markSeen);
   const resetNotifications = useNotificationStore((s) => s.reset);
+  const { isReachable } = useNetworkStatus();
+
+  // Quando volta online, drena a fila de uploads de foto. Tambem chama
+  // prefetch de novo pra atualizar caches (silencioso).
+  useEffect(() => {
+    if (!isReachable) return;
+    tryDrainQueue();
+    if (user) prefetchOfflineData(user.id).catch(() => undefined);
+  }, [isReachable, user]);
 
   useEffect(() => {
     hydrateTheme();
@@ -74,6 +87,10 @@ export const AppShell: React.FC = () => {
         try {
           const userDoc = await ensureUserDocument(firebaseUser);
           setUser(userDoc as User);
+          // Pre-fetch das listas que populam o cache offline do Firestore.
+          // Roda em background, nao bloqueia a UI. Permite navegar offline
+          // depois da 1a abertura com internet.
+          prefetchOfflineData((userDoc as User).id).catch(() => undefined);
         } catch (e) {
           console.error('load user', e);
           setUser(null);
@@ -156,6 +173,8 @@ export const AppShell: React.FC = () => {
           <NavigationContainer theme={navTheme}>
             <AppNavigator />
             <StatusBar style={isDark ? 'light' : 'dark'} />
+            {/* Badge fixo no topo quando offline. Renderiza acima do tudo. */}
+            <OfflineBadge />
             {/* Toast container — escolhe versao web ou nativa. */}
             {Platform.OS === 'web' ? <HtmlToastContainer /> : <ToastContainer />}
             {/* Debug overlay — captura logs/erros em mobile-web. */}
