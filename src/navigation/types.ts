@@ -28,6 +28,7 @@ export type ProfileStackParamList = {
   EditProfile: undefined;
   SuperAdmin: undefined;
   ReportsAdmin: undefined;
+  BlockedUsers: undefined;
   ThemeSettings: undefined;
   PrivacySettings: undefined;
   Notifications: undefined;

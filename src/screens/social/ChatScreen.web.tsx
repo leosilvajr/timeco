@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { HtmlHeader, WEB_FONT_FAMILY } from '../../components/web';
+import { HtmlHeader, WEB_FONT_FAMILY, openReportModal, webConfirm } from '../../components/web';
 import { useAuthStore, useThemedColors } from '../../store';
 import { chatId, sendMessage, subscribeMessages } from '../../services/chatService';
+import { blockUser, listBlockedUsers } from '../../services/blockService';
+import { toast } from '../../store/toastStore';
 import { ChatMessage } from '../../types';
 import type { SocialStackParamList } from '../../navigation/types';
 
@@ -28,9 +30,18 @@ export const ChatScreen: React.FC = () => {
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const cid = me ? chatId(me.id, friendId) : '';
+
+  // Carrega lista de bloqueados pra filtrar mensagens client-side
+  useEffect(() => {
+    if (!me) return;
+    listBlockedUsers(me.id)
+      .then((list) => setBlockedIds(new Set(list.map((b) => b.blockedUserId))))
+      .catch(() => undefined);
+  }, [me?.id]);
 
   useEffect(() => {
     if (!cid) return;
@@ -45,6 +56,28 @@ export const ChatScreen: React.FC = () => {
     });
     return () => unsub();
   }, [cid]);
+
+  // Filtra mensagens de usuarios bloqueados (cliente-side)
+  const visibleMessages = messages.filter((m) => !blockedIds.has(m.senderId));
+
+  const onBlockContact = async () => {
+    if (!me) return;
+    const ok = await webConfirm({
+      title: 'Bloquear contato',
+      message: `Bloquear ${friendName}? Você não verá mais mensagens dele e ele não saberá.`,
+      confirmLabel: 'Bloquear',
+      danger: true,
+    });
+    if (!ok) return;
+    try {
+      await blockUser(me.id, friendId, friendName);
+      toast.success(`${friendName} bloqueado.`);
+      nav.goBack();
+    } catch (e) {
+      console.error('blockUser', e);
+      toast.error('Não conseguimos bloquear agora.');
+    }
+  };
 
   const onSend = async () => {
     if (!me || !text.trim() || sending) return;
@@ -85,7 +118,27 @@ export const ChatScreen: React.FC = () => {
           flexShrink: 0,
         }}
       >
-        <HtmlHeader title={friendName} subtitle="Conversa" onBack={() => nav.goBack()} />
+        <HtmlHeader
+          title={friendName}
+          subtitle="Conversa"
+          onBack={() => nav.goBack()}
+          right={
+            <button
+              onClick={onBlockContact}
+              title="Bloquear contato"
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 18,
+                padding: 6,
+                color: c.danger,
+              }}
+            >
+              🚫
+            </button>
+          }
+        />
       </div>
 
       <div
@@ -121,38 +174,78 @@ export const ChatScreen: React.FC = () => {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '12px 0' }}>
-            {messages.map((item) => {
+            {visibleMessages.map((item) => {
               const mine = item.senderId === me?.id;
               return (
                 <div
                   key={item.id}
                   style={{
-                    maxWidth: '80%',
-                    padding: '10px 12px',
-                    borderRadius: 16,
-                    background: mine ? c.primary : c.surface,
-                    border: mine ? 'none' : `1px solid ${c.border}`,
+                    display: 'flex',
                     alignSelf: mine ? 'flex-end' : 'flex-start',
-                    color: mine ? c.white : c.text,
-                    fontSize: 15,
-                    lineHeight: 1.35,
-                    borderBottomRightRadius: mine ? 4 : 16,
-                    borderBottomLeftRadius: mine ? 16 : 4,
+                    alignItems: 'flex-end',
+                    gap: 6,
+                    maxWidth: '85%',
                   }}
                 >
-                  <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {item.text}
-                  </div>
                   <div
                     style={{
-                      fontSize: 10,
-                      marginTop: 4,
-                      textAlign: 'right',
-                      color: mine ? 'rgba(255,255,255,0.75)' : c.textMuted,
+                      maxWidth: '100%',
+                      padding: '10px 12px',
+                      borderRadius: 16,
+                      background: mine ? c.primary : c.surface,
+                      border: mine ? 'none' : `1px solid ${c.border}`,
+                      color: mine ? c.white : c.text,
+                      fontSize: 15,
+                      lineHeight: 1.35,
+                      borderBottomRightRadius: mine ? 4 : 16,
+                      borderBottomLeftRadius: mine ? 16 : 4,
                     }}
                   >
-                    {formatTime(item.createdAt)}
+                    <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {item.text}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 10,
+                        marginTop: 4,
+                        textAlign: 'right',
+                        color: mine ? 'rgba(255,255,255,0.75)' : c.textMuted,
+                      }}
+                    >
+                      {formatTime(item.createdAt)}
+                    </div>
                   </div>
+                  {!mine && me ? (
+                    <button
+                      onClick={() =>
+                        openReportModal({
+                          reporterId: me.id,
+                          target: {
+                            reportedUserId: item.senderId,
+                            contentType: 'message',
+                            contentId: item.id,
+                            contentRef: `chats/${cid}/messages/${item.id}`,
+                            contentSnapshot: {
+                              text: item.text,
+                              senderId: item.senderId,
+                            },
+                          },
+                          targetLabel: 'essa mensagem',
+                        })
+                      }
+                      title="Denunciar mensagem"
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontSize: 14,
+                        opacity: 0.5,
+                        padding: 2,
+                      }}
+                    >
+                      🚩
+                    </button>
+                  ) : null}
                 </div>
               );
             })}

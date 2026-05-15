@@ -19,6 +19,7 @@ import {
 import { googleMapsUrl } from '../../services/locationService';
 import { pickImage } from '../../utils/imagePicker';
 import { useAuthStore, useThemedColors } from '../../store';
+import { openReportModal } from '../../components/web';
 import type { EventsStackParamList } from '../../navigation/types';
 
 type Nav = NativeStackNavigationProp<EventsStackParamList, 'EventDetail'>;
@@ -688,6 +689,44 @@ export const EventDetailScreen: React.FC = () => {
             );
           })}
         </>
+      ) : null}
+
+      {/* Denunciar evento — qualquer participante que nao seja o organizador */}
+      {!isOrganizer && user ? (
+        <div style={{ marginTop: 16, marginBottom: 8, textAlign: 'right' }}>
+          <button
+            onClick={() =>
+              openReportModal({
+                reporterId: user.id,
+                target: {
+                  reportedUserId: event.organizerId,
+                  contentType: 'event',
+                  contentId: event.id,
+                  contentRef: `events/${event.id}`,
+                  contentSnapshot: {
+                    title: event.title,
+                    location: event.location,
+                    organizerId: event.organizerId,
+                    notes: event.notes,
+                  },
+                },
+                targetLabel: `o evento "${event.title}"`,
+              })
+            }
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: c.danger,
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              padding: '4px 8px',
+            }}
+          >
+            🚩 Denunciar este evento
+          </button>
+        </div>
       ) : null}
 
       {/* Galeria */}

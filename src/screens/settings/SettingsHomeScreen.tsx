@@ -103,6 +103,11 @@ export const SettingsHomeScreen: React.FC = () => {
           value={privacyLabel}
           onPress={() => nav.navigate('PrivacySettings')}
         />
+        <MenuRow
+          icon="🚫"
+          label="Usuários bloqueados"
+          onPress={() => nav.navigate('BlockedUsers')}
+        />
       </Card>
     </Screen>
   );

@@ -18,6 +18,7 @@ import type { EventsStackParamList } from '../../navigation/types';
 
 import { EventHero } from './components/EventHero';
 import { EventGallery } from './components/EventGallery';
+import { ReportModal } from '../../components';
 
 type Nav = NativeStackNavigationProp<EventsStackParamList, 'EventDetail'>;
 type Rt = RouteProp<EventsStackParamList, 'EventDetail'>;
@@ -148,6 +149,7 @@ export const EventDetailScreen: React.FC = () => {
   const [event, setEvent] = useState<Event | null>(null);
   const [users, setUsers] = useState<Record<string, User>>({});
   const [busy, setBusy] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
 
   const styles = useMemo(() => makeScreenStyles(c), [c]);
 
@@ -388,7 +390,38 @@ export const EventDetailScreen: React.FC = () => {
         </>
       ) : null}
 
+      {!isOrganizer && user ? (
+        <View style={{ marginTop: spacing.md, marginBottom: spacing.xs, alignItems: 'flex-end' }}>
+          <Pressable onPress={() => setReportOpen(true)}>
+            <Text style={{ color: c.danger, fontSize: 12, fontWeight: '700', padding: 6 }}>
+              🚩 Denunciar este evento
+            </Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <EventGallery event={event} user={user} isOrganizer={isOrganizer} />
+
+      {!isOrganizer && user ? (
+        <ReportModal
+          visible={reportOpen}
+          onClose={() => setReportOpen(false)}
+          reporterId={user.id}
+          target={{
+            reportedUserId: event.organizerId,
+            contentType: 'event',
+            contentId: event.id,
+            contentRef: `events/${event.id}`,
+            contentSnapshot: {
+              title: event.title,
+              location: event.location,
+              organizerId: event.organizerId,
+              notes: event.notes,
+            },
+          }}
+          targetLabel={`o evento "${event.title}"`}
+        />
+      ) : null}
 
       <View style={{ height: spacing.xxl }} />
     </Screen>
