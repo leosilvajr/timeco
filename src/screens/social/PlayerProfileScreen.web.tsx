@@ -11,6 +11,9 @@ import {
 import { useThemedColors, useAuthStore } from '../../store';
 import { getUserById } from '../../services/userService';
 import { removeFriend, areFriends } from '../../services/friendsService';
+import { openReportModal, webConfirm } from '../../components/web';
+import { blockUser } from '../../services/blockService';
+import { toast } from '../../store/toastStore';
 import { listPhotosByUser } from '../../services/eventGalleryService';
 import { listProfilePhotos } from '../../services/profileGalleryService';
 import { shareText } from '../../services/shareService';
@@ -200,6 +203,51 @@ export const PlayerProfileScreen: React.FC = () => {
         />
         {isFriend ? (
           <HtmlButton title="Remover amizade" variant="outline" onClick={onRemove} />
+        ) : null}
+        {!isSelf && current ? (
+          <>
+            <HtmlButton
+              title="🚩  Denunciar usuário"
+              variant="ghost"
+              onClick={() =>
+                openReportModal({
+                  reporterId: current.id,
+                  target: {
+                    reportedUserId: target.id,
+                    contentType: 'user',
+                    contentId: target.id,
+                    contentRef: `users/${target.id}`,
+                    contentSnapshot: {
+                      name: target.name,
+                      email: target.email,
+                    },
+                  },
+                  targetLabel: `o perfil de ${target.name}`,
+                })
+              }
+            />
+            <HtmlButton
+              title="🚫  Bloquear usuário"
+              variant="ghost"
+              onClick={async () => {
+                const ok = await webConfirm({
+                  title: 'Bloquear usuário',
+                  message: `Bloquear ${target.name}? Você não verá mais mensagens, fotos ou perfil dele. Ele não será notificado.`,
+                  confirmLabel: 'Bloquear',
+                  danger: true,
+                });
+                if (!ok) return;
+                try {
+                  await blockUser(current.id, target.id, target.name);
+                  toast.success(`${target.name} bloqueado.`);
+                  nav.goBack();
+                } catch (e) {
+                  console.error('blockUser', e);
+                  toast.error('Não conseguimos bloquear agora.');
+                }
+              }}
+            />
+          </>
         ) : null}
       </div>
 

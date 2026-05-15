@@ -14,3 +14,4 @@ export { HtmlStreakBadge } from './HtmlStreakBadge';
 export { HtmlToastContainer } from './HtmlToastContainer';
 export { webConfirm } from './HtmlConfirm';
 export type { ConfirmOptions } from './HtmlConfirm';
+export { openReportModal } from './HtmlReportModal';

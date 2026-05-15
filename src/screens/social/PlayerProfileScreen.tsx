@@ -6,6 +6,9 @@ import { Screen, Header, Card, Avatar, Button, PhotoLightbox, ProfileGallery } f
 import { colors, spacing, radius } from '../../constants/theme';
 import { getUserById } from '../../services/userService';
 import { removeFriend, areFriends } from '../../services/friendsService';
+import { blockUser } from '../../services/blockService';
+import { ReportModal } from '../../components';
+import { toast } from '../../store/toastStore';
 import { listPhotosByUser } from '../../services/eventGalleryService';
 import { listProfilePhotos } from '../../services/profileGalleryService';
 import { shareText } from '../../services/shareService';
@@ -34,6 +37,7 @@ export const PlayerProfileScreen: React.FC = () => {
   const current = useAuthStore((s) => s.user);
   const [target, setTarget] = useState<User | null>(null);
   const [isFriend, setIsFriend] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [photos, setPhotos] = useState<EventPhoto[]>([]);
   const [profilePhotos, setProfilePhotos] = useState<ProfilePhoto[]>([]);
@@ -234,7 +238,53 @@ export const PlayerProfileScreen: React.FC = () => {
         {isFriend ? (
           <Button title="Remover amizade" variant="outline" onPress={onRemove} />
         ) : null}
+        {!isSelf && current ? (
+          <>
+            <Button
+              title="🚩  Denunciar usuário"
+              variant="ghost"
+              onPress={() => setReportOpen(true)}
+            />
+            <Button
+              title="🚫  Bloquear usuário"
+              variant="ghost"
+              onPress={async () => {
+                const proceed =
+                  typeof window !== 'undefined'
+                    ? window.confirm(
+                        `Bloquear ${target.name}? Você não verá mais mensagens, fotos ou perfil dele. Ele não será notificado.`,
+                      )
+                    : true;
+                if (!proceed) return;
+                try {
+                  await blockUser(current.id, target.id, target.name);
+                  toast.success(`${target.name} bloqueado.`);
+                  nav.goBack();
+                } catch (e) {
+                  console.error('blockUser', e);
+                  toast.error('Não conseguimos bloquear agora.');
+                }
+              }}
+            />
+          </>
+        ) : null}
       </View>
+
+      {!isSelf && current ? (
+        <ReportModal
+          visible={reportOpen}
+          onClose={() => setReportOpen(false)}
+          reporterId={current.id}
+          target={{
+            reportedUserId: target.id,
+            contentType: 'user',
+            contentId: target.id,
+            contentRef: `users/${target.id}`,
+            contentSnapshot: { name: target.name, email: target.email },
+          }}
+          targetLabel={`o perfil de ${target.name}`}
+        />
+      ) : null}
 
       {canSeeGallery && profilePhotos.length > 0 ? (
         <Card style={{ marginTop: spacing.lg }}>

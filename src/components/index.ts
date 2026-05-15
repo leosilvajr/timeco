@@ -1,4 +1,5 @@
 export { Button } from './Button';
+export { ReportModal } from './ReportModal';
 export { Input } from './Input';
 export { DateInput } from './DateInput';
 export { DatePickerField } from './DatePickerField';

@@ -335,3 +335,53 @@ export interface VolleyMatch {
   createdAt: Timestamp | Date | null;
   updatedAt?: Timestamp | Date | null;
 }
+
+// ============================================================================
+// Denuncia / Bloqueio (UGC compliance — Play Store / App Store)
+// ============================================================================
+
+export type ReportContentType = 'user' | 'event' | 'photo' | 'message';
+
+export type ReportReason =
+  | 'spam'
+  | 'inadequado'
+  | 'assedio'
+  | 'fake'
+  | 'violencia'
+  | 'outro';
+
+export type ReportStatus = 'open' | 'reviewed' | 'actioned' | 'dismissed';
+
+export interface Report {
+  id: string;
+  reporterId: string;
+  /** UID do usuario denunciado (mesmo se denuncia for em foto/evento/msg). */
+  reportedUserId: string;
+  contentType: ReportContentType;
+  /** ID do conteudo (user UID, event ID, photo ID, message ID). */
+  contentId: string;
+  /** Path completo no Firestore pro admin abrir direto. */
+  contentRef?: string;
+  reason: ReportReason;
+  /** Texto livre opcional do denunciante (max 500). */
+  details?: string;
+  status: ReportStatus;
+  /** Snapshot do conteudo no momento da denuncia (caso seja deletado depois). */
+  contentSnapshot?: Record<string, unknown>;
+  reviewedBy?: string;
+  reviewedAt?: Timestamp | Date | null;
+  reviewNotes?: string;
+  createdAt: Timestamp | Date | null;
+}
+
+/**
+ * Documento em users/{userId}/blocked/{blockedUserId}.
+ * Quando A bloqueia B: nao ve mais conteudo de B (chat, perfil, fotos).
+ * Bloqueio e local pro user A — B nao sabe.
+ */
+export interface BlockedUser {
+  id: string;
+  blockedUserId: string;
+  blockedUserName?: string;
+  createdAt: Timestamp | Date | null;
+}

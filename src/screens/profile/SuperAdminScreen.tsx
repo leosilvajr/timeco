@@ -85,6 +85,14 @@ export const SuperAdminScreen: React.FC = () => {
     <Screen maxWidth={840}>
       <Header title="Super admin" subtitle={`${users.length} usuários`} onBack={() => nav.goBack()} />
 
+      <View style={{ marginBottom: spacing.md }}>
+        <Button
+          title="🚩 Denúncias de usuários e conteúdo"
+          variant="secondary"
+          onPress={() => nav.navigate('ReportsAdmin')}
+        />
+      </View>
+
       <Input label="Buscar" value={q} onChangeText={setQ} placeholder="Nome ou email" autoCapitalize="none" />
 
       {filtered.map((u) => (

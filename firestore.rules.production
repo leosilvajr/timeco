@@ -19,6 +19,28 @@ service cloud.firestore {
       return isAuth() && role() == 'superadmin';
     }
 
+    // ====== REPORTS (UGC moderation — compliance Play/App Store) ======
+    // Qualquer user autenticado pode CRIAR uma denuncia. Apenas o proprio
+    // reporter pode ler a sua (pra evitar quem-denunciou-quem ser exposto).
+    // Apenas superadmin pode listar todas e atualizar status.
+    match /reports/{reportId} {
+      allow create: if isAuth()
+        && request.auth.uid == request.resource.data.reporterId
+        && request.resource.data.status == 'open';
+      allow get: if isAuth() && (
+        request.auth.uid == resource.data.reporterId ||
+        isSuperadmin()
+      );
+      allow list: if isSuperadmin();
+      // Apenas superadmin atualiza status. Reporter nao mexe depois.
+      allow update: if isSuperadmin()
+        && request.resource.data.reporterId == resource.data.reporterId
+        && request.resource.data.reportedUserId == resource.data.reportedUserId
+        && request.resource.data.contentType == resource.data.contentType
+        && request.resource.data.contentId == resource.data.contentId;
+      allow delete: if isSuperadmin();
+    }
+
     // ====== USERS ======
     match /users/{userId} {
       // Leitura: autenticado sempre; ou anônimo SE o perfil é público
@@ -31,6 +53,12 @@ service cloud.firestore {
 
       // Push tokens — só o próprio user gerencia os seus
       match /pushTokens/{tokenId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Bloqueio de usuarios — A bloqueia B. Soh o proprio A le/escreve
+      // a lista de quem ele bloqueou. B nao sabe que foi bloqueado.
+      match /blocked/{blockedUserId} {
         allow read, write: if isOwner(userId);
       }
 

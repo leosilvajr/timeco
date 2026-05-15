@@ -76,6 +76,14 @@ export const SuperAdminScreen: React.FC = () => {
         onBack={() => nav.goBack()}
       />
 
+      <div style={{ marginBottom: 12 }}>
+        <HtmlButton
+          title="🚩 Denúncias de usuários e conteúdo"
+          variant="secondary"
+          onClick={() => nav.navigate('ReportsAdmin')}
+        />
+      </div>
+
       <HtmlInput label="Buscar" value={q} onChange={setQ} placeholder="Nome ou email" />
 
       {filtered.map((u) => (
