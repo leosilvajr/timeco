@@ -81,6 +81,9 @@ const CARDS: CardConfig[] = [
       { label: 'Meio', action: 'set_meio', kind: 'neutral', read: (s) => s.sets.meio },
       { label: 'F.Meio', action: 'set_fundo_meio', kind: 'neutral', read: (s) => s.sets.fundo_meio },
       { label: 'F.Saída', action: 'set_fundo_saida', kind: 'neutral', read: (s) => s.sets.fundo_saida },
+      { label: 'Bola de 2ª — Ponto', action: 'set_dump_point', kind: 'positive', read: (s) => s.sets.dump_point },
+      { label: 'Bola de 2ª — Normal', action: 'set_dump', kind: 'neutral', read: (s) => s.sets.dump_normal },
+      { label: 'Bola de 2ª — Erro', action: 'set_dump_error', kind: 'negative', read: (s) => s.sets.dump_error },
     ],
   },
 ];
@@ -295,6 +298,7 @@ export const VolleyScoutScreen: React.FC = () => {
       <Scoreboard match={match} currentSet={currentSet} setsWonA={setsWonA} setsWonB={setsWonB} />
       <PlayerTabsStrip
         players={match.players}
+        inCourtNumbers={match.currentRotation}
         selectedPlayer={selectedPlayer}
         onSelect={setSelectedPlayer}
       />

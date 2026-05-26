@@ -28,6 +28,7 @@ import { PlayerVolleyStats, VolleyMatch, VolleyPlayer } from '../../types';
 import type { VolleyStackParamList } from '../../navigation/types';
 
 import { TeamSummaryCards } from './components/TeamSummaryCards';
+import { TeamEfficiencyCards } from './components/TeamEfficiencyCards';
 import { PlayerStatsCard } from './components/PlayerStatsCard';
 
 type Nav = NativeStackNavigationProp<VolleyStackParamList, 'VolleyReports'>;
@@ -263,6 +264,10 @@ export const VolleyReportsScreen: React.FC = () => {
         totalErrors={summary.totalErrors}
         desktop={false}
       />
+
+      {/* Eficiencia agregada do time inteiro */}
+      <Text style={styles.sectionTitle}>Eficiência do time</Text>
+      <TeamEfficiencyCards summary={summary} />
 
       {/* Análise individual — tabs por jogador */}
       <Text style={styles.sectionTitle}>Análise individual</Text>

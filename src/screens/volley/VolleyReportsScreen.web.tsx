@@ -274,6 +274,37 @@ export const VolleyReportsScreen: React.FC = () => {
         />
       </SimpleGrid>
 
+      {/* Eficiencia agregada do time inteiro (web inline pra evitar dep extra) */}
+      <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.8 }}>
+        Eficiência do time
+      </Text>
+      <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm" mb="lg">
+        <TeamSummaryBlock
+          label="Ataque %"
+          value={`${summary.attackPct.toFixed(1)}%`}
+          emoji="⚡"
+          color={c.text}
+        />
+        <TeamSummaryBlock
+          label="Saque %"
+          value={`${summary.servePct.toFixed(1)}%`}
+          emoji="🎾"
+          color={c.text}
+        />
+        <TeamSummaryBlock
+          label="Passe %"
+          value={`${summary.passPct.toFixed(1)}%`}
+          emoji="✋"
+          color={c.text}
+        />
+        <TeamSummaryBlock
+          label="Bloqueio %"
+          value={`${summary.blockPct.toFixed(1)}%`}
+          emoji="🛡️"
+          color={c.text}
+        />
+      </SimpleGrid>
+
       {/* Análise individual — tabs limpas estilo pill + card completo */}
       <Text size="xs" fw={800} c="dimmed" tt="uppercase" mb={6} style={{ letterSpacing: 0.8 }}>
         Análise individual

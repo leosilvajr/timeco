@@ -1,72 +1,135 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { useThemedColors } from '../../../../store';
-import { spacing, radius } from '../../../../constants/theme';
 import { VolleyPlayer } from '../../../../types';
 
 interface Props {
   players: VolleyPlayer[];
+  inCourtNumbers?: number[];
   selectedPlayer: number | null;
   onSelect: (playerNumber: number) => void;
 }
 
-/** Strip horizontal de chips de jogador no Scout nativo. */
-export const PlayerTabsStrip: React.FC<Props> = ({ players, selectedPlayer, onSelect }) => {
+interface RowProps {
+  player: VolleyPlayer;
+  isSelected: boolean;
+  onPress: () => void;
+  compact?: boolean;
+}
+
+const PlayerRow: React.FC<RowProps> = ({ player, isSelected, onPress, compact = false }) => {
   const c = useThemedColors();
   const styles = StyleSheet.create({
-    label: {
-      fontSize: 11,
-      fontWeight: '800',
-      color: c.textMuted,
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      marginBottom: 6,
-    },
-    strip: { paddingBottom: spacing.sm },
-    tab: {
-      paddingHorizontal: 16,
-      height: 40,
-      borderRadius: radius.pill,
-      backgroundColor: c.surface,
+    row: {
+      width: '100%',
+      paddingHorizontal: compact ? 10 : 12,
+      paddingVertical: compact ? 4 : 6,
+      borderRadius: 8,
       borderWidth: 1.5,
-      borderColor: c.border,
-      marginRight: spacing.sm,
+      borderColor: isSelected ? c.primary : c.border,
+      backgroundColor: isSelected ? c.primary : c.surface,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 8,
+      gap: 10,
+      marginBottom: 4,
     },
-    tabSelected: { backgroundColor: c.primary, borderColor: c.primary },
-    tabNum: { fontSize: 11, fontWeight: '900', color: c.text, opacity: 0.55 },
-    tabNumSelected: { color: c.onPrimary, opacity: 0.85 },
-    tabName: { fontSize: 14, fontWeight: '700', color: c.text },
-    tabNameSelected: { color: c.onPrimary },
+    number: {
+      minWidth: 28,
+      textAlign: 'center',
+      fontSize: 12,
+      fontWeight: '900',
+      color: isSelected ? c.onPrimary : c.text,
+      opacity: isSelected ? 0.85 : 0.55,
+    },
+    name: {
+      flex: 1,
+      fontSize: compact ? 13 : 14,
+      fontWeight: '700',
+      color: isSelected ? c.onPrimary : c.text,
+    },
+    position: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: isSelected ? c.onPrimary : c.text,
+      opacity: isSelected ? 0.85 : 0.6,
+    },
   });
   return (
-    <>
-      <Text style={styles.label}>Jogador</Text>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.strip}
-      >
-        {players.map((p) => {
-          const isSel = p.number === selectedPlayer;
-          return (
-            <Pressable
+    <Pressable onPress={onPress} style={styles.row}>
+      <Text style={styles.number}>#{player.number}</Text>
+      <Text style={styles.name} numberOfLines={1}>
+        {player.name}
+      </Text>
+      <Text style={styles.position}>{player.position}</Text>
+    </Pressable>
+  );
+};
+
+/**
+ * Lista vertical de jogadores no Scout nativo: 'Em quadra' (6) + 'Banco'.
+ */
+export const PlayerTabsStrip: React.FC<Props> = ({
+  players,
+  inCourtNumbers,
+  selectedPlayer,
+  onSelect,
+}) => {
+  const c = useThemedColors();
+  const inCourtSet = new Set(inCourtNumbers ?? []);
+  const inCourt = inCourtNumbers
+    ? players.filter((p) => inCourtSet.has(p.number))
+    : [];
+  const bench = inCourtNumbers
+    ? players.filter((p) => !inCourtSet.has(p.number))
+    : players;
+  const sortByNumber = (a: VolleyPlayer, b: VolleyPlayer) => a.number - b.number;
+  inCourt.sort(sortByNumber);
+  bench.sort(sortByNumber);
+
+  const sectionLabelStyle = {
+    fontSize: 10,
+    fontWeight: '800' as const,
+    color: c.textMuted,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.6,
+    marginTop: 8,
+    marginBottom: 4,
+  };
+
+  return (
+    <View>
+      {inCourt.length > 0 ? (
+        <>
+          <Text style={sectionLabelStyle}>
+            🏐 Em quadra ({inCourt.length})
+          </Text>
+          {inCourt.map((p) => (
+            <PlayerRow
               key={p.number}
-              style={[styles.tab, isSel && styles.tabSelected]}
+              player={p}
+              isSelected={p.number === selectedPlayer}
               onPress={() => onSelect(p.number)}
-            >
-              <Text style={[styles.tabNum, isSel && styles.tabNumSelected]}>
-                #{p.number}
-              </Text>
-              <Text style={[styles.tabName, isSel && styles.tabNameSelected]}>
-                {p.name.split(' ')[0]}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-    </>
+            />
+          ))}
+        </>
+      ) : null}
+
+      {bench.length > 0 ? (
+        <>
+          <Text style={sectionLabelStyle}>
+            🪑 Banco ({bench.length})
+          </Text>
+          {bench.map((p) => (
+            <PlayerRow
+              key={p.number}
+              player={p}
+              isSelected={p.number === selectedPlayer}
+              onPress={() => onSelect(p.number)}
+              compact
+            />
+          ))}
+        </>
+      ) : null}
+    </View>
   );
 };

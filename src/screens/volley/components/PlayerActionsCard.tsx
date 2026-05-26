@@ -40,6 +40,9 @@ export const ACTIONS_BY_GROUP: Record<string, ActionDef[]> = {
     { action: 'set_meio', label: 'Meio', variant: 'neutral' },
     { action: 'set_fundo_meio', label: 'F.Meio', variant: 'neutral' },
     { action: 'set_fundo_saida', label: 'F.Saída', variant: 'neutral' },
+    { action: 'set_dump_point', label: 'B.2ª Pt', variant: 'good' },
+    { action: 'set_dump', label: 'B.2ª Nm', variant: 'neutral' },
+    { action: 'set_dump_error', label: 'B.2ª Er', variant: 'bad' },
   ],
 };
 
@@ -64,6 +67,9 @@ const ACTION_TO_FIELD: Record<VolleyAction, (s: PlayerVolleyStats) => number> = 
   set_meio: (s) => s.sets.meio,
   set_fundo_meio: (s) => s.sets.fundo_meio,
   set_fundo_saida: (s) => s.sets.fundo_saida,
+  set_dump_point: (s) => s.sets.dump_point,
+  set_dump: (s) => s.sets.dump_normal,
+  set_dump_error: (s) => s.sets.dump_error,
 };
 
 const countOf = (set: VolleySetData | undefined, playerNum: number, action: VolleyAction): number => {

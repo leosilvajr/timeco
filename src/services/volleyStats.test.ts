@@ -252,6 +252,12 @@ describe('teamSummary', () => {
 
   it('zera quando não há jogadores', () => {
     const s = teamSummary({});
-    expect(s).toEqual({ totalPoints: 0, totalAces: 0, totalBlocks: 0, totalErrors: 0 });
+    // Apenas valida os principais — o resto e detalhamento que tambem deve ser 0
+    expect(s.totalPoints).toBe(0);
+    expect(s.totalAces).toBe(0);
+    expect(s.totalBlocks).toBe(0);
+    expect(s.totalErrors).toBe(0);
+    expect(s.totalAttacks).toBe(0);
+    expect(s.attackPct).toBe(0);
   });
 });

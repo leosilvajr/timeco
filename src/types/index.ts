@@ -245,6 +245,10 @@ export interface PlayerVolleyStats {
     meio: number;
     fundo_meio: number;
     fundo_saida: number;
+    /** Bola de 2a — levantador joga direto pra quadra adversaria. */
+    dump_point: number;   // bola de 2 que virou ponto
+    dump_normal: number;  // bola de 2 defendida pelo adversario
+    dump_error: number;   // bola de 2 na rede/fora -> ponto contra
   };
 }
 
@@ -268,7 +272,10 @@ export type VolleyAction =
   | 'set_saida'
   | 'set_meio'
   | 'set_fundo_meio'
-  | 'set_fundo_saida';
+  | 'set_fundo_saida'
+  | 'set_dump_point'   // Bola de 2a com ponto
+  | 'set_dump'         // Bola de 2a defendida
+  | 'set_dump_error';  // Bola de 2a na rede/fora
 
 export interface VolleySetData {
   /** Número do set (1-5). */

@@ -14,6 +14,9 @@ export const emptyPlayerStats = (): PlayerVolleyStats => ({
     meio: 0,
     fundo_meio: 0,
     fundo_saida: 0,
+    dump_point: 0,
+    dump_normal: 0,
+    dump_error: 0,
   },
 });
 
@@ -58,6 +61,9 @@ export const applyAction = (
     case 'set_meio':      inc(next.sets, 'meio');      break;
     case 'set_fundo_meio': inc(next.sets, 'fundo_meio'); break;
     case 'set_fundo_saida': inc(next.sets, 'fundo_saida'); break;
+    case 'set_dump_point':   inc(next.sets, 'dump_point');   break;
+    case 'set_dump':         inc(next.sets, 'dump_normal');  break;
+    case 'set_dump_error':   inc(next.sets, 'dump_error');   break;
   }
   return next;
 };
@@ -109,9 +115,9 @@ export const setPercentage = (s: PlayerVolleyStats): number => {
   return t > 0 ? (s.sets.success / t) * 100 : 0;
 };
 
-/** Pontos diretos = ataques que viram ponto + aces. */
+/** Pontos diretos = ataques que viram ponto + aces + bolas de 2a. */
 export const directPoints = (s: PlayerVolleyStats): number =>
-  s.attacks.success + s.serves.ace;
+  s.attacks.success + s.serves.ace + s.sets.dump_point;
 
 /** Total de erros do jogador (todas as categorias). */
 export const totalErrors = (s: PlayerVolleyStats): number =>
@@ -166,6 +172,9 @@ export const sumPlayerStats = (
     meio: a.sets.meio + b.sets.meio,
     fundo_meio: a.sets.fundo_meio + b.sets.fundo_meio,
     fundo_saida: a.sets.fundo_saida + b.sets.fundo_saida,
+    dump_point: a.sets.dump_point + b.sets.dump_point,
+    dump_normal: a.sets.dump_normal + b.sets.dump_normal,
+    dump_error: a.sets.dump_error + b.sets.dump_error,
   },
 });
 
@@ -183,13 +192,33 @@ export const accumulateAcrossSets = (
 // ============ Resumo de equipe ============
 
 export interface TeamSummary {
+  // Resumo basico (compat)
   totalPoints: number;
   totalAces: number;
   totalBlocks: number;
   totalErrors: number;
+  // Detalhamento por categoria (acumulados)
+  totalAttacks: number;
+  totalAttackPoints: number;
+  totalAttackErrors: number;
+  totalServes: number;
+  totalServeErrors: number;
+  totalPasses: number;
+  totalPassesGood: number;  // A + B
+  totalPassErrors: number;
+  totalBlocksTotal: number;
+  totalBlockErrors: number;
+  totalDumps: number;
+  totalDumpPoints: number;
+  totalDumpErrors: number;
+  // Percentuais agregados do time inteiro
+  attackPct: number;     // success / total
+  servePct: number;      // (success + ace) / total
+  passPct: number;       // (A + B) / total
+  blockPct: number;      // success / total
 }
 
-/** Resumo de uma equipe a partir do mapa playerNumber → stats. */
+/** Resumo COMPLETO de uma equipe a partir do mapa playerNumber → stats. */
 export const teamSummary = (
   playerStats: Record<number, PlayerVolleyStats>,
 ): TeamSummary => {
@@ -197,13 +226,76 @@ export const teamSummary = (
   let totalAces = 0;
   let totalBlocks = 0;
   let totalErrors = 0;
+  let totalAttacks = 0;
+  let totalAttackPoints = 0;
+  let totalAttackErrors = 0;
+  let totalServes = 0;
+  let totalServeErrors = 0;
+  let totalPasses = 0;
+  let totalPassesGood = 0;
+  let totalPassErrors = 0;
+  let totalBlocksTotal = 0;
+  let totalBlockErrors = 0;
+  let totalDumps = 0;
+  let totalDumpPoints = 0;
+  let totalDumpErrors = 0;
+
+  let serveSuccessPlusAce = 0;
+
   for (const s of Object.values(playerStats)) {
-    totalPoints += s.attacks.success + s.serves.ace + s.blocks.success;
+    totalPoints += s.attacks.success + s.serves.ace + s.blocks.success + s.sets.dump_point;
     totalAces += s.serves.ace;
     totalBlocks += s.blocks.success;
-    totalErrors += s.attacks.error + s.serves.error + s.blocks.error + s.passes.error;
+    totalErrors += s.attacks.error + s.serves.error + s.blocks.error + s.passes.error + s.sets.error + s.sets.dump_error;
+
+    totalAttacks += s.attacks.success + s.attacks.normal + s.attacks.error;
+    totalAttackPoints += s.attacks.success;
+    totalAttackErrors += s.attacks.error;
+
+    totalServes += s.serves.success + s.serves.error + s.serves.ace;
+    totalServeErrors += s.serves.error;
+    serveSuccessPlusAce += s.serves.success + s.serves.ace;
+
+    totalPasses += s.passes.a + s.passes.b + s.passes.c + s.passes.error;
+    totalPassesGood += s.passes.a + s.passes.b;
+    totalPassErrors += s.passes.error;
+
+    totalBlocksTotal += s.blocks.success + s.blocks.normal + s.blocks.error;
+    totalBlockErrors += s.blocks.error;
+
+    totalDumps += s.sets.dump_point + s.sets.dump_normal + s.sets.dump_error;
+    totalDumpPoints += s.sets.dump_point;
+    totalDumpErrors += s.sets.dump_error;
   }
-  return { totalPoints, totalAces, totalBlocks, totalErrors };
+
+  const attackPct = totalAttacks > 0 ? (totalAttackPoints / totalAttacks) * 100 : 0;
+  const servePct = totalServes > 0 ? (serveSuccessPlusAce / totalServes) * 100 : 0;
+  const passPct = totalPasses > 0 ? (totalPassesGood / totalPasses) * 100 : 0;
+  const blockPct = totalBlocksTotal > 0 ? (totalBlocks / totalBlocksTotal) * 100 : 0;
+
+  return {
+    totalPoints,
+    totalAces,
+    totalBlocks,
+    totalErrors,
+    totalAttacks,
+    totalAttackPoints,
+    totalAttackErrors,
+    totalServes,
+    totalServeErrors,
+    totalPasses,
+    totalPassesGood,
+    totalPassErrors,
+    totalBlocksTotal,
+    totalBlockErrors,
+    totalDumps,
+    totalDumpPoints,
+    totalDumpErrors,
+    attackPct,
+    servePct,
+    passPct,
+    blockPct,
+  };
 };
 
 /** Limites de bom/ruim para colorir percentuais (mesmas regras do scout do Lucas). */

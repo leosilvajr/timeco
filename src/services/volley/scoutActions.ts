@@ -42,6 +42,9 @@ export const actionScoreImpact: Record<VolleyAction, 'A' | 'B' | null> = {
   set_meio: null,
   set_fundo_meio: null,
   set_fundo_saida: null,
+  set_dump_point: 'A',   // Bola de 2a com ponto -> pra nos
+  set_dump: null,        // Bola de 2a defendida -> stats only
+  set_dump_error: 'B',   // Bola de 2a errada -> ponto contra
 };
 
 /**
