@@ -9,8 +9,11 @@ import {
 } from 'firebase/auth';
 import {
   getFirestore,
+  initializeFirestore,
   connectFirestoreEmulator,
-  enableIndexedDbPersistence,
+  persistentLocalCache,
+  persistentMultipleTabManager,
+  memoryLocalCache,
   Firestore,
 } from 'firebase/firestore';
 import { getStorage, connectStorageEmulator, FirebaseStorage } from 'firebase/storage';
@@ -61,32 +64,46 @@ const initAuth = (): Auth => {
 
 const auth: Auth = initAuth();
 
-const db: Firestore = getFirestore(app);
-const storage: FirebaseStorage = getStorage(app);
-
 /**
- * Habilita cache offline no Firestore.
+ * Inicializa Firestore com cache offline.
  *
- * - Web: IndexedDB persistence (~50MB). Sem isso, fechar a aba perde tudo.
- *   Falha se ja tiver outra aba do mesmo dominio aberta com persistence.
- * - Native: persistence ja vem ligada automaticamente pelo SDK. Nao precisa
- *   chamar nada — chamar isso no native quebra ('not supported').
+ * - Web em producao: persistentLocalCache (IndexedDB, ~50MB) com
+ *   persistentMultipleTabManager — suporta multiplas abas do mesmo
+ *   dominio sem conflito (diferente do enableIndexedDbPersistence
+ *   antigo, que dava failed-precondition).
+ * - Web em emulador / Jest: memoryLocalCache (sem persistencia entre
+ *   sessoes — emuladores reiniciam zerados de qualquer jeito).
+ * - Native (APK/iOS): persistence ja vem ligada por padrao no SDK,
+ *   entao usa getFirestore direto sem passar localCache.
  *
  * Permite o app funcionar offline: leituras de docs ja visitados sao
  * servidas do cache, e writes feitas offline ficam em fila e sincronizam
  * automaticamente quando voltar a conexao.
  */
-if (isWeb && !isEmulatorMode) {
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.warn('Firestore offline: ja tem outra aba do app aberta com persistence. Vai funcionar normalmente, mas so uma aba tem cache local.');
-    } else if (err.code === 'unimplemented') {
-      console.warn('Firestore offline: browser nao suporta IndexedDB (raro). App funciona online apenas.');
-    } else {
-      console.warn('Firestore offline persistence falhou:', err);
-    }
-  });
-}
+const initDb = (): Firestore => {
+  if (!isWeb) {
+    // Native: persistence default. initializeFirestore so e suportado
+    // uma vez por app, entao usar getFirestore aqui evita conflito.
+    return getFirestore(app);
+  }
+  try {
+    return initializeFirestore(app, {
+      localCache: isEmulatorMode
+        ? memoryLocalCache()
+        : persistentLocalCache({
+            tabManager: persistentMultipleTabManager(),
+          }),
+    });
+  } catch (err) {
+    // Caso initializeFirestore ja tenha sido chamado (HMR no dev), cai pro
+    // getFirestore que retorna a instancia ja inicializada.
+    console.warn('initializeFirestore falhou (provavelmente HMR), usando getFirestore:', err);
+    return getFirestore(app);
+  }
+};
+
+const db: Firestore = initDb();
+const storage: FirebaseStorage = getStorage(app);
 
 let emulatorsConnected = false;
 
